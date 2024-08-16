@@ -100,6 +100,7 @@ public class FineractProperties {
         private String readOnlyPassword;
         private String readOnlyParameters;
         private String readOnlyName;
+        private Boolean readOnlyHostDependentOnNodeId = false;
 
         private FineractConfigProperties config;
     }
