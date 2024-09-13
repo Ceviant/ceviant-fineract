@@ -45,7 +45,8 @@ public class CorrelationHeaderFilter extends OncePerRequestFilter {
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
             throws IOException, ServletException {
         FineractProperties.FineractCorrelationProperties correlationProperties = fineractProperties.getCorrelation();
-        if (correlationProperties.isEnabled()) {
+        FineractProperties.FineractCamelEventsProperties camel = fineractProperties.getEvents().getCamel();
+        if (correlationProperties.isEnabled() || camel.getJms().isEnabled()) {
             handleCorrelations(request, response, filterChain, correlationProperties);
         } else {
             filterChain.doFilter(request, response);
@@ -62,6 +63,10 @@ public class CorrelationHeaderFilter extends OncePerRequestFilter {
                 String escapedCorrelationId = LogParameterEscapeUtil.escapeLogMDCParameter(correlationId);
                 log.debug("Found correlationId in header : {}", escapedCorrelationId);
                 mdcWrapper.put(CORRELATION_ID_KEY, escapedCorrelationId);
+            } else {
+                String generatedCorrelationId = java.util.UUID.randomUUID().toString();
+                log.debug("Generated correlationId : {}", generatedCorrelationId);
+                mdcWrapper.put(CORRELATION_ID_KEY, generatedCorrelationId);
             }
             filterChain.doFilter(request, response);
         } finally {

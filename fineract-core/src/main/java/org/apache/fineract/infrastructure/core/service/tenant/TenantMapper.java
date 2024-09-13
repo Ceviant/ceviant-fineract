@@ -19,12 +19,11 @@
 
 package org.apache.fineract.infrastructure.core.service.tenant;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection;
 import org.springframework.jdbc.core.RowMapper;
@@ -50,9 +49,9 @@ public final class TenantMapper implements RowMapper<FineractPlatformTenant> {
             + " ts.master_password_hash as masterPasswordHash " + " from tenants t left join tenant_server_connections ts ";
     private final StringBuilder sqlBuilder = new StringBuilder(TENANT_SERVER_CONNECTION_BUILDER);
 
-    final ObjectMapper jsonObjectMapper =  new ObjectMapper();
+    final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
-    public TenantMapper(boolean isReport,boolean nodeDependentReadOnlyHost,String nodeId) {
+    public TenantMapper(boolean isReport, boolean nodeDependentReadOnlyHost, String nodeId) {
         this.isReport = isReport;
         this.nodeDependentReadOnlyHost = nodeDependentReadOnlyHost;
         this.nodeId = nodeId;
@@ -96,7 +95,7 @@ public final class TenantMapper implements RowMapper<FineractPlatformTenant> {
         String readOnlyServer = rs.getString("readOnlySchemaServer");
         final boolean isReadOnlyConnection = readOnlyServer != null && this.nodeDependentReadOnlyHost;
         String readOnlySchemaServer;
-        if(isReadOnlyConnection){
+        if (isReadOnlyConnection) {
             readOnlySchemaServer = validateAndGetReadOnlyHosts(readOnlyServer).get(nodeId).asText();
             schemaName = readOnlySchemaName;
             schemaServer = readOnlySchemaServer;
@@ -104,7 +103,7 @@ public final class TenantMapper implements RowMapper<FineractPlatformTenant> {
             schemaUsername = readOnlySchemaUsername;
             schemaPassword = readOnlySchemaPassword;
             schemaConnectionParameters = readOnlySchemaConnectionParameters;
-        }else{
+        } else {
             readOnlySchemaServer = readOnlyServer;
         }
 
@@ -132,14 +131,15 @@ public final class TenantMapper implements RowMapper<FineractPlatformTenant> {
     }
 
     public JsonNode validateAndGetReadOnlyHosts(String jsonString) {
-        if(Strings.isNullOrEmpty(jsonString)) {
-            throw new IllegalArgumentException("Invalid JSON string passed for read only database host configuration. String cannot be empty");
+        if (Strings.isNullOrEmpty(jsonString)) {
+            throw new IllegalArgumentException(
+                    "Invalid JSON string passed for read only database host configuration. String cannot be empty");
         }
 
         try {
             return jsonObjectMapper.readTree(jsonString);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid JSON string passed for read only database host configuration: " + jsonString,e);
+            throw new IllegalArgumentException("Invalid JSON string passed for read only database host configuration: " + jsonString, e);
         }
     }
 }

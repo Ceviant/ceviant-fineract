@@ -17,23 +17,23 @@
  * under the License.
  */
 
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.sse.service;
 
-import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
+import jakarta.ws.rs.sse.Sse;
+import jakarta.ws.rs.sse.SseEventSink;
+import org.apache.camel.Exchange;
 
-@Component
-public class MDCWrapper {
+public interface SseEmitterService {
 
-    public void put(String key, String val) {
-        MDC.put(key, val);
-    }
+    void sendEvent(String fingerPrint, String correlationId, String event);
 
-    public void remove(String key) {
-        MDC.remove(key);
-    }
+    void registerClient(SseEventSink emitter);
 
-    public String get(String key) {
-        return MDC.get(key);
-    }
+    void removeClient(String fingerPrint);
+
+    String sseFingerPrint(String userAgent, String ipAddress);
+
+    void init(Sse sse);
+
+    void cleanupOldConnections(Exchange exchange);
 }

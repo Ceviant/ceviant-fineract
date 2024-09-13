@@ -57,9 +57,7 @@ import org.apache.fineract.infrastructure.hooks.event.HookEventSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
 
-@Service
 @Slf4j
 @RequiredArgsConstructor
 public class SynchronousCommandProcessingService implements CommandProcessingService {

@@ -17,23 +17,19 @@
  * under the License.
  */
 
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.springbatch.messagehandler.jms;
 
-import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
-@Component
-public class MDCWrapper {
+public class JmsBrokerEnabledCondition implements Condition {
 
-    public void put(String key, String val) {
-        MDC.put(key, val);
-    }
-
-    public void remove(String key) {
-        MDC.remove(key);
-    }
-
-    public String get(String key) {
-        return MDC.get(key);
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        boolean messageHandler = Boolean
+                .parseBoolean(context.getEnvironment().getProperty("fineract.remote-job-message-handler.jms.enabled"));
+        boolean camel = Boolean.parseBoolean(context.getEnvironment().getProperty("fineract.events.camel.jms.enabled"));
+        return camel || messageHandler;
     }
 }

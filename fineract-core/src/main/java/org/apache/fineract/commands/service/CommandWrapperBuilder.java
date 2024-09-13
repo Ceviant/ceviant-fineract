@@ -19,6 +19,7 @@
 package org.apache.fineract.commands.service;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.List;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.infrastructure.accountnumberformat.service.AccountNumberFormatConstants;
 import org.apache.fineract.portfolio.client.api.ClientApiConstants;
@@ -52,19 +53,25 @@ public class CommandWrapperBuilder {
 
     private String reference;
 
+    private final List<String> asynchronousServices = List.of("CREATE-FIXEDDEPOSITACCOUNT", "CREATE-CLIENT", "DEPOSIT-SAVINGSACCOUNT",
+            "WITHDRAWAL-SAVINGSACCOUNT", "REVERSETRANSACTION-SAVINGSACCOUNT", "ADJUSTTRANSACTION-SAVINGSACCOUNT", "DISBURSALUNDO-LOAN",
+            "DISBURSETOSAVINGS-LOAN", "DISBURSE-LOAN", "CREATE-LOAN", "REPAYMENT-LOAN", "WAIVE-LOAN");
+
     @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD", justification = "TODO: fix this!")
     public CommandWrapper build() {
+        boolean isAsync = asynchronousServices.contains(getAsyncIndicator(this.actionName, this.entityName));
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
                 this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey, this.transactionAmount,
-                this.useRef, this.reference);
+                this.useRef, this.reference, isAsync);
     }
 
     public CommandWrapper build(String idempotencyKey) {
+        boolean isAsync = asynchronousServices.contains(getAsyncIndicator(this.actionName, this.entityName));
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
                 this.creditBureauId, this.organisationCreditBureauId, this.jobName, idempotencyKey, this.transactionAmount, this.useRef,
-                this.reference);
+                this.reference, isAsync);
     }
 
     public CommandWrapperBuilder updateCreditBureau() {
@@ -3767,4 +3774,7 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    private String getAsyncIndicator(final String actionName, final String entityName) {
+        return actionName + "-" + entityName;
+    }
 }

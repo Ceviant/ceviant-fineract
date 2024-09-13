@@ -272,6 +272,7 @@ public class FineractProperties {
     public static class FineractEventsProperties {
 
         private FineractExternalEventsProperties external;
+        private FineractCamelEventsProperties camel;
     }
 
     @Getter
@@ -293,10 +294,46 @@ public class FineractProperties {
 
     @Getter
     @Setter
+    public static class FineractCamelEventsProperties {
+
+        private FineractCamelJmsProperties jms;
+        private FineractCamelEventsProducerProperties producer;
+        private int partitionSize;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelJmsProperties {
+
+        private boolean enabled;
+        private String queueSystem;
+        private FineractCamelJmsAsyncProperties async;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelJmsAsyncProperties {
+
+        private boolean enabled;
+        private String requestQueueName;
+        private String resultQueueName;
+        private String errorQueueName;
+        private int maxRequestConcurrentConsumers;
+    }
+
+    @Getter
+    @Setter
     public static class FineractExternalEventsProducerProperties {
 
         private FineractExternalEventsProducerJmsProperties jms;
         private FineractExternalEventsProducerKafkaProperties kafka;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsProducerProperties {
+
+        private FineractCamelEventsProducerJmsProperties jms;
     }
 
     @Getter
@@ -317,6 +354,28 @@ public class FineractProperties {
         public boolean isBrokerPasswordProtected() {
             return StringUtils.isNotBlank(brokerUsername) || StringUtils.isNotBlank(brokerPassword);
         }
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsProducerJmsProperties {
+
+        private boolean enabled;
+        private int producerCount;
+        private int threadPoolTaskExecutorCorePoolSize;
+        private int threadPoolTaskExecutorMaxPoolSize;
+        private String sseTopicName;
+
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsQueueCommandProperties {
+
+        private String requestQueueName;
+        private String resultQueueName;
+        private int maxConcurrentConsumers;
+        private boolean enabled;
     }
 
     @Getter

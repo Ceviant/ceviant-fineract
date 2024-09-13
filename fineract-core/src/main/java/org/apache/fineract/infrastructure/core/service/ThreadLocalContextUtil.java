@@ -37,6 +37,8 @@ public final class ThreadLocalContextUtil {
     private static final ThreadLocal<String> authTokenContext = new ThreadLocal<>();
     private static final ThreadLocal<HashMap<BusinessDateType, LocalDate>> businessDateContext = new ThreadLocal<>();
     private static final ThreadLocal<ActionContext> actionContext = new ThreadLocal<>();
+    private static final ThreadLocal<String> userAgent = new ThreadLocal<>();
+    private static final ThreadLocal<String> ipAddress = new ThreadLocal<>();
 
     private ThreadLocalContextUtil() {}
 
@@ -104,6 +106,22 @@ public final class ThreadLocalContextUtil {
         actionContext.set(context);
     }
 
+    public static String getClientIpAddr() {
+        return ipAddress.get();
+    }
+
+    public static void setIpAddress(final String ipAddress) {
+        ThreadLocalContextUtil.ipAddress.set(ipAddress);
+    }
+
+    public static String getClientUserAgent() {
+        return userAgent.get();
+    }
+
+    public static void setUserAgent(final String userAgent) {
+        ThreadLocalContextUtil.userAgent.set(userAgent);
+    }
+
     public static FineractContext getContext() {
         return new FineractContext(getDataSourceContext(), getTenant(), getAuthToken(), getBusinessDates(), getActionContext());
     }
@@ -123,5 +141,7 @@ public final class ThreadLocalContextUtil {
         authTokenContext.remove();
         businessDateContext.remove();
         actionContext.remove();
+        ipAddress.remove();
+        userAgent.remove();
     }
 }
