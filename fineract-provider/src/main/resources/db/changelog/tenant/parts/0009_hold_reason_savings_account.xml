@@ -32,6 +32,38 @@
             <column name="reason_for_block" type="VARCHAR(256)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="fix_m_code_can-is_system_defined" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE m_code ADD COLUMN temp_is_system_defined SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_code
+            SET temp_is_system_defined = is_system_defined where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_code ALTER COLUMN is_system_defined DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_code
+            ALTER COLUMN is_system_defined TYPE BOOLEAN
+            USING CASE
+            WHEN is_system_defined = 0 THEN false
+            WHEN is_system_defined = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_code
+            SET is_system_defined = CASE
+            WHEN temp_is_system_defined = 0 THEN false
+            WHEN temp_is_system_defined = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_code DROP COLUMN temp_is_system_defined;
+        </sql>
+
+    </changeSet>
+
     <changeSet author="fineract" id="3">
         <insert tableName="m_code">
             <column name="code_name" value="SavingsAccountBlockReasons"/>

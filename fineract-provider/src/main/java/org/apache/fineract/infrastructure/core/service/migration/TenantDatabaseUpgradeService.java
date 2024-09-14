@@ -160,17 +160,17 @@ public class TenantDatabaseUpgradeService implements InitializingBean {
 
     private void applyInitialLiquibase(DataSource dataSource, ExtendedSpringLiquibase liquibase, String id,
             Function<DataSource, Boolean> isUpgradableFn) throws LiquibaseException {
-        if (databaseStateVerifier.isFlywayPresent(dataSource)) {
-            if (isUpgradableFn.apply(dataSource)) {
-                log.error("Cannot proceed with upgrading database {}", id);
-                log.error("It seems the database doesn't have the latest schema changes applied until the 1.6 release");
-                throw new SchemaUpgradeNeededException("Make sure to upgrade to Fineract 1.6 first and then to a newer version");
-            }
-            log.info("This is the first Liquibase migration for {}. We'll sync the changelog for you and then apply everything else", id);
+//        if (databaseStateVerifier.isFlywayPresent(dataSource)) {
+//            if (isUpgradableFn.apply(dataSource)) {
+//                log.error("Cannot proceed with upgrading database {}", id);
+//                log.error("It seems the database doesn't have the latest schema changes applied until the 1.6 release");
+//                throw new SchemaUpgradeNeededException("Make sure to upgrade to Fineract 1.6 first and then to a newer version");
+//            }
+//            log.info("This is the first Liquibase migration for {}. We'll sync the changelog for you and then apply everything else", id);
             liquibase.changeLogSync();
-            log.info("Liquibase changelog sync is complete");
-        } else {
-            liquibase.afterPropertiesSet();
-        }
+//            log.info("Liquibase changelog sync is complete");
+//        } else {
+//            liquibase.afterPropertiesSet();
+//        }
     }
 }
