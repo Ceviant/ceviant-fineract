@@ -132,6 +132,100 @@
             <column name="report_parameter_name" value="toDate"/>
         </insert>
     </changeSet>
+    <changeSet id="fix_stretchy_report_can-core_report" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE stretchy_report ADD COLUMN temp_core_report SMALLINT;
+        </sql>
+        <sql>
+            UPDATE stretchy_report
+            SET temp_core_report = core_report where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report ALTER COLUMN core_report DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report
+            ALTER COLUMN core_report TYPE BOOLEAN
+            USING CASE
+            WHEN core_report = 0 THEN false
+            WHEN core_report = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE stretchy_report
+            SET core_report = CASE
+            WHEN temp_core_report = 0 THEN false
+            WHEN temp_core_report = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report DROP COLUMN temp_core_report;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_stretchy_report_can-use_report" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE stretchy_report ADD COLUMN temp_use_report SMALLINT;
+        </sql>
+        <sql>
+            UPDATE stretchy_report
+            SET temp_use_report = use_report where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report ALTER COLUMN use_report DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report
+            ALTER COLUMN use_report TYPE BOOLEAN
+            USING CASE
+            WHEN use_report = 0 THEN false
+            WHEN use_report = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE stretchy_report
+            SET use_report = CASE
+            WHEN temp_use_report = 0 THEN false
+            WHEN temp_use_report = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report DROP COLUMN temp_use_report;
+        </sql>
+
+    </changeSet>
+
+    <changeSet id="fix_stretchy_report_can-self_service_user_report" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE stretchy_report ADD COLUMN temp_self_service_user_report SMALLINT;
+        </sql>
+        <sql>
+            UPDATE stretchy_report
+            SET temp_self_service_user_report = self_service_user_report where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report ALTER COLUMN self_service_user_report DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report
+            ALTER COLUMN self_service_user_report TYPE BOOLEAN
+            USING CASE
+            WHEN self_service_user_report = 0 THEN false
+            WHEN self_service_user_report = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE stretchy_report
+            SET self_service_user_report = CASE
+            WHEN temp_self_service_user_report = 0 THEN false
+            WHEN temp_self_service_user_report = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE stretchy_report DROP COLUMN temp_self_service_user_report;
+        </sql>
+
+    </changeSet>
 
     <changeSet author="fineract" id="1-postgresql" context="postgresql">
         <insert tableName="stretchy_report">

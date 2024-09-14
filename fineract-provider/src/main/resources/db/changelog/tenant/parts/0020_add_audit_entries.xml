@@ -81,12 +81,12 @@
                                  onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id"
                                  referencedTableName="m_appuser" validate="true"/>
     </changeSet>
-    <changeSet id="6" author="fineract">
-        <dropForeignKeyConstraint baseTableName="m_loan" constraintName="FK_submittedon_userid"/>
-        <dropColumn tableName="m_loan">
-            <column name="submittedon_userid"/>
-        </dropColumn>
-    </changeSet>
+<!--    <changeSet id="6" author="fineract">-->
+<!--        <dropForeignKeyConstraint baseTableName="m_loan" constraintName="FK_submittedon_userid"/>-->
+<!--        <dropColumn tableName="m_loan">-->
+<!--            <column name="submittedon_userid"/>-->
+<!--        </dropColumn>-->
+<!--    </changeSet>-->
     <!-- Loan transactions -->
     <changeSet author="fineract" id="7" context="mysql">
         <addColumn tableName="m_loan_transaction">

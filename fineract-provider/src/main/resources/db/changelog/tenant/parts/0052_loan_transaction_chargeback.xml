@@ -113,6 +113,39 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="fix_m_payment_type_can-is_cash_payment" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE m_payment_type ADD COLUMN temp_is_cash_payment SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_payment_type
+            SET temp_is_cash_payment = is_cash_payment where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_payment_type ALTER COLUMN is_cash_payment DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_payment_type
+            ALTER COLUMN is_cash_payment TYPE BOOLEAN
+            USING CASE
+            WHEN is_cash_payment = 0 THEN false
+            WHEN is_cash_payment = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_payment_type
+            SET is_cash_payment = CASE
+            WHEN temp_is_cash_payment = 0 THEN false
+            WHEN temp_is_cash_payment = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_payment_type DROP COLUMN temp_is_cash_payment;
+        </sql>
+
+    </changeSet>
+
     <changeSet author="fineract" id="5">
         <insert tableName="m_payment_type">
             <column name="value" value="Repayment Adjustment Chargeback"/>
