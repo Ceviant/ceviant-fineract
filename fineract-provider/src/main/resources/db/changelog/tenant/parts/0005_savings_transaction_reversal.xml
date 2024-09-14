@@ -54,7 +54,15 @@
         </sql>
 
     </changeSet>
-    <changeSet author="fineract" id="1">
+    <changeSet author="fineract" id="1-add-column-original-tx-id-and-reversal">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_savings_account_transaction" columnName="original_transaction_id"/>
+            </not>
+            <not>
+                <columnExists tableName="m_savings_account_transaction" columnName="is_reversal"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_savings_account_transaction">
             <column name="original_transaction_id" type="BIGINT"/>
             <column name="is_reversal" type="BOOLEAN" defaultValueBoolean="false">
@@ -62,7 +70,14 @@
             </column>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="2">
+    <changeSet author="fineract" id="2234">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM m_permission WHERE code = 'REVERSETRANSACTION_SAVINGSACCOUNT'
+                </sqlCheck>
+            </not>
+        </preConditions>
         <insert tableName="m_permission">
             <column name="grouping" value="transaction_savings"/>
             <column name="code" value="REVERSETRANSACTION_SAVINGSACCOUNT"/>
@@ -70,6 +85,15 @@
             <column name="action_name" value="REVERSETRANSACTION"/>
             <column name="can_maker_checker" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="26534">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM m_permission WHERE code = 'REVERSETRANSACTION_SAVINGSACCOUNT_CHECKER'
+                </sqlCheck>
+            </not>
+        </preConditions>
         <insert tableName="m_permission">
             <column name="grouping" value="transaction_savings"/>
             <column name="code" value="REVERSETRANSACTION_SAVINGSACCOUNT_CHECKER"/>

@@ -2671,48 +2671,48 @@
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
     </changeSet>
-    <changeSet author="fineract" id="3-postgresql" context="postgresql">
-        <sql>
-            SELECT SETVAL('c_cache_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_cache;
-            SELECT SETVAL('c_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_configuration;
-            SELECT SETVAL('c_external_service_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_external_service;
-            SELECT SETVAL('job_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job;
-            SELECT SETVAL('job_parameters_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job_parameters;
-            SELECT SETVAL('m_appuser_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_appuser;
-            SELECT SETVAL('m_code_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code;
-            SELECT SETVAL('m_code_value_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code_value;
-            SELECT SETVAL('m_creditbureau_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau;
-            SELECT SETVAL('m_creditbureau_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau_configuration;
-            SELECT SETVAL('m_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_currency;
-            SELECT SETVAL('m_entity_relation_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_entity_relation;
-            SELECT SETVAL('m_field_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_field_configuration;
-            SELECT SETVAL('m_group_level_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_group_level;
-            SELECT SETVAL('m_hook_schema_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_schema;
-            SELECT SETVAL('m_hook_templates_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_templates;
-            SELECT SETVAL('m_office_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_office;
-            SELECT SETVAL('m_organisation_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_organisation_currency;
-            SELECT SETVAL('m_password_validation_policy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_password_validation_policy;
-            SELECT SETVAL('m_payment_type_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_payment_type;
-            SELECT SETVAL('m_permission_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_permission;
-            SELECT SETVAL('m_provision_category_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_provision_category;
-            SELECT SETVAL('m_report_mailing_job_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_report_mailing_job_configuration;
-            SELECT SETVAL('m_role_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_role;
-            SELECT SETVAL('m_working_days_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_working_days;
-            SELECT SETVAL('mix_taxonomy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy;
-            SELECT SETVAL('mix_taxonomy_mapping_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy_mapping;
-            SELECT SETVAL('mix_xbrl_namespace_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_xbrl_namespace;
-            SELECT SETVAL('ppi_scores_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ppi_scores;
-            SELECT SETVAL('ref_loan_transaction_processing_strategy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ref_loan_transaction_processing_strategy;
-            SELECT SETVAL('scheduled_email_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduled_email_configuration;
-            SELECT SETVAL('scheduler_detail_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduler_detail;
-            SELECT SETVAL('topic_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic;
-            SELECT SETVAL('topic_subscriber_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic_subscriber;
-            SELECT SETVAL('stretchy_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_parameter;
-            SELECT SETVAL('stretchy_report_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report;
-            SELECT SETVAL('stretchy_report_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report_parameter;
-            SELECT SETVAL('twofactor_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM twofactor_configuration;
-        </sql>
-    </changeSet>
+<!--    <changeSet author="fineract" id="3-postgresql" context="postgresql">-->
+<!--        <sql>-->
+<!--            SELECT SETVAL('c_cache_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_cache;-->
+<!--            SELECT SETVAL('c_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_configuration;-->
+<!--            SELECT SETVAL('c_external_service_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_external_service;-->
+<!--            SELECT SETVAL('job_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job;-->
+<!--            SELECT SETVAL('job_parameters_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job_parameters;-->
+<!--            SELECT SETVAL('m_appuser_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_appuser;-->
+<!--            SELECT SETVAL('m_code_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code;-->
+<!--            SELECT SETVAL('m_code_value_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code_value;-->
+<!--            SELECT SETVAL('m_creditbureau_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau;-->
+<!--            SELECT SETVAL('m_creditbureau_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau_configuration;-->
+<!--            SELECT SETVAL('m_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_currency;-->
+<!--            SELECT SETVAL('m_entity_relation_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_entity_relation;-->
+<!--            SELECT SETVAL('m_field_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_field_configuration;-->
+<!--            SELECT SETVAL('m_group_level_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_group_level;-->
+<!--            SELECT SETVAL('m_hook_schema_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_schema;-->
+<!--            SELECT SETVAL('m_hook_templates_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_templates;-->
+<!--            SELECT SETVAL('m_office_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_office;-->
+<!--            SELECT SETVAL('m_organisation_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_organisation_currency;-->
+<!--            SELECT SETVAL('m_password_validation_policy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_password_validation_policy;-->
+<!--            SELECT SETVAL('m_payment_type_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_payment_type;-->
+<!--            SELECT SETVAL('m_permission_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_permission;-->
+<!--            SELECT SETVAL('m_provision_category_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_provision_category;-->
+<!--            SELECT SETVAL('m_report_mailing_job_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_report_mailing_job_configuration;-->
+<!--            SELECT SETVAL('m_role_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_role;-->
+<!--            SELECT SETVAL('m_working_days_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_working_days;-->
+<!--            SELECT SETVAL('mix_taxonomy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy;-->
+<!--            SELECT SETVAL('mix_taxonomy_mapping_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy_mapping;-->
+<!--            SELECT SETVAL('mix_xbrl_namespace_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_xbrl_namespace;-->
+<!--            SELECT SETVAL('ppi_scores_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ppi_scores;-->
+<!--            SELECT SETVAL('ref_loan_transaction_processing_strategy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ref_loan_transaction_processing_strategy;-->
+<!--            SELECT SETVAL('scheduled_email_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduled_email_configuration;-->
+<!--            SELECT SETVAL('scheduler_detail_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduler_detail;-->
+<!--            SELECT SETVAL('topic_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic;-->
+<!--            SELECT SETVAL('topic_subscriber_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic_subscriber;-->
+<!--            SELECT SETVAL('stretchy_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_parameter;-->
+<!--            SELECT SETVAL('stretchy_report_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report;-->
+<!--            SELECT SETVAL('stretchy_report_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report_parameter;-->
+<!--            SELECT SETVAL('twofactor_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM twofactor_configuration;-->
+<!--        </sql>-->
+<!--    </changeSet>-->
     <changeSet author="fineract" id="883-postgresql" context="postgresql">
         <addForeignKeyConstraint baseColumnNames="report_id" baseTableName="stretchy_report_parameter"
                                  constraintName="fk_report_parameter_001" deferrable="false" initiallyDeferred="false"
