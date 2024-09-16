@@ -23,7 +23,12 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
 
-    <changeSet id="1" author="fineract" context="postgresql">
+    <changeSet id="11" author="fineract" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_portfolio_command_source" columnName="processing_result_enum"/>
+            </not>
+        </preConditions>
         <renameColumn newColumnName="status"
                        oldColumnName="processing_result_enum"
                        tableName="m_portfolio_command_source"/>

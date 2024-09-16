@@ -34,6 +34,11 @@
         </addColumn>
     </changeSet>
     <changeSet author="fineract" id="2-postgresql" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_external_event" columnName="data"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_external_event">
             <column name="data" type="BYTEA">
                 <constraints nullable="false"/>

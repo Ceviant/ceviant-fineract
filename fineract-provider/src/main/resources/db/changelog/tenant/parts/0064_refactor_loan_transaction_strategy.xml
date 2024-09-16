@@ -20,7 +20,12 @@
 
 -->
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
-    <changeSet author="fineract" id="11">
+    <changeSet author="fineract" id="111">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_loan" columnName="loan_transaction_strategy_code"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_loan">
             <column defaultValue="-" name="loan_transaction_strategy_code" type="VARCHAR(100)">
                 <constraints nullable="false"/>
@@ -69,7 +74,12 @@
         <dropColumn tableName="m_loan_product" columnName="loan_transaction_strategy_id" />
         -->
     </changeSet>
-    <changeSet author="fineract" id="22">
+    <changeSet author="fineract" id="221">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_product_loan" columnName="loan_transaction_strategy_code"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_product_loan">
             <column defaultValue="-" name="loan_transaction_strategy_code" type="VARCHAR(100)">
                 <constraints nullable="false"/>

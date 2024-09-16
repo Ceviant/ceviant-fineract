@@ -31,7 +31,7 @@
     <changeSet author="fineract" id="portfolio_command_source-11" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="m_portfolio_command_source" columnName="created_on_utc"/>
+                <columnExists tableName="m_portfolio_command_source" columnName="made_on_date_utc"/>
             </not>
         </preConditions>
         <addColumn tableName="m_portfolio_command_source">

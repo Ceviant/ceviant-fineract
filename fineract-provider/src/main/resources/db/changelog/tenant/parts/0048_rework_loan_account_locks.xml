@@ -41,7 +41,7 @@
     <changeSet author="fineract" id="101" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="m_loan_account_locks" columnName="created_on_utc"/>
+                <columnExists tableName="m_loan_account_locks" columnName="lock_placed_on"/>
             </not>
         </preConditions>
         <addColumn tableName="m_loan_account_locks">
