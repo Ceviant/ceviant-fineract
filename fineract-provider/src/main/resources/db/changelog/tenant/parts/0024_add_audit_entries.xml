@@ -32,7 +32,7 @@
         <addNotNullConstraint tableName="m_client" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_client" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
-    <changeSet id="client-4" author="fineract" context="postgresql">
+    <changeSet id="client-41" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_client</sqlCheck>
         </preConditions>
@@ -51,7 +51,7 @@
         <addNotNullConstraint tableName="m_loan" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_loan" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
-    <changeSet id="loan-7" author="fineract" context="postgresql">
+    <changeSet id="loan-71" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_loan</sqlCheck>
         </preConditions>
@@ -61,7 +61,7 @@
         <addNotNullConstraint tableName="m_loan" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
     <!-- Loan transactions -->
-    <changeSet id="loan-transaction-13" author="fineract" context="mysql">
+    <changeSet id="loan-transaction-131" author="fineract" context="mysql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_loan_transaction</sqlCheck>
         </preConditions>
@@ -70,7 +70,7 @@
         <addNotNullConstraint tableName="m_loan_transaction" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_loan_transaction" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
-    <changeSet id="loan-transaction-13" author="fineract" context="postgresql">
+    <changeSet id="loan-transaction-131" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_loan_transaction</sqlCheck>
         </preConditions>
@@ -88,7 +88,12 @@
             <column name="last_modified_on_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="client-transaction-1" context="postgresql">
+    <changeSet author="fineract" id="client-transaction-112" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_client_transaction" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_client_transaction">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="created_by" type="BIGINT" valueComputed="appuser_id"/>
@@ -128,7 +133,7 @@
         <addNotNullConstraint tableName="m_client_transaction" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_client_transaction" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
-    <changeSet id="client-transaction-5" author="fineract" context="postgresql">
+    <changeSet id="client-transaction-51" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_client_transaction</sqlCheck>
         </preConditions>
@@ -147,7 +152,12 @@
             <column name="last_modified_on_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="floating-rate-1" context="postgresql">
+    <changeSet author="fineract" id="floating-rate-12" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_floating_rates" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_floating_rates">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="last_modified_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
@@ -176,7 +186,7 @@
         <addNotNullConstraint tableName="m_floating_rates" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_floating_rates" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
-    <changeSet id="floating-rate-4" author="fineract" context="postgresql">
+    <changeSet id="floating-rate-41" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_client_transaction</sqlCheck>
         </preConditions>
@@ -196,7 +206,12 @@
             <column name="last_modified_on_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="floating-rate-period-1" context="postgresql">
+    <changeSet author="fineract" id="floating-rate-period-11" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_floating_rates_periods" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_floating_rates_periods">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="last_modified_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
@@ -225,7 +240,7 @@
         <addNotNullConstraint tableName="m_floating_rates_periods" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_floating_rates_periods" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
-    <changeSet id="floating-rate-period-4" author="fineract" context="postgresql">
+    <changeSet id="floating-rate-period-41" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_floating_rates_periods</sqlCheck>
         </preConditions>

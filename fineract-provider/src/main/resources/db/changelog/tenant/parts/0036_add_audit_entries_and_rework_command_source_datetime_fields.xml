@@ -28,7 +28,12 @@
             <column name="checked_on_date_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="portfolio_command_source-1" context="postgresql">
+    <changeSet author="fineract" id="portfolio_command_source-11" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_portfolio_command_source" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_portfolio_command_source">
             <column name="made_on_date_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="checked_on_date_utc" type="TIMESTAMP WITH TIME ZONE"/>
@@ -43,7 +48,7 @@
         </preConditions>
         <addNotNullConstraint tableName="m_portfolio_command_source" columnName="made_on_date_utc" columnDataType="DATETIME"/>
     </changeSet>
-    <changeSet id="portfolio_command_source-3" author="fineract" context="postgresql">
+    <changeSet id="portfolio_command_source-31" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_portfolio_command_source</sqlCheck>
         </preConditions>
