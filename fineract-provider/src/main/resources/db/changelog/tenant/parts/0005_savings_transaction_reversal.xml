@@ -23,7 +23,15 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
 
-    <changeSet id="fix_m_permission_can-checker-maker" author="bosco@fiter.io">
+    <changeSet id="fix_m_permission_can-checker-maker" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_permission'
+                AND column_name = 'can_maker_checker'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE m_permission ADD COLUMN temp_can_maker_checker SMALLINT;
         </sql>

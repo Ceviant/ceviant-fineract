@@ -2713,13 +2713,23 @@
 <!--            SELECT SETVAL('twofactor_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM twofactor_configuration;-->
 <!--        </sql>-->
 <!--    </changeSet>-->
-    <changeSet author="fineract" id="883-postgresql" context="postgresql">
+    <changeSet author="fineract" id="883-postgresql-1" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_report_parameter_001"/>
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="report_id" baseTableName="stretchy_report_parameter"
                                  constraintName="fk_report_parameter_001" deferrable="false" initiallyDeferred="false"
                                  onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id"
                                  referencedTableName="stretchy_report" validate="true"/>
     </changeSet>
-    <changeSet author="fineract" id="884-postgresql" context="postgresql">
+    <changeSet author="fineract" id="884-postgresql-112" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_report_parameter_002"/>
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="parameter_id" baseTableName="stretchy_report_parameter"
                                  constraintName="fk_report_parameter_002" deferrable="false" initiallyDeferred="false"
                                  onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id"
