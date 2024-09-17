@@ -22,5 +22,1022 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="fix_m_appuser_column-is_deleted" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'is_deleted'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_is_deleted SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_is_deleted = is_deleted where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN is_deleted DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN is_deleted TYPE BOOLEAN
+            USING CASE
+            WHEN is_deleted = 0 THEN false
+            WHEN is_deleted = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET is_deleted = CASE
+            WHEN temp_is_deleted = 0 THEN false
+            WHEN temp_is_deleted = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_is_deleted;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-firsttime_login_remaining" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'firsttime_login_remaining'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_firsttime_login_remaining bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_firsttime_login_remaining = firsttime_login_remaining WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN firsttime_login_remaining DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN firsttime_login_remaining TYPE BOOLEAN
+            USING CASE
+            WHEN firsttime_login_remaining = '0' THEN false
+            WHEN firsttime_login_remaining = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET firsttime_login_remaining = CASE
+            WHEN temp_firsttime_login_remaining = '0' THEN false
+            WHEN temp_firsttime_login_remaining = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_firsttime_login_remaining;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-nonexpired" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'nonexpired'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_nonexpired bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_nonexpired = nonexpired WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN nonexpired DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN nonexpired TYPE BOOLEAN
+            USING CASE
+            WHEN nonexpired = '0' THEN false
+            WHEN nonexpired = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET nonexpired = CASE
+            WHEN temp_nonexpired = '0' THEN false
+            WHEN temp_nonexpired = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_nonexpired;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-nonlocked" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'nonlocked'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_nonlocked bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_nonlocked = nonlocked WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN nonlocked DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN nonlocked TYPE BOOLEAN
+            USING CASE
+            WHEN nonlocked = '0' THEN false
+            WHEN nonlocked = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET nonlocked = CASE
+            WHEN temp_nonlocked = '0' THEN false
+            WHEN temp_nonlocked = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_nonlocked;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-nonexpired_credentials" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'nonexpired_credentials'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_nonexpired_credentials bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_nonexpired_credentials = nonexpired_credentials WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN nonexpired_credentials DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN nonexpired_credentials TYPE BOOLEAN
+            USING CASE
+            WHEN nonexpired_credentials = '0' THEN false
+            WHEN nonexpired_credentials = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET nonexpired_credentials = CASE
+            WHEN temp_nonexpired_credentials = '0' THEN false
+            WHEN temp_nonexpired_credentials = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_nonexpired_credentials;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-enabled" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'enabled'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_enabled bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_enabled = enabled WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN enabled DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN enabled TYPE BOOLEAN
+            USING CASE
+            WHEN enabled = '0' THEN false
+            WHEN enabled = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET enabled = CASE
+            WHEN temp_enabled = '0' THEN false
+            WHEN temp_enabled = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_enabled;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-password_never_expires" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'password_never_expires'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_password_never_expires SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_password_never_expires = password_never_expires where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN password_never_expires DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN password_never_expires TYPE BOOLEAN
+            USING CASE
+            WHEN password_never_expires = 0 THEN false
+            WHEN password_never_expires = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET password_never_expires = CASE
+            WHEN temp_password_never_expires = 0 THEN false
+            WHEN temp_password_never_expires = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_password_never_expires;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-is_self_service_user" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'is_self_service_user'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_is_self_service_user bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_is_self_service_user = is_self_service_user WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN is_self_service_user DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN is_self_service_user TYPE BOOLEAN
+            USING CASE
+            WHEN is_self_service_user = '0' THEN false
+            WHEN is_self_service_user = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET is_self_service_user = CASE
+            WHEN temp_is_self_service_user = '0' THEN false
+            WHEN temp_is_self_service_user = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_is_self_service_user;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_appuser_column-cannot_change_password" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_appuser'
+                AND column_name = 'cannot_change_password'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_appuser ADD COLUMN temp_cannot_change_password SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET temp_cannot_change_password = cannot_change_password where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser ALTER COLUMN cannot_change_password DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser
+            ALTER COLUMN cannot_change_password TYPE BOOLEAN
+            USING CASE
+            WHEN cannot_change_password = 0 THEN false
+            WHEN cannot_change_password = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_appuser
+            SET cannot_change_password = CASE
+            WHEN temp_cannot_change_password = 0 THEN false
+            WHEN temp_cannot_change_password = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_appuser DROP COLUMN temp_cannot_change_password;
+        </sql>
+
+    </changeSet>
+
+    <changeSet id="fix_m_client_column-is_staff" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_client'
+                AND column_name = 'is_staff'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_client ADD COLUMN temp_is_staff SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_client
+            SET temp_is_staff = is_staff where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_client ALTER COLUMN is_staff DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_client
+            ALTER COLUMN is_staff TYPE BOOLEAN
+            USING CASE
+            WHEN is_staff = 0 THEN false
+            WHEN is_staff = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_client
+            SET is_staff = CASE
+            WHEN temp_is_staff = 0 THEN false
+            WHEN temp_is_staff = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_client DROP COLUMN temp_is_staff;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_accounting_rule_column-allow_multiple_debits" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_accounting_rule'
+                AND column_name = 'allow_multiple_debits'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_accounting_rule ADD COLUMN temp_allow_multiple_debits SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_accounting_rule
+            SET temp_allow_multiple_debits = allow_multiple_debits where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule ALTER COLUMN allow_multiple_debits DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule
+            ALTER COLUMN allow_multiple_debits TYPE BOOLEAN
+            USING CASE
+            WHEN allow_multiple_debits = 0 THEN false
+            WHEN allow_multiple_debits = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_accounting_rule
+            SET allow_multiple_debits = CASE
+            WHEN temp_allow_multiple_debits = 0 THEN false
+            WHEN temp_allow_multiple_debits = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule DROP COLUMN temp_allow_multiple_debits;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_accounting_rule_column-allow_multiple_credits" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_accounting_rule'
+                AND column_name = 'allow_multiple_credits'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_accounting_rule ADD COLUMN temp_allow_multiple_credits SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_accounting_rule
+            SET temp_allow_multiple_credits = allow_multiple_credits where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule ALTER COLUMN allow_multiple_credits DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule
+            ALTER COLUMN allow_multiple_credits TYPE BOOLEAN
+            USING CASE
+            WHEN allow_multiple_credits = 0 THEN false
+            WHEN allow_multiple_credits = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_accounting_rule
+            SET allow_multiple_credits = CASE
+            WHEN temp_allow_multiple_credits = 0 THEN false
+            WHEN temp_allow_multiple_credits = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule DROP COLUMN temp_allow_multiple_credits;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_accounting_rule_column-system_defined" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_accounting_rule'
+                AND column_name = 'system_defined'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_accounting_rule ADD COLUMN temp_system_defined SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_accounting_rule
+            SET temp_system_defined = system_defined where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule ALTER COLUMN system_defined DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule
+            ALTER COLUMN system_defined TYPE BOOLEAN
+            USING CASE
+            WHEN system_defined = 0 THEN false
+            WHEN system_defined = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_accounting_rule
+            SET system_defined = CASE
+            WHEN temp_system_defined = 0 THEN false
+            WHEN temp_system_defined = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_accounting_rule DROP COLUMN temp_system_defined;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_account_column-disabled" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_account'
+                AND column_name = 'disabled'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_account ADD COLUMN temp_disabled SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET temp_disabled = disabled where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account ALTER COLUMN disabled DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account
+            ALTER COLUMN disabled TYPE BOOLEAN
+            USING CASE
+            WHEN disabled = 0 THEN false
+            WHEN disabled = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET disabled = CASE
+            WHEN temp_disabled = 0 THEN false
+            WHEN temp_disabled = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account DROP COLUMN temp_disabled;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_account_column-manual_journal_entries_allowed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_account'
+                AND column_name = 'manual_journal_entries_allowed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_account ADD COLUMN temp_manual_journal_entries_allowed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET temp_manual_journal_entries_allowed = manual_journal_entries_allowed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account ALTER COLUMN manual_journal_entries_allowed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account
+            ALTER COLUMN manual_journal_entries_allowed TYPE BOOLEAN
+            USING CASE
+            WHEN manual_journal_entries_allowed = 0 THEN false
+            WHEN manual_journal_entries_allowed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET manual_journal_entries_allowed = CASE
+            WHEN temp_manual_journal_entries_allowed = 0 THEN false
+            WHEN temp_manual_journal_entries_allowed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account DROP COLUMN temp_manual_journal_entries_allowed;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_account_column-account_usage" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_account'
+                AND column_name = 'account_usage'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_account ADD COLUMN temp_account_usage SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET temp_account_usage = account_usage where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account ALTER COLUMN account_usage DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account
+            ALTER COLUMN account_usage TYPE BOOLEAN
+            USING CASE
+            WHEN account_usage = 0 THEN false
+            WHEN account_usage = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET account_usage = CASE
+            WHEN temp_account_usage = 0 THEN false
+            WHEN temp_account_usage = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account DROP COLUMN temp_account_usage;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_account_column-classification_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_account'
+                AND column_name = 'classification_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_account ADD COLUMN temp_classification_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET temp_classification_enum = classification_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account ALTER COLUMN classification_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account
+            ALTER COLUMN classification_enum TYPE BOOLEAN
+            USING CASE
+            WHEN classification_enum = 0 THEN false
+            WHEN classification_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_account
+            SET classification_enum = CASE
+            WHEN temp_classification_enum = 0 THEN false
+            WHEN temp_classification_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_account DROP COLUMN temp_classification_enum;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_financial_activity_account_column-financial_activity_type" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_financial_activity_account'
+                AND column_name = 'financial_activity_type'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_financial_activity_account ADD COLUMN temp_financial_activity_type SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_financial_activity_account
+            SET temp_financial_activity_type = financial_activity_type where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_financial_activity_account ALTER COLUMN financial_activity_type DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_financial_activity_account
+            ALTER COLUMN financial_activity_type TYPE BOOLEAN
+            USING CASE
+            WHEN financial_activity_type = 0 THEN false
+            WHEN financial_activity_type = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_financial_activity_account
+            SET financial_activity_type = CASE
+            WHEN temp_financial_activity_type = 0 THEN false
+            WHEN temp_financial_activity_type = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_financial_activity_account DROP COLUMN temp_financial_activity_type;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_journal_entry_column-reversed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_journal_entry'
+                AND column_name = 'reversed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ADD COLUMN temp_reversed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET temp_reversed = reversed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ALTER COLUMN reversed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry
+            ALTER COLUMN reversed TYPE BOOLEAN
+            USING CASE
+            WHEN reversed = 0 THEN false
+            WHEN reversed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET reversed = CASE
+            WHEN temp_reversed = 0 THEN false
+            WHEN temp_reversed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry DROP COLUMN temp_reversed;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_journal_entry_column-manual_entry" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_journal_entry'
+                AND column_name = 'manual_entry'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ADD COLUMN temp_manual_entry SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET temp_manual_entry = manual_entry where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ALTER COLUMN manual_entry DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry
+            ALTER COLUMN manual_entry TYPE BOOLEAN
+            USING CASE
+            WHEN manual_entry = 0 THEN false
+            WHEN manual_entry = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET manual_entry = CASE
+            WHEN temp_manual_entry = 0 THEN false
+            WHEN temp_manual_entry = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry DROP COLUMN temp_manual_entry;
+        </sql>
+
+    </changeSet>
+
+    <changeSet id="fix_acc_gl_journal_entry_column-type_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_journal_entry'
+                AND column_name = 'type_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ADD COLUMN temp_type_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET temp_type_enum = type_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ALTER COLUMN type_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry
+            ALTER COLUMN type_enum TYPE BOOLEAN
+            USING CASE
+            WHEN type_enum = 0 THEN false
+            WHEN type_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET type_enum = CASE
+            WHEN temp_type_enum = 0 THEN false
+            WHEN temp_type_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry DROP COLUMN temp_type_enum;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_journal_entry_column-entity_type_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_journal_entry'
+                AND column_name = 'entity_type_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ADD COLUMN temp_entity_type_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET temp_entity_type_enum = entity_type_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ALTER COLUMN entity_type_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry
+            ALTER COLUMN entity_type_enum TYPE BOOLEAN
+            USING CASE
+            WHEN entity_type_enum = 0 THEN false
+            WHEN entity_type_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET entity_type_enum = CASE
+            WHEN temp_entity_type_enum = 0 THEN false
+            WHEN temp_entity_type_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry DROP COLUMN temp_entity_type_enum;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_gl_journal_entry_column-is_running_balance_calculated" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_gl_journal_entry'
+                AND column_name = 'is_running_balance_calculated'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ADD COLUMN temp_is_running_balance_calculated SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET temp_is_running_balance_calculated = is_running_balance_calculated where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry ALTER COLUMN is_running_balance_calculated DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry
+            ALTER COLUMN is_running_balance_calculated TYPE BOOLEAN
+            USING CASE
+            WHEN is_running_balance_calculated = 0 THEN false
+            WHEN is_running_balance_calculated = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_gl_journal_entry
+            SET is_running_balance_calculated = CASE
+            WHEN temp_is_running_balance_calculated = 0 THEN false
+            WHEN temp_is_running_balance_calculated = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_gl_journal_entry DROP COLUMN temp_is_running_balance_calculated;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_product_mapping_column-product_type" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_product_mapping'
+                AND column_name = 'product_type'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_product_mapping ADD COLUMN temp_product_type SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_product_mapping
+            SET temp_product_type = product_type where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_product_mapping ALTER COLUMN product_type DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_product_mapping
+            ALTER COLUMN product_type TYPE BOOLEAN
+            USING CASE
+            WHEN product_type = 0 THEN false
+            WHEN product_type = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_product_mapping
+            SET product_type = CASE
+            WHEN temp_product_type = 0 THEN false
+            WHEN temp_product_type = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_product_mapping DROP COLUMN temp_product_type;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_product_mapping_column-financial_account_type" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_product_mapping'
+                AND column_name = 'financial_account_type'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_product_mapping ADD COLUMN temp_financial_account_type SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_product_mapping
+            SET temp_financial_account_type = financial_account_type where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_product_mapping ALTER COLUMN financial_account_type DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_product_mapping
+            ALTER COLUMN financial_account_type TYPE BOOLEAN
+            USING CASE
+            WHEN financial_account_type = 0 THEN false
+            WHEN financial_account_type = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_product_mapping
+            SET financial_account_type = CASE
+            WHEN temp_financial_account_type = 0 THEN false
+            WHEN temp_financial_account_type = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_product_mapping DROP COLUMN temp_financial_account_type;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_acc_rule_tags_column-acc_type_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'acc_rule_tags'
+                AND column_name = 'acc_type_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE acc_rule_tags ADD COLUMN temp_acc_type_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE acc_rule_tags
+            SET temp_acc_type_enum = acc_type_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_rule_tags ALTER COLUMN acc_type_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE acc_rule_tags
+            ALTER COLUMN acc_type_enum TYPE BOOLEAN
+            USING CASE
+            WHEN acc_type_enum = 0 THEN false
+            WHEN acc_type_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE acc_rule_tags
+            SET acc_type_enum = CASE
+            WHEN temp_acc_type_enum = 0 THEN false
+            WHEN temp_acc_type_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE acc_rule_tags DROP COLUMN temp_acc_type_enum;
+        </sql>
+
+    </changeSet>
+
 
 </databaseChangeLog>
