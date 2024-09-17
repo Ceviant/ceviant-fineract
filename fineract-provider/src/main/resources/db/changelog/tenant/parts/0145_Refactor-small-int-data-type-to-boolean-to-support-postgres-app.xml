@@ -22,35 +22,5 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
-    <changeSet id="fix_databasechangeloglock_column-locked" author="bosco@fiter.io" context="postgresql">
-        <sql>
-            ALTER TABLE databasechangeloglock ADD COLUMN temp_locked bit varying;
-        </sql>
-        <sql>
-            UPDATE databasechangeloglock
-            SET temp_locked = locked where id > 0;
-        </sql>
-        <sql>
-            ALTER TABLE databasechangeloglock ALTER COLUMN locked DROP DEFAULT;
-        </sql>
-        <sql>
-            ALTER TABLE databasechangeloglock
-            ALTER COLUMN locked TYPE BOOLEAN
-            USING CASE
-            WHEN locked = 0 THEN false
-            WHEN locked = 1 THEN true
-            END;
-        </sql>
-        <sql>
-            UPDATE databasechangeloglock
-            SET locked = CASE
-            WHEN temp_locked = 0 THEN false
-            WHEN temp_locked = 1 THEN true
-            END  where id > 0;
-        </sql>
-        <sql>
-            ALTER TABLE databasechangeloglock DROP COLUMN temp_locked;
-        </sql>
 
-    </changeSet>
 </databaseChangeLog>

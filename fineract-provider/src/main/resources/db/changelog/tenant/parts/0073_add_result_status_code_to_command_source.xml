@@ -24,6 +24,13 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
 
     <changeSet id="1" author="fineract" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_portfolio_command_source'
+                AND column_name = 'result_status_code'
+            </sqlCheck>
+        </preConditions>
         <addColumn tableName="m_portfolio_command_source">
             <column name="result_status_code" type="int"></column>
         </addColumn>
