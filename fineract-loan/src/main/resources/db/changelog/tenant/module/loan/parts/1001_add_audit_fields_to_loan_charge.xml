@@ -72,7 +72,7 @@
         <addNotNullConstraint tableName="m_loan_charge" columnName="last_modified_on_utc"
                               columnDataType="TIMESTAMP WITH TIME ZONE"/>
     </changeSet>
-    <changeSet id="1001-5" author="fineract">
+    <changeSet id="1001-51" author="fineract">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_loan_charge</sqlCheck>
         </preConditions>

@@ -72,7 +72,7 @@
         <addNotNullConstraint tableName="m_business_date" columnName="created_on_utc" columnDataType="TIMESTAMP WITH TIME ZONE"/>
         <addNotNullConstraint tableName="m_business_date" columnName="last_modified_on_utc" columnDataType="TIMESTAMP WITH TIME ZONE"/>
     </changeSet>
-    <changeSet id="business_date-6" author="fineract">
+    <changeSet id="business_date-61" author="fineract">
         <addNotNullConstraint tableName="m_business_date" columnName="created_by" columnDataType="BIGINT"/>
         <addNotNullConstraint tableName="m_business_date" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>
