@@ -44,7 +44,9 @@
 
     <changeSet author="fineract" id="11" context="postgresql">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="m_external_asset_owner_transfer_journal_entry_mapping"/>
+            <not>
+                <tableExists tableName="m_external_asset_owner_transfer_journal_entry_mapping"/>
+            </not>
         </preConditions>
         <createTable tableName="m_external_asset_owner_transfer_journal_entry_mapping">
             <column autoIncrement="true" name="id" type="BIGINT" remarks="Internal ID">
@@ -111,7 +113,9 @@
 
     <changeSet author="fineract" id="311" context="postgresql">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="m_external_asset_owner_journal_entry_mapping"/>
+            <not>
+                <tableExists tableName="m_external_asset_owner_journal_entry_mapping"/>
+            </not>
         </preConditions>
         <createTable tableName="m_external_asset_owner_journal_entry_mapping">
             <column autoIncrement="true" name="id" type="BIGINT" remarks="Internal ID">

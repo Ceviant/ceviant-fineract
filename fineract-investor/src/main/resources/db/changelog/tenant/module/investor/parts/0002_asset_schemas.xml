@@ -26,7 +26,9 @@
   <!-- Create the m_external_asset_owner table -->
   <changeSet author="fineract" id="1234" context="postgresql">
     <preConditions onFail="MARK_RAN">
-      <tableExists tableName="m_external_asset_owner"/>
+      <not>
+        <tableExists tableName="m_external_asset_owner"/>
+      </not>
     </preConditions>
     <createTable tableName="m_external_asset_owner">
       <column autoIncrement="true" name="id" type="BIGINT" remarks="Internal ID">
@@ -95,7 +97,9 @@
 
   <changeSet author="fineract" id="31243" context="postgresql">
     <preConditions onFail="MARK_RAN">
-      <tableExists tableName="m_external_asset_owner_transfer"/>
+      <not>
+        <tableExists tableName="m_external_asset_owner_transfer"/>
+      </not>
     </preConditions>
     <createTable tableName="m_external_asset_owner_transfer">
       <column autoIncrement="true" name="id" type="BIGINT" remarks="Internal ID">
@@ -179,7 +183,9 @@
 
   <changeSet author="fineract" id="5123" context="postgresql">
     <preConditions onFail="MARK_RAN">
-      <tableExists tableName="m_external_asset_owner_transfer_loan_mapping"/>
+      <not>
+        <tableExists tableName="m_external_asset_owner_transfer_loan_mapping"/>
+      </not>
     </preConditions>
     <createTable tableName="m_external_asset_owner_transfer_loan_mapping">
       <column autoIncrement="true" name="id" type="BIGINT" remarks="Internal ID">

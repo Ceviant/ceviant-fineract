@@ -26,7 +26,9 @@
     <!-- Create the m_external_asset_owner_transfer_details table -->
     <changeSet author="fineract" id="111" context="postgresql">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="m_external_asset_owner_transfer_details"/>
+            <not>
+                <tableExists tableName="m_external_asset_owner_transfer_details"/>
+            </not>
         </preConditions>
         <createTable tableName="m_external_asset_owner_transfer_details">
 
