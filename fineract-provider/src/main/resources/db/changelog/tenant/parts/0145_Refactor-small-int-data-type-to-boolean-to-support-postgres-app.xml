@@ -1778,5 +1778,83 @@
         </sql>
 
     </changeSet>
+    <changeSet id="fix_notification_generator_column-is_system_generated" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'notification_generator'
+                AND column_name = 'is_system_generated'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE notification_generator ADD COLUMN temp_is_system_generated SMALLINT;
+        </sql>
+        <sql>
+            UPDATE notification_generator
+            SET temp_is_system_generated = is_system_generated where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE notification_generator ALTER COLUMN is_system_generated DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE notification_generator
+            ALTER COLUMN is_system_generated TYPE BOOLEAN
+            USING CASE
+            WHEN is_system_generated = 0 THEN false
+            WHEN is_system_generated = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE notification_generator
+            SET is_system_generated = CASE
+            WHEN temp_is_system_generated = 0 THEN false
+            WHEN temp_is_system_generated = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE notification_generator DROP COLUMN temp_is_system_generated;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_notification_mapper_column-is_read" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'notification_mapper'
+                AND column_name = 'is_read'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE notification_mapper ADD COLUMN temp_is_read SMALLINT;
+        </sql>
+        <sql>
+            UPDATE notification_mapper
+            SET temp_is_read = is_read where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE notification_mapper ALTER COLUMN is_read DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE notification_mapper
+            ALTER COLUMN is_read TYPE BOOLEAN
+            USING CASE
+            WHEN is_read = 0 THEN false
+            WHEN is_read = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE notification_mapper
+            SET is_read = CASE
+            WHEN temp_is_read = 0 THEN false
+            WHEN temp_is_read = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE notification_mapper DROP COLUMN temp_is_read;
+        </sql>
+
+    </changeSet>
 
 </databaseChangeLog>
