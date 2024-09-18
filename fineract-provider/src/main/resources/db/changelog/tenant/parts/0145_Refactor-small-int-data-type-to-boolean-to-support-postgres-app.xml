@@ -7543,5 +7543,44 @@
             ALTER TABLE twofactor_access_token DROP COLUMN temp_enabled;
         </sql>
     </changeSet>
+    <changeSet id="fix_m_savings_account_column-is_lien_allowed-fix" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account'
+                AND column_name = 'is_lien_allowed'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account ADD COLUMN temp_is_lien_allowed bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET temp_is_lien_allowed = is_lien_allowed WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account ALTER COLUMN is_lien_allowed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account
+            ALTER COLUMN is_lien_allowed TYPE BOOLEAN
+            USING CASE
+            WHEN is_lien_allowed = '0' THEN false
+            WHEN is_lien_allowed = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET is_lien_allowed = CASE
+            WHEN temp_is_lien_allowed = '0' THEN false
+            WHEN temp_is_lien_allowed = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account DROP COLUMN temp_is_lien_allowed;
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>
