@@ -4235,4 +4235,395 @@
         </sql>
 
     </changeSet>
+    <changeSet id="fix_m_loan_term_variations_column-is_specific_to_installment" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_loan_term_variations'
+                AND column_name = 'is_specific_to_installment'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_loan_term_variations ADD COLUMN temp_is_specific_to_installment SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_loan_term_variations
+            SET temp_is_specific_to_installment = is_specific_to_installment where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_term_variations ALTER COLUMN is_specific_to_installment DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_term_variations
+            ALTER COLUMN is_specific_to_installment TYPE BOOLEAN
+            USING CASE
+            WHEN is_specific_to_installment = 0 THEN false
+            WHEN is_specific_to_installment = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_loan_term_variations
+            SET is_specific_to_installment = CASE
+            WHEN temp_is_specific_to_installment = 0 THEN false
+            WHEN temp_is_specific_to_installment = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_term_variations DROP COLUMN temp_is_specific_to_installment;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_loan_term_variations_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_loan_term_variations'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_loan_term_variations ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_loan_term_variations
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_term_variations ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_term_variations
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_loan_term_variations
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_term_variations DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_loan_transaction_column-is_reversed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_loan_transaction'
+                AND column_name = 'is_reversed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_loan_transaction ADD COLUMN temp_is_reversed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_loan_transaction
+            SET temp_is_reversed = is_reversed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_transaction ALTER COLUMN is_reversed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_transaction
+            ALTER COLUMN is_reversed TYPE BOOLEAN
+            USING CASE
+            WHEN is_reversed = 0 THEN false
+            WHEN is_reversed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_loan_transaction
+            SET is_reversed = CASE
+            WHEN temp_is_reversed = 0 THEN false
+            WHEN temp_is_reversed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_transaction DROP COLUMN temp_is_reversed;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_loan_transaction_column-manually_adjusted_or_reversed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_loan_transaction'
+                AND column_name = 'manually_adjusted_or_reversed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_loan_transaction ADD COLUMN temp_manually_adjusted_or_reversed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_loan_transaction
+            SET temp_manually_adjusted_or_reversed = manually_adjusted_or_reversed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_transaction ALTER COLUMN manually_adjusted_or_reversed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_transaction
+            ALTER COLUMN manually_adjusted_or_reversed TYPE BOOLEAN
+            USING CASE
+            WHEN manually_adjusted_or_reversed = 0 THEN false
+            WHEN manually_adjusted_or_reversed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_loan_transaction
+            SET manually_adjusted_or_reversed = CASE
+            WHEN temp_manually_adjusted_or_reversed = 0 THEN false
+            WHEN temp_manually_adjusted_or_reversed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_loan_transaction DROP COLUMN temp_manually_adjusted_or_reversed;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_mandatory_savings_schedule_column-completed_derived" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_mandatory_savings_schedule'
+                AND column_name = 'completed_derived'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_mandatory_savings_schedule ADD COLUMN temp_completed_derived bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_mandatory_savings_schedule
+            SET temp_completed_derived = completed_derived WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_mandatory_savings_schedule ALTER COLUMN completed_derived DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_mandatory_savings_schedule
+            ALTER COLUMN completed_derived TYPE BOOLEAN
+            USING CASE
+            WHEN completed_derived = '0' THEN false
+            WHEN completed_derived = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_mandatory_savings_schedule
+            SET completed_derived = CASE
+            WHEN temp_completed_derived = '0' THEN false
+            WHEN temp_completed_derived = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_mandatory_savings_schedule DROP COLUMN temp_completed_derived;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_multi_tenant_transfer_details_column-is_rolled_back" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_multi_tenant_transfer_details'
+                AND column_name = 'is_rolled_back'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details ADD COLUMN temp_is_rolled_back SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_multi_tenant_transfer_details
+            SET temp_is_rolled_back = is_rolled_back where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details ALTER COLUMN is_rolled_back DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details
+            ALTER COLUMN is_rolled_back TYPE BOOLEAN
+            USING CASE
+            WHEN is_rolled_back = 0 THEN false
+            WHEN is_rolled_back = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_multi_tenant_transfer_details
+            SET is_rolled_back = CASE
+            WHEN temp_is_rolled_back = 0 THEN false
+            WHEN temp_is_rolled_back = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details DROP COLUMN temp_is_rolled_back;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_organisation_creditbureau_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_organisation_creditbureau'
+                AND column_name = 'is_active'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_organisation_creditbureau ADD COLUMN temp_is_active bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_organisation_creditbureau
+            SET temp_is_active = is_active WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_organisation_creditbureau ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_organisation_creditbureau
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = '0' THEN false
+            WHEN is_active = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_organisation_creditbureau
+            SET is_active = CASE
+            WHEN temp_is_active = '0' THEN false
+            WHEN temp_is_active = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_organisation_creditbureau DROP COLUMN temp_is_active;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_password_validation_policy_column-active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_password_validation_policy'
+                AND column_name = 'active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_password_validation_policy ADD COLUMN temp_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_password_validation_policy
+            SET temp_active = active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_password_validation_policy ALTER COLUMN active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_password_validation_policy
+            ALTER COLUMN active TYPE BOOLEAN
+            USING CASE
+            WHEN active = 0 THEN false
+            WHEN active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_password_validation_policy
+            SET active = CASE
+            WHEN temp_active = 0 THEN false
+            WHEN temp_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_password_validation_policy DROP COLUMN temp_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_payment_type_column-is_system_defined" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_payment_type'
+                AND column_name = 'is_system_defined'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_payment_type ADD COLUMN temp_is_system_defined SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_payment_type
+            SET temp_is_system_defined = is_system_defined where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_payment_type ALTER COLUMN is_system_defined DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_payment_type
+            ALTER COLUMN is_system_defined TYPE BOOLEAN
+            USING CASE
+            WHEN is_system_defined = 0 THEN false
+            WHEN is_system_defined = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_payment_type
+            SET is_system_defined = CASE
+            WHEN temp_is_system_defined = 0 THEN false
+            WHEN temp_is_system_defined = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_payment_type DROP COLUMN temp_is_system_defined;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_portfolio_account_associations_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_portfolio_account_associations'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_portfolio_account_associations ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_portfolio_account_associations
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_portfolio_account_associations ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_portfolio_account_associations
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_portfolio_account_associations
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_portfolio_account_associations DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+
 </databaseChangeLog>
