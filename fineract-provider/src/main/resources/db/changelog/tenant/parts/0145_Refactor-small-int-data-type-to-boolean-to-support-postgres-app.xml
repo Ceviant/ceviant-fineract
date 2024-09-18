@@ -5981,4 +5981,592 @@
         </sql>
 
     </changeSet>
+
+
+
+    <changeSet id="fix_m_savings_account_column-withdrawal_fee_for_transfer" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account'
+                AND column_name = 'withdrawal_fee_for_transfer'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account ADD COLUMN temp_withdrawal_fee_for_transfer SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET temp_withdrawal_fee_for_transfer = withdrawal_fee_for_transfer where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account ALTER COLUMN withdrawal_fee_for_transfer DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account
+            ALTER COLUMN withdrawal_fee_for_transfer TYPE BOOLEAN
+            USING CASE
+            WHEN withdrawal_fee_for_transfer = 0 THEN false
+            WHEN withdrawal_fee_for_transfer = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET withdrawal_fee_for_transfer = CASE
+            WHEN temp_withdrawal_fee_for_transfer = 0 THEN false
+            WHEN temp_withdrawal_fee_for_transfer = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account DROP COLUMN temp_withdrawal_fee_for_transfer;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_column-allow_overdraft" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account'
+                AND column_name = 'allow_overdraft'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account ADD COLUMN temp_allow_overdraft SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET temp_allow_overdraft = allow_overdraft where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account ALTER COLUMN allow_overdraft DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account
+            ALTER COLUMN allow_overdraft TYPE BOOLEAN
+            USING CASE
+            WHEN allow_overdraft = 0 THEN false
+            WHEN allow_overdraft = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET allow_overdraft = CASE
+            WHEN temp_allow_overdraft = 0 THEN false
+            WHEN temp_allow_overdraft = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account DROP COLUMN temp_allow_overdraft;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_column-enforce_min_required_balance" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account'
+                AND column_name = 'enforce_min_required_balance'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account ADD COLUMN temp_enforce_min_required_balance SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET temp_enforce_min_required_balance = enforce_min_required_balance where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account ALTER COLUMN enforce_min_required_balance DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account
+            ALTER COLUMN enforce_min_required_balance TYPE BOOLEAN
+            USING CASE
+            WHEN enforce_min_required_balance = 0 THEN false
+            WHEN enforce_min_required_balance = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET enforce_min_required_balance = CASE
+            WHEN temp_enforce_min_required_balance = 0 THEN false
+            WHEN temp_enforce_min_required_balance = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account DROP COLUMN temp_enforce_min_required_balance;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_column-withhold_tax" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account'
+                AND column_name = 'withhold_tax'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account ADD COLUMN temp_withhold_tax SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET temp_withhold_tax = withhold_tax where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account ALTER COLUMN withhold_tax DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account
+            ALTER COLUMN withhold_tax TYPE BOOLEAN
+            USING CASE
+            WHEN withhold_tax = 0 THEN false
+            WHEN withhold_tax = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET withhold_tax = CASE
+            WHEN temp_withhold_tax = 0 THEN false
+            WHEN temp_withhold_tax = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account DROP COLUMN temp_withhold_tax;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_column-is_lien_allowed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account'
+                AND column_name = 'is_lien_allowed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account ADD COLUMN temp_is_lien_allowed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET temp_is_lien_allowed = is_lien_allowed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account ALTER COLUMN is_lien_allowed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account
+            ALTER COLUMN is_lien_allowed TYPE BOOLEAN
+            USING CASE
+            WHEN is_lien_allowed = 0 THEN false
+            WHEN is_lien_allowed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account
+            SET is_lien_allowed = CASE
+            WHEN temp_is_lien_allowed = 0 THEN false
+            WHEN temp_is_lien_allowed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account DROP COLUMN temp_is_lien_allowed;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_charge_column-is_penalty" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_charge'
+                AND column_name = 'is_penalty'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_charge ADD COLUMN temp_is_penalty SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET temp_is_penalty = is_penalty where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge ALTER COLUMN is_penalty DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge
+            ALTER COLUMN is_penalty TYPE BOOLEAN
+            USING CASE
+            WHEN is_penalty = 0 THEN false
+            WHEN is_penalty = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET is_penalty = CASE
+            WHEN temp_is_penalty = 0 THEN false
+            WHEN temp_is_penalty = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge DROP COLUMN temp_is_penalty;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_charge_column-is_paid_derived" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_charge'
+                AND column_name = 'is_paid_derived'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_charge ADD COLUMN temp_is_paid_derived SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET temp_is_paid_derived = is_paid_derived where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge ALTER COLUMN is_paid_derived DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge
+            ALTER COLUMN is_paid_derived TYPE BOOLEAN
+            USING CASE
+            WHEN is_paid_derived = 0 THEN false
+            WHEN is_paid_derived = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET is_paid_derived = CASE
+            WHEN temp_is_paid_derived = 0 THEN false
+            WHEN temp_is_paid_derived = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge DROP COLUMN temp_is_paid_derived;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_charge_column-waived" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_charge'
+                AND column_name = 'waived'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_charge ADD COLUMN temp_waived SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET temp_waived = waived where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge ALTER COLUMN waived DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge
+            ALTER COLUMN waived TYPE BOOLEAN
+            USING CASE
+            WHEN waived = 0 THEN false
+            WHEN waived = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET waived = CASE
+            WHEN temp_waived = 0 THEN false
+            WHEN temp_waived = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge DROP COLUMN temp_waived;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_charge_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_charge'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_charge ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_charge
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_charge DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_interest_rate_chart_column-is_primary_grouping_by_amount" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_interest_rate_chart'
+                AND column_name = 'is_primary_grouping_by_amount'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_interest_rate_chart ADD COLUMN temp_is_primary_grouping_by_amount SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_interest_rate_chart
+            SET temp_is_primary_grouping_by_amount = is_primary_grouping_by_amount where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_interest_rate_chart ALTER COLUMN is_primary_grouping_by_amount DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_interest_rate_chart
+            ALTER COLUMN is_primary_grouping_by_amount TYPE BOOLEAN
+            USING CASE
+            WHEN is_primary_grouping_by_amount = 0 THEN false
+            WHEN is_primary_grouping_by_amount = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_interest_rate_chart
+            SET is_primary_grouping_by_amount = CASE
+            WHEN temp_is_primary_grouping_by_amount = 0 THEN false
+            WHEN temp_is_primary_grouping_by_amount = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_interest_rate_chart DROP COLUMN temp_is_primary_grouping_by_amount;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_transaction_column-is_reversed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_transaction'
+                AND column_name = 'is_reversed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ADD COLUMN temp_is_reversed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET temp_is_reversed = is_reversed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ALTER COLUMN is_reversed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction
+            ALTER COLUMN is_reversed TYPE BOOLEAN
+            USING CASE
+            WHEN is_reversed = 0 THEN false
+            WHEN is_reversed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET is_reversed = CASE
+            WHEN temp_is_reversed = 0 THEN false
+            WHEN temp_is_reversed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction DROP COLUMN temp_is_reversed;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_transaction_column-is_manual" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_transaction'
+                AND column_name = 'is_manual'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ADD COLUMN temp_is_manual SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET temp_is_manual = is_manual where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ALTER COLUMN is_manual DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction
+            ALTER COLUMN is_manual TYPE BOOLEAN
+            USING CASE
+            WHEN is_manual = 0 THEN false
+            WHEN is_manual = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET is_manual = CASE
+            WHEN temp_is_manual = 0 THEN false
+            WHEN temp_is_manual = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction DROP COLUMN temp_is_manual;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_account_transaction_column-is_reversal" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_transaction'
+                AND column_name = 'is_reversal'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ADD COLUMN temp_is_reversal bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET temp_is_reversal = is_reversal WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ALTER COLUMN is_reversal DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction
+            ALTER COLUMN is_reversal TYPE BOOLEAN
+            USING CASE
+            WHEN is_reversal = '0' THEN false
+            WHEN is_reversal = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET is_reversal = CASE
+            WHEN temp_is_reversal = '0' THEN false
+            WHEN temp_is_reversal = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction DROP COLUMN temp_is_reversal;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_savings_account_transaction_column-is_lien_transaction" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_transaction'
+                AND column_name = 'is_lien_transaction'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ADD COLUMN temp_is_lien_transaction bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET temp_is_lien_transaction = is_lien_transaction WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ALTER COLUMN is_lien_transaction DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction
+            ALTER COLUMN is_lien_transaction TYPE BOOLEAN
+            USING CASE
+            WHEN is_lien_transaction = '0' THEN false
+            WHEN is_lien_transaction = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET is_lien_transaction = CASE
+            WHEN temp_is_lien_transaction = '0' THEN false
+            WHEN temp_is_lien_transaction = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction DROP COLUMN temp_is_lien_transaction;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_savings_account_transaction_column-is_loan_disbursement" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_account_transaction'
+                AND column_name = 'is_loan_disbursement'
+                AND data_type = 'bigint';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ADD COLUMN temp_is_loan_disbursement BIGINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET temp_is_loan_disbursement = is_loan_disbursement WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction ALTER COLUMN is_loan_disbursement DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction
+            ALTER COLUMN is_loan_disbursement TYPE BOOLEAN
+            USING CASE
+            WHEN is_loan_disbursement = 0 THEN false
+            WHEN is_loan_disbursement = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_account_transaction
+            SET is_loan_disbursement = CASE
+            WHEN temp_is_loan_disbursement = 0 THEN false
+            WHEN temp_is_loan_disbursement = 1 THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_account_transaction DROP COLUMN temp_is_loan_disbursement;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
