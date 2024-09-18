@@ -6841,5 +6841,550 @@
             ALTER TABLE m_selfservice_beneficiaries_tpt DROP COLUMN temp_is_active;
         </sql>
     </changeSet>
+    <changeSet id="fix_m_share_account_column-allow_dividends_inactive_clients" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_share_account'
+                AND column_name = 'allow_dividends_inactive_clients'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_share_account ADD COLUMN temp_allow_dividends_inactive_clients SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_share_account
+            SET temp_allow_dividends_inactive_clients = allow_dividends_inactive_clients where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account ALTER COLUMN allow_dividends_inactive_clients DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account
+            ALTER COLUMN allow_dividends_inactive_clients TYPE BOOLEAN
+            USING CASE
+            WHEN allow_dividends_inactive_clients = 0 THEN false
+            WHEN allow_dividends_inactive_clients = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_share_account
+            SET allow_dividends_inactive_clients = CASE
+            WHEN temp_allow_dividends_inactive_clients = 0 THEN false
+            WHEN temp_allow_dividends_inactive_clients = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account DROP COLUMN temp_allow_dividends_inactive_clients;
+        </sql>
 
+    </changeSet>
+    <changeSet id="fix_m_share_account_charge_column-is_paid_derived" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_share_account_charge'
+                AND column_name = 'is_paid_derived'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_share_account_charge ADD COLUMN temp_is_paid_derived SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_share_account_charge
+            SET temp_is_paid_derived = is_paid_derived where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge ALTER COLUMN is_paid_derived DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge
+            ALTER COLUMN is_paid_derived TYPE BOOLEAN
+            USING CASE
+            WHEN is_paid_derived = 0 THEN false
+            WHEN is_paid_derived = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_share_account_charge
+            SET is_paid_derived = CASE
+            WHEN temp_is_paid_derived = 0 THEN false
+            WHEN temp_is_paid_derived = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge DROP COLUMN temp_is_paid_derived;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_share_account_charge_column-waived" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_share_account_charge'
+                AND column_name = 'waived'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_share_account_charge ADD COLUMN temp_waived SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_share_account_charge
+            SET temp_waived = waived where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge ALTER COLUMN waived DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge
+            ALTER COLUMN waived TYPE BOOLEAN
+            USING CASE
+            WHEN waived = 0 THEN false
+            WHEN waived = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_share_account_charge
+            SET waived = CASE
+            WHEN temp_waived = 0 THEN false
+            WHEN temp_waived = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge DROP COLUMN temp_waived;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_share_account_charge_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_share_account_charge'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_share_account_charge ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_share_account_charge
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_share_account_charge
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_charge DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_share_account_transactions_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_share_account_transactions'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_share_account_transactions ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_share_account_transactions
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_transactions ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_transactions
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_share_account_transactions
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_account_transactions DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_share_product_column-allow_dividends_inactive_clients" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_share_product'
+                AND column_name = 'allow_dividends_inactive_clients'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_share_product ADD COLUMN temp_allow_dividends_inactive_clients SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_share_product
+            SET temp_allow_dividends_inactive_clients = allow_dividends_inactive_clients where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_product ALTER COLUMN allow_dividends_inactive_clients DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_product
+            ALTER COLUMN allow_dividends_inactive_clients TYPE BOOLEAN
+            USING CASE
+            WHEN allow_dividends_inactive_clients = 0 THEN false
+            WHEN allow_dividends_inactive_clients = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_share_product
+            SET allow_dividends_inactive_clients = CASE
+            WHEN temp_allow_dividends_inactive_clients = 0 THEN false
+            WHEN temp_allow_dividends_inactive_clients = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_share_product DROP COLUMN temp_allow_dividends_inactive_clients;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_working_days_column-extend_term_daily_repayments" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_working_days'
+                AND column_name = 'extend_term_daily_repayments'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_working_days ADD COLUMN temp_extend_term_daily_repayments SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_working_days
+            SET temp_extend_term_daily_repayments = extend_term_daily_repayments where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_working_days ALTER COLUMN extend_term_daily_repayments DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_working_days
+            ALTER COLUMN extend_term_daily_repayments TYPE BOOLEAN
+            USING CASE
+            WHEN extend_term_daily_repayments = 0 THEN false
+            WHEN extend_term_daily_repayments = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_working_days
+            SET extend_term_daily_repayments = CASE
+            WHEN temp_extend_term_daily_repayments = 0 THEN false
+            WHEN temp_extend_term_daily_repayments = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_working_days DROP COLUMN temp_extend_term_daily_repayments;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_working_days_column-extend_term_holiday_repayment" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_working_days'
+                AND column_name = 'extend_term_holiday_repayment'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_working_days ADD COLUMN temp_extend_term_holiday_repayment SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_working_days
+            SET temp_extend_term_holiday_repayment = extend_term_holiday_repayment where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_working_days ALTER COLUMN extend_term_holiday_repayment DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_working_days
+            ALTER COLUMN extend_term_holiday_repayment TYPE BOOLEAN
+            USING CASE
+            WHEN extend_term_holiday_repayment = 0 THEN false
+            WHEN extend_term_holiday_repayment = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_working_days
+            SET extend_term_holiday_repayment = CASE
+            WHEN temp_extend_term_holiday_repayment = 0 THEN false
+            WHEN temp_extend_term_holiday_repayment = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_working_days DROP COLUMN temp_extend_term_holiday_repayment;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_mix_taxonomy_column-need_mapping" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'mix_taxonomy'
+                AND column_name = 'need_mapping'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE mix_taxonomy ADD COLUMN temp_need_mapping SMALLINT;
+        </sql>
+        <sql>
+            UPDATE mix_taxonomy
+            SET temp_need_mapping = need_mapping where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE mix_taxonomy ALTER COLUMN need_mapping DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE mix_taxonomy
+            ALTER COLUMN need_mapping TYPE BOOLEAN
+            USING CASE
+            WHEN need_mapping = 0 THEN false
+            WHEN need_mapping = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE mix_taxonomy
+            SET need_mapping = CASE
+            WHEN temp_need_mapping = 0 THEN false
+            WHEN temp_need_mapping = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE mix_taxonomy DROP COLUMN temp_need_mapping;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_oauth_client_details_column-autoapprove" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'oauth_client_details'
+                AND column_name = 'autoapprove'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE oauth_client_details ADD COLUMN temp_autoapprove bit varying(1);
+        </sql>
+        <sql>
+            UPDATE oauth_client_details
+            SET temp_autoapprove = autoapprove WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE oauth_client_details ALTER COLUMN autoapprove DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE oauth_client_details
+            ALTER COLUMN autoapprove TYPE BOOLEAN
+            USING CASE
+            WHEN autoapprove = '0' THEN false
+            WHEN autoapprove = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE oauth_client_details
+            SET autoapprove = CASE
+            WHEN temp_autoapprove = '0' THEN false
+            WHEN temp_autoapprove = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE oauth_client_details DROP COLUMN temp_autoapprove;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_scheduled_email_campaign_column-is_visible" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'scheduled_email_campaign'
+                AND column_name = 'is_visible'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE scheduled_email_campaign ADD COLUMN temp_is_visible SMALLINT;
+        </sql>
+        <sql>
+            UPDATE scheduled_email_campaign
+            SET temp_is_visible = is_visible where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduled_email_campaign ALTER COLUMN is_visible DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE scheduled_email_campaign
+            ALTER COLUMN is_visible TYPE BOOLEAN
+            USING CASE
+            WHEN is_visible = 0 THEN false
+            WHEN is_visible = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE scheduled_email_campaign
+            SET is_visible = CASE
+            WHEN temp_is_visible = 0 THEN false
+            WHEN temp_is_visible = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduled_email_campaign DROP COLUMN temp_is_visible;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_scheduler_detail_column-is_suspended" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'scheduler_detail'
+                AND column_name = 'is_suspended'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE scheduler_detail ADD COLUMN temp_is_suspended SMALLINT;
+        </sql>
+        <sql>
+            UPDATE scheduler_detail
+            SET temp_is_suspended = is_suspended where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail ALTER COLUMN is_suspended DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail
+            ALTER COLUMN is_suspended TYPE BOOLEAN
+            USING CASE
+            WHEN is_suspended = 0 THEN false
+            WHEN is_suspended = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE scheduler_detail
+            SET is_suspended = CASE
+            WHEN temp_is_suspended = 0 THEN false
+            WHEN temp_is_suspended = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail DROP COLUMN temp_is_suspended;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_scheduler_detail_column-execute_misfired_jobs" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'scheduler_detail'
+                AND column_name = 'execute_misfired_jobs'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE scheduler_detail ADD COLUMN temp_execute_misfired_jobs SMALLINT;
+        </sql>
+        <sql>
+            UPDATE scheduler_detail
+            SET temp_execute_misfired_jobs = execute_misfired_jobs where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail ALTER COLUMN execute_misfired_jobs DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail
+            ALTER COLUMN execute_misfired_jobs TYPE BOOLEAN
+            USING CASE
+            WHEN execute_misfired_jobs = 0 THEN false
+            WHEN execute_misfired_jobs = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE scheduler_detail
+            SET execute_misfired_jobs = CASE
+            WHEN temp_execute_misfired_jobs = 0 THEN false
+            WHEN temp_execute_misfired_jobs = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail DROP COLUMN temp_execute_misfired_jobs;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_scheduler_detail_column-reset_scheduler_on_bootup" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'scheduler_detail'
+                AND column_name = 'reset_scheduler_on_bootup'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE scheduler_detail ADD COLUMN temp_reset_scheduler_on_bootup SMALLINT;
+        </sql>
+        <sql>
+            UPDATE scheduler_detail
+            SET temp_reset_scheduler_on_bootup = reset_scheduler_on_bootup where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail ALTER COLUMN reset_scheduler_on_bootup DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail
+            ALTER COLUMN reset_scheduler_on_bootup TYPE BOOLEAN
+            USING CASE
+            WHEN reset_scheduler_on_bootup = 0 THEN false
+            WHEN reset_scheduler_on_bootup = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE scheduler_detail
+            SET reset_scheduler_on_bootup = CASE
+            WHEN temp_reset_scheduler_on_bootup = 0 THEN false
+            WHEN temp_reset_scheduler_on_bootup = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE scheduler_detail DROP COLUMN temp_reset_scheduler_on_bootup;
+        </sql>
+
+    </changeSet>
 </databaseChangeLog>
