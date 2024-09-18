@@ -5318,4 +5318,512 @@
         </sql>
 
     </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-amortization_method_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'amortization_method_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_amortization_method_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_amortization_method_enum = amortization_method_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN amortization_method_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN amortization_method_enum TYPE BOOLEAN
+            USING CASE
+            WHEN amortization_method_enum = 0 THEN false
+            WHEN amortization_method_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET amortization_method_enum = CASE
+            WHEN temp_amortization_method_enum = 0 THEN false
+            WHEN temp_amortization_method_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_amortization_method_enum;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-interest_method_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'interest_method_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_interest_method_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_interest_method_enum = interest_method_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN interest_method_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN interest_method_enum TYPE BOOLEAN
+            USING CASE
+            WHEN interest_method_enum = 0 THEN false
+            WHEN interest_method_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET interest_method_enum = CASE
+            WHEN temp_interest_method_enum = 0 THEN false
+            WHEN temp_interest_method_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_interest_method_enum;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-loan_transaction_strategy_code" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'loan_transaction_strategy_code'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_loan_transaction_strategy_code SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_loan_transaction_strategy_code = loan_transaction_strategy_code where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN loan_transaction_strategy_code DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN loan_transaction_strategy_code TYPE BOOLEAN
+            USING CASE
+            WHEN loan_transaction_strategy_code = 0 THEN false
+            WHEN loan_transaction_strategy_code = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET loan_transaction_strategy_code = CASE
+            WHEN temp_loan_transaction_strategy_code = 0 THEN false
+            WHEN temp_loan_transaction_strategy_code = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_loan_transaction_strategy_code;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-interest_calculated_in_period_enum" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'interest_calculated_in_period_enum'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_interest_calculated_in_period_enum SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_interest_calculated_in_period_enum = interest_calculated_in_period_enum where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN interest_calculated_in_period_enum DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN interest_calculated_in_period_enum TYPE BOOLEAN
+            USING CASE
+            WHEN interest_calculated_in_period_enum = 0 THEN false
+            WHEN interest_calculated_in_period_enum = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET interest_calculated_in_period_enum = CASE
+            WHEN temp_interest_calculated_in_period_enum = 0 THEN false
+            WHEN temp_interest_calculated_in_period_enum = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_interest_calculated_in_period_enum;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-arrearstolerance_amount" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'arrearstolerance_amount'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_arrearstolerance_amount SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_arrearstolerance_amount = arrearstolerance_amount where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN arrearstolerance_amount DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN arrearstolerance_amount TYPE BOOLEAN
+            USING CASE
+            WHEN arrearstolerance_amount = 0 THEN false
+            WHEN arrearstolerance_amount = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET arrearstolerance_amount = CASE
+            WHEN temp_arrearstolerance_amount = 0 THEN false
+            WHEN temp_arrearstolerance_amount = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_arrearstolerance_amount;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-repay_every" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'repay_every'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_repay_every SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_repay_every = repay_every where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN repay_every DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN repay_every TYPE BOOLEAN
+            USING CASE
+            WHEN repay_every = 0 THEN false
+            WHEN repay_every = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET repay_every = CASE
+            WHEN temp_repay_every = 0 THEN false
+            WHEN temp_repay_every = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_repay_every;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-moratorium" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'moratorium'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_moratorium SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_moratorium = moratorium where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN moratorium DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN moratorium TYPE BOOLEAN
+            USING CASE
+            WHEN moratorium = 0 THEN false
+            WHEN moratorium = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET moratorium = CASE
+            WHEN temp_moratorium = 0 THEN false
+            WHEN temp_moratorium = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_moratorium;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_configurable_attributes_column-grace_on_arrears_ageing" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_configurable_attributes'
+                AND column_name = 'grace_on_arrears_ageing'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ADD COLUMN temp_grace_on_arrears_ageing SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET temp_grace_on_arrears_ageing = grace_on_arrears_ageing where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes ALTER COLUMN grace_on_arrears_ageing DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes
+            ALTER COLUMN grace_on_arrears_ageing TYPE BOOLEAN
+            USING CASE
+            WHEN grace_on_arrears_ageing = 0 THEN false
+            WHEN grace_on_arrears_ageing = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_configurable_attributes
+            SET grace_on_arrears_ageing = CASE
+            WHEN temp_grace_on_arrears_ageing = 0 THEN false
+            WHEN temp_grace_on_arrears_ageing = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_configurable_attributes DROP COLUMN temp_grace_on_arrears_ageing;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_floating_rates_column-is_floating_interest_rate_calculation_allowed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_floating_rates'
+                AND column_name = 'is_floating_interest_rate_calculation_allowed'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_floating_rates ADD COLUMN temp_is_floating_interest_rate_calculation_allowed bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_product_loan_floating_rates
+            SET temp_is_floating_interest_rate_calculation_allowed = is_floating_interest_rate_calculation_allowed WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_floating_rates ALTER COLUMN is_floating_interest_rate_calculation_allowed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_floating_rates
+            ALTER COLUMN is_floating_interest_rate_calculation_allowed TYPE BOOLEAN
+            USING CASE
+            WHEN is_floating_interest_rate_calculation_allowed = '0' THEN false
+            WHEN is_floating_interest_rate_calculation_allowed = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_floating_rates
+            SET is_floating_interest_rate_calculation_allowed = CASE
+            WHEN temp_is_floating_interest_rate_calculation_allowed = '0' THEN false
+            WHEN temp_is_floating_interest_rate_calculation_allowed = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_floating_rates DROP COLUMN temp_is_floating_interest_rate_calculation_allowed;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_product_loan_recalculation_details_column-arrears_based_on_original_schedule" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_recalculation_details'
+                AND column_name = 'arrears_based_on_original_schedule'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details ADD COLUMN temp_arrears_based_on_original_schedule SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_recalculation_details
+            SET temp_arrears_based_on_original_schedule = arrears_based_on_original_schedule where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details ALTER COLUMN arrears_based_on_original_schedule DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details
+            ALTER COLUMN arrears_based_on_original_schedule TYPE BOOLEAN
+            USING CASE
+            WHEN arrears_based_on_original_schedule = 0 THEN false
+            WHEN arrears_based_on_original_schedule = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_recalculation_details
+            SET arrears_based_on_original_schedule = CASE
+            WHEN temp_arrears_based_on_original_schedule = 0 THEN false
+            WHEN temp_arrears_based_on_original_schedule = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details DROP COLUMN temp_arrears_based_on_original_schedule;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_recalculation_details_column-is_compounding_to_be_posted_as_transaction" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_recalculation_details'
+                AND column_name = 'is_compounding_to_be_posted_as_transaction'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details ADD COLUMN temp_is_compounding_to_be_posted_as_transaction SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_recalculation_details
+            SET temp_is_compounding_to_be_posted_as_transaction = is_compounding_to_be_posted_as_transaction where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details ALTER COLUMN is_compounding_to_be_posted_as_transaction DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details
+            ALTER COLUMN is_compounding_to_be_posted_as_transaction TYPE BOOLEAN
+            USING CASE
+            WHEN is_compounding_to_be_posted_as_transaction = 0 THEN false
+            WHEN is_compounding_to_be_posted_as_transaction = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_recalculation_details
+            SET is_compounding_to_be_posted_as_transaction = CASE
+            WHEN temp_is_compounding_to_be_posted_as_transaction = 0 THEN false
+            WHEN temp_is_compounding_to_be_posted_as_transaction = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details DROP COLUMN temp_is_compounding_to_be_posted_as_transaction;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_product_loan_recalculation_details_column-allow_compounding_on_eod" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_product_loan_recalculation_details'
+                AND column_name = 'allow_compounding_on_eod'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details ADD COLUMN temp_allow_compounding_on_eod SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_recalculation_details
+            SET temp_allow_compounding_on_eod = allow_compounding_on_eod where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details ALTER COLUMN allow_compounding_on_eod DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details
+            ALTER COLUMN allow_compounding_on_eod TYPE BOOLEAN
+            USING CASE
+            WHEN allow_compounding_on_eod = 0 THEN false
+            WHEN allow_compounding_on_eod = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_product_loan_recalculation_details
+            SET allow_compounding_on_eod = CASE
+            WHEN temp_allow_compounding_on_eod = 0 THEN false
+            WHEN temp_allow_compounding_on_eod = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_product_loan_recalculation_details DROP COLUMN temp_allow_compounding_on_eod;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_provisioning_history_column-journal_entry_created" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_provisioning_history'
+                AND column_name = 'journal_entry_created'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_provisioning_history ADD COLUMN temp_journal_entry_created bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_provisioning_history
+            SET temp_journal_entry_created = journal_entry_created WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_provisioning_history ALTER COLUMN journal_entry_created DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_provisioning_history
+            ALTER COLUMN journal_entry_created TYPE BOOLEAN
+            USING CASE
+            WHEN journal_entry_created = '0' THEN false
+            WHEN journal_entry_created = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_provisioning_history
+            SET journal_entry_created = CASE
+            WHEN temp_journal_entry_created = '0' THEN false
+            WHEN temp_journal_entry_created = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_provisioning_history DROP COLUMN temp_journal_entry_created;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
