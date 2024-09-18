@@ -7207,7 +7207,7 @@
         </sql>
         <sql>
             UPDATE oauth_client_details
-            SET temp_autoapprove = autoapprove WHERE id > 0;
+            SET temp_autoapprove = autoapprove;
         </sql>
         <sql>
             ALTER TABLE oauth_client_details ALTER COLUMN autoapprove DROP DEFAULT;
@@ -7225,7 +7225,7 @@
             SET autoapprove = CASE
             WHEN temp_autoapprove = '0' THEN false
             WHEN temp_autoapprove = '1' THEN true
-            END WHERE id > 0;
+            END;
         </sql>
         <sql>
             ALTER TABLE oauth_client_details DROP COLUMN temp_autoapprove;
@@ -7245,7 +7245,7 @@
         </sql>
         <sql>
             UPDATE scheduled_email_campaign
-            SET temp_is_visible = is_visible where id > 0;
+            SET temp_is_visible = is_visible;
         </sql>
         <sql>
             ALTER TABLE scheduled_email_campaign ALTER COLUMN is_visible DROP DEFAULT;
@@ -7263,7 +7263,7 @@
             SET is_visible = CASE
             WHEN temp_is_visible = 0 THEN false
             WHEN temp_is_visible = 1 THEN true
-            END  where id > 0;
+            END;
         </sql>
         <sql>
             ALTER TABLE scheduled_email_campaign DROP COLUMN temp_is_visible;
