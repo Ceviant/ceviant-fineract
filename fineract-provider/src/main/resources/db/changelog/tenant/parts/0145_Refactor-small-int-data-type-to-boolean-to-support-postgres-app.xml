@@ -7387,4 +7387,161 @@
         </sql>
 
     </changeSet>
+    <changeSet id="fix_sms_campaign_column-is_visible" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'sms_campaign'
+                AND column_name = 'is_visible'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE sms_campaign ADD COLUMN temp_is_visible SMALLINT;
+        </sql>
+        <sql>
+            UPDATE sms_campaign
+            SET temp_is_visible = is_visible where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE sms_campaign ALTER COLUMN is_visible DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE sms_campaign
+            ALTER COLUMN is_visible TYPE BOOLEAN
+            USING CASE
+            WHEN is_visible = 0 THEN false
+            WHEN is_visible = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE sms_campaign
+            SET is_visible = CASE
+            WHEN temp_is_visible = 0 THEN false
+            WHEN temp_is_visible = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE sms_campaign DROP COLUMN temp_is_visible;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_sms_campaign_column-is_notification" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'sms_campaign'
+                AND column_name = 'is_notification'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE sms_campaign ADD COLUMN temp_is_notification SMALLINT;
+        </sql>
+        <sql>
+            UPDATE sms_campaign
+            SET temp_is_notification = is_notification where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE sms_campaign ALTER COLUMN is_notification DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE sms_campaign
+            ALTER COLUMN is_notification TYPE BOOLEAN
+            USING CASE
+            WHEN is_notification = 0 THEN false
+            WHEN is_notification = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE sms_campaign
+            SET is_notification = CASE
+            WHEN temp_is_notification = 0 THEN false
+            WHEN temp_is_notification = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE sms_campaign DROP COLUMN temp_is_notification;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_sms_messages_outbound_column-is_notification" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'sms_messages_outbound'
+                AND column_name = 'is_notification'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE sms_messages_outbound ADD COLUMN temp_is_notification SMALLINT;
+        </sql>
+        <sql>
+            UPDATE sms_messages_outbound
+            SET temp_is_notification = is_notification where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE sms_messages_outbound ALTER COLUMN is_notification DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE sms_messages_outbound
+            ALTER COLUMN is_notification TYPE BOOLEAN
+            USING CASE
+            WHEN is_notification = 0 THEN false
+            WHEN is_notification = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE sms_messages_outbound
+            SET is_notification = CASE
+            WHEN temp_is_notification = 0 THEN false
+            WHEN temp_is_notification = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE sms_messages_outbound DROP COLUMN temp_is_notification;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_twofactor_access_token_column-enabled" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'twofactor_access_token'
+                AND column_name = 'enabled'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE twofactor_access_token ADD COLUMN temp_enabled bit varying(1);
+        </sql>
+        <sql>
+            UPDATE twofactor_access_token
+            SET temp_enabled = enabled WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE twofactor_access_token ALTER COLUMN enabled DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE twofactor_access_token
+            ALTER COLUMN enabled TYPE BOOLEAN
+            USING CASE
+            WHEN enabled = '0' THEN false
+            WHEN enabled = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE twofactor_access_token
+            SET enabled = CASE
+            WHEN temp_enabled = '0' THEN false
+            WHEN temp_enabled = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE twofactor_access_token DROP COLUMN temp_enabled;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
