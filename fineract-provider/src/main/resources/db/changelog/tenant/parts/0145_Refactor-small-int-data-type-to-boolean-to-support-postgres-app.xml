@@ -6568,5 +6568,278 @@
             ALTER TABLE m_savings_account_transaction DROP COLUMN temp_is_loan_disbursement;
         </sql>
     </changeSet>
+    <changeSet id="fix_m_savings_product_column-withdrawal_fee_for_transfer" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_product'
+                AND column_name = 'withdrawal_fee_for_transfer'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_product ADD COLUMN temp_withdrawal_fee_for_transfer SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET temp_withdrawal_fee_for_transfer = withdrawal_fee_for_transfer where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product ALTER COLUMN withdrawal_fee_for_transfer DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product
+            ALTER COLUMN withdrawal_fee_for_transfer TYPE BOOLEAN
+            USING CASE
+            WHEN withdrawal_fee_for_transfer = 0 THEN false
+            WHEN withdrawal_fee_for_transfer = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET withdrawal_fee_for_transfer = CASE
+            WHEN temp_withdrawal_fee_for_transfer = 0 THEN false
+            WHEN temp_withdrawal_fee_for_transfer = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product DROP COLUMN temp_withdrawal_fee_for_transfer;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_product_column-allow_overdraft" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_product'
+                AND column_name = 'allow_overdraft'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_product ADD COLUMN temp_allow_overdraft SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET temp_allow_overdraft = allow_overdraft where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product ALTER COLUMN allow_overdraft DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product
+            ALTER COLUMN allow_overdraft TYPE BOOLEAN
+            USING CASE
+            WHEN allow_overdraft = 0 THEN false
+            WHEN allow_overdraft = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET allow_overdraft = CASE
+            WHEN temp_allow_overdraft = 0 THEN false
+            WHEN temp_allow_overdraft = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product DROP COLUMN temp_allow_overdraft;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_product_column-enforce_min_required_balance" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_product'
+                AND column_name = 'enforce_min_required_balance'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_product ADD COLUMN temp_enforce_min_required_balance SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET temp_enforce_min_required_balance = enforce_min_required_balance where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product ALTER COLUMN enforce_min_required_balance DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product
+            ALTER COLUMN enforce_min_required_balance TYPE BOOLEAN
+            USING CASE
+            WHEN enforce_min_required_balance = 0 THEN false
+            WHEN enforce_min_required_balance = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET enforce_min_required_balance = CASE
+            WHEN temp_enforce_min_required_balance = 0 THEN false
+            WHEN temp_enforce_min_required_balance = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product DROP COLUMN temp_enforce_min_required_balance;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_product_column-withhold_tax" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_product'
+                AND column_name = 'withhold_tax'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_product ADD COLUMN temp_withhold_tax SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET temp_withhold_tax = withhold_tax where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product ALTER COLUMN withhold_tax DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product
+            ALTER COLUMN withhold_tax TYPE BOOLEAN
+            USING CASE
+            WHEN withhold_tax = 0 THEN false
+            WHEN withhold_tax = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET withhold_tax = CASE
+            WHEN temp_withhold_tax = 0 THEN false
+            WHEN temp_withhold_tax = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product DROP COLUMN temp_withhold_tax;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_product_column-is_dormancy_tracking_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_product'
+                AND column_name = 'is_dormancy_tracking_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_product ADD COLUMN temp_is_dormancy_tracking_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET temp_is_dormancy_tracking_active = is_dormancy_tracking_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product ALTER COLUMN is_dormancy_tracking_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product
+            ALTER COLUMN is_dormancy_tracking_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_dormancy_tracking_active = 0 THEN false
+            WHEN is_dormancy_tracking_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET is_dormancy_tracking_active = CASE
+            WHEN temp_is_dormancy_tracking_active = 0 THEN false
+            WHEN temp_is_dormancy_tracking_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product DROP COLUMN temp_is_dormancy_tracking_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_savings_product_column-is_lien_allowed" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_savings_product'
+                AND column_name = 'is_lien_allowed'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_savings_product ADD COLUMN temp_is_lien_allowed bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET temp_is_lien_allowed = is_lien_allowed WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product ALTER COLUMN is_lien_allowed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product
+            ALTER COLUMN is_lien_allowed TYPE BOOLEAN
+            USING CASE
+            WHEN is_lien_allowed = '0' THEN false
+            WHEN is_lien_allowed = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_savings_product
+            SET is_lien_allowed = CASE
+            WHEN temp_is_lien_allowed = '0' THEN false
+            WHEN temp_is_lien_allowed = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_savings_product DROP COLUMN temp_is_lien_allowed;
+        </sql>
+    </changeSet>
+    <changeSet id="fix_m_selfservice_beneficiaries_tpt_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_selfservice_beneficiaries_tpt'
+                AND column_name = 'is_active'
+                AND data_type = 'bit varying'
+                AND character_maximum_length = 1;
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_selfservice_beneficiaries_tpt ADD COLUMN temp_is_active bit varying(1);
+        </sql>
+        <sql>
+            UPDATE m_selfservice_beneficiaries_tpt
+            SET temp_is_active = is_active WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_selfservice_beneficiaries_tpt ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_selfservice_beneficiaries_tpt
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = '0' THEN false
+            WHEN is_active = '1' THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_selfservice_beneficiaries_tpt
+            SET is_active = CASE
+            WHEN temp_is_active = '0' THEN false
+            WHEN temp_is_active = '1' THEN true
+            END WHERE id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_selfservice_beneficiaries_tpt DROP COLUMN temp_is_active;
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>
