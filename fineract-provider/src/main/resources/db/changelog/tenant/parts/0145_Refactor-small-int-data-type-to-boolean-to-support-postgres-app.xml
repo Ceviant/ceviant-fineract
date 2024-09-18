@@ -5825,5 +5825,160 @@
             ALTER TABLE m_provisioning_history DROP COLUMN temp_journal_entry_created;
         </sql>
     </changeSet>
+    <changeSet id="fix_m_rate_column-active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_rate'
+                AND column_name = 'active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_rate ADD COLUMN temp_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_rate
+            SET temp_active = active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_rate ALTER COLUMN active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_rate
+            ALTER COLUMN active TYPE BOOLEAN
+            USING CASE
+            WHEN active = 0 THEN false
+            WHEN active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_rate
+            SET active = CASE
+            WHEN temp_active = 0 THEN false
+            WHEN temp_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_rate DROP COLUMN temp_active;
+        </sql>
 
+    </changeSet>
+    <changeSet id="fix_m_report_mailing_job_column-is_active" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_report_mailing_job'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_report_mailing_job ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_report_mailing_job
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_report_mailing_job ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_report_mailing_job
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_report_mailing_job
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_report_mailing_job DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_report_mailing_job_column-is_deleted" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_report_mailing_job'
+                AND column_name = 'is_deleted'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_report_mailing_job ADD COLUMN temp_is_deleted SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_report_mailing_job
+            SET temp_is_deleted = is_deleted where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_report_mailing_job ALTER COLUMN is_deleted DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_report_mailing_job
+            ALTER COLUMN is_deleted TYPE BOOLEAN
+            USING CASE
+            WHEN is_deleted = 0 THEN false
+            WHEN is_deleted = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_report_mailing_job
+            SET is_deleted = CASE
+            WHEN temp_is_deleted = 0 THEN false
+            WHEN temp_is_deleted = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_report_mailing_job DROP COLUMN temp_is_deleted;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_m_role_column-is_disabled" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_role'
+                AND column_name = 'is_disabled'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_role ADD COLUMN temp_is_disabled SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_role
+            SET temp_is_disabled = is_disabled where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_role ALTER COLUMN is_disabled DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_role
+            ALTER COLUMN is_disabled TYPE BOOLEAN
+            USING CASE
+            WHEN is_disabled = 0 THEN false
+            WHEN is_disabled = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_role
+            SET is_disabled = CASE
+            WHEN temp_is_disabled = 0 THEN false
+            WHEN temp_is_disabled = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_role DROP COLUMN temp_is_disabled;
+        </sql>
+
+    </changeSet>
 </databaseChangeLog>
