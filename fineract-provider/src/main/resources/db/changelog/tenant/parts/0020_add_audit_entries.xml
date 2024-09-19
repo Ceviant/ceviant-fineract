@@ -31,7 +31,12 @@
             <column name="last_modified_on_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="1" context="postgresql">
+    <changeSet author="fineract" id="11121" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_client" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_client">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="created_by" type="BIGINT" valueComputed="submittedon_userid"/>
@@ -63,7 +68,12 @@
             <column name="last_modified_on_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="4" context="postgresql">
+    <changeSet author="fineract" id="41" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_loan" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_loan">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="created_by" type="BIGINT" valueComputed="submittedon_userid"/>
@@ -81,12 +91,12 @@
                                  onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id"
                                  referencedTableName="m_appuser" validate="true"/>
     </changeSet>
-    <changeSet id="6" author="fineract">
-        <dropForeignKeyConstraint baseTableName="m_loan" constraintName="FK_submittedon_userid"/>
-        <dropColumn tableName="m_loan">
-            <column name="submittedon_userid"/>
-        </dropColumn>
-    </changeSet>
+<!--    <changeSet id="6" author="fineract">-->
+<!--        <dropForeignKeyConstraint baseTableName="m_loan" constraintName="FK_submittedon_userid"/>-->
+<!--        <dropColumn tableName="m_loan">-->
+<!--            <column name="submittedon_userid"/>-->
+<!--        </dropColumn>-->
+<!--    </changeSet>-->
     <!-- Loan transactions -->
     <changeSet author="fineract" id="7" context="mysql">
         <addColumn tableName="m_loan_transaction">
@@ -95,6 +105,11 @@
         </addColumn>
     </changeSet>
     <changeSet author="fineract" id="8" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_loan_transaction" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_loan_transaction">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="last_modified_on_utc" type="TIMESTAMP WITH TIME ZONE"/>

@@ -22,7 +22,7 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
-    <changeSet author="fineract" id="1" runInTransaction="false" context="postgresql">
+    <changeSet author="fineract" id="11" runInTransaction="false" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists tableName="batch_step_execution" columnNames="job_execution_id, step_name, start_time"/>
@@ -33,7 +33,7 @@
         </sql>
     </changeSet>
 
-    <changeSet author="fineract" id="2" runInTransaction="false" context="postgresql">
+    <changeSet author="fineract" id="21" runInTransaction="false" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists tableName="batch_job_execution" columnNames="job_execution_id"/>
@@ -44,7 +44,7 @@
         </sql>
     </changeSet>
 
-    <changeSet author="fineract" id="3" runInTransaction="false" context="postgresql">
+    <changeSet author="fineract" id="31" runInTransaction="false" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists tableName="batch_job_execution" columnNames="job_instance_id"/>

@@ -22,6 +22,45 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="fix_m_external_event_configuration_column-enabled" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_external_event_configuration'
+                AND column_name = 'enabled'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_external_event_configuration ADD COLUMN temp_enabled SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_external_event_configuration
+            SET temp_enabled = enabled;
+        </sql>
+        <sql>
+            ALTER TABLE m_external_event_configuration ALTER COLUMN enabled DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_external_event_configuration
+            ALTER COLUMN enabled TYPE BOOLEAN
+            USING CASE
+            WHEN enabled = 0 THEN false
+            WHEN enabled = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_external_event_configuration
+            SET enabled = CASE
+            WHEN temp_enabled = 0 THEN false
+            WHEN temp_enabled = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            ALTER TABLE m_external_event_configuration DROP COLUMN temp_enabled;
+        </sql>
+
+    </changeSet>
     <changeSet author="fineract" id="1">
         <insert tableName="m_permission">
             <column name="grouping" value="transaction_loan" />

@@ -22,7 +22,10 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
-    <changeSet author="fineract" id="1-postgresql" context="postgresql">
+    <changeSet author="fineract" id="1-postgresql-id1" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1"/>
             <column name="parameter_name" value="startDateSelect"/>
@@ -37,6 +40,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id2" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 2</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="2"/>
             <column name="parameter_name" value="endDateSelect"/>
@@ -51,6 +59,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id3" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 3</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="3"/>
             <column name="parameter_name" value="obligDateTypeSelect"/>
@@ -65,6 +78,11 @@
             <column name="parameter_sql" value="select * from  (select 1 as id, 'Closed' AS name union all select 2, 'Disbursal' ) x  order by x.id"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id5" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 5</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="5"/>
             <column name="parameter_name" value="OfficeIdSelectOne"/>
@@ -79,6 +97,11 @@
             <column name="parameter_sql" value="select id, concat(substring('........................................', 1,        ((LENGTH(hierarchy) - LENGTH(REPLACE(hierarchy, '.', '')) - 1) * 4)),      name) as tc  from m_office  where hierarchy like concat('${currentUserHierarchy}', '%')  order by hierarchy"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id6" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 6</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="6"/>
             <column name="parameter_name" value="loanOfficerIdSelectAll"/>
@@ -93,6 +116,11 @@
             <column name="parameter_sql" value="(select lo.id, lo.display_name AS name   from m_office o join m_office ounder on ounder.hierarchy like concat(o.hierarchy, '%')  join m_staff lo on lo.office_id = ounder.id  where lo.is_loan_officer = true  and o.id = '${officeId}')  union all  (select -10, '-')  order by 2"/>
             <column name="parent_id" valueNumeric="5"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id10" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 10</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="10"/>
             <column name="parameter_name" value="currencyIdSelectAll"/>
@@ -107,6 +135,11 @@
             <column name="parameter_sql" value="select code, name  from m_organisation_currency  order by code"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id20" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 20</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="20"/>
             <column name="parameter_name" value="fundIdSelectAll"/>
@@ -121,6 +154,11 @@
             <column name="parameter_sql" value="(select id, name  from m_fund)  union all  (select -10, '-')  order by 2"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id25" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 25</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="25"/>
             <column name="parameter_name" value="loanProductIdSelectAll"/>
@@ -136,6 +174,11 @@
                     value="select p.id, p.`name`&#13;&#10;from m_product_loan p&#13;&#10;where (p.currency_code = '${currencyId}' or '-1'= '${currencyId}')&#13;&#10;order by 2"/>
             <column name="parent_id" valueNumeric="10"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id26" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 26</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="26"/>
             <column name="parameter_name" value="loanPurposeIdSelectAll"/>
@@ -150,6 +193,11 @@
             <column name="parameter_sql" value="select -10 as id, '-' as code_value  union all  select * from (select v.id, v.code_value  from m_code c  join m_code_value v on v.code_id = c.id  where c.code_name = 'loanPurpose'  order by v.order_position)  x"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id100" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 100</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="100"/>
             <column name="parameter_name" value="parTypeSelect"/>
@@ -164,6 +212,11 @@
             <column name="parameter_sql" value="select * from  (select 1 as id, 'Principal Only' AS name union all  select 2, 'Principal + Interest' union all select 3, 'Principal + Interest + Fees' union all  select 4, 'Principal + Interest + Fees + Penalties') x  order by x.id"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1001" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1001</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1001"/>
             <column name="parameter_name" value="FullReportList"/>
@@ -178,6 +231,11 @@
             <column name="parameter_sql" value="SELECT r.id  AS report_id, r.report_name, r.report_type, r.report_subtype, r.report_category, rp.id AS parameter_id, rp.report_parameter_name, p.parameter_name FROM   stretchy_report r LEFT JOIN stretchy_report_parameter rp ON rp.report_id = r.id LEFT JOIN stretchy_parameter p ON p.id = rp.parameter_id WHERE  r.use_report IS TRUE AND r.self_service_user_report = false AND EXISTS (SELECT 'f' FROM   m_appuser_role ur JOIN m_role rr ON rr.id = ur.role_id JOIN m_role_permission rp ON rp.role_id = rr.id JOIN m_permission p ON p.id = rp.permission_id WHERE  ur.appuser_id = 1 AND ( p.code IN ( 'ALL_FUNCTIONS_READ', 'ALL_FUNCTIONS' ) OR p.code = Concat('READ_', r.report_name) )) ORDER  BY r.report_category, r.report_name, rp.id"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1002" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1002</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1002"/>
             <column name="parameter_name" value="FullParameterList"/>
@@ -192,6 +250,11 @@
             <column name="parameter_sql" value="select sp.parameter_name, sp.parameter_variable, sp.parameter_label, sp.&quot;parameter_display_type&quot;, sp.&quot;parameter_format_type&quot;, sp.parameter_default, sp.&quot;selectOne&quot;,  sp.&quot;selectAll&quot;, spp.parameter_name as parentParameterName from stretchy_parameter sp  left join stretchy_parameter spp on spp.id = sp.parent_id  where sp.special is null  and exists     (select 'f'    from stretchy_report sr    join stretchy_report_parameter srp on srp.report_id = sr.id   and sr.self_service_user_report = ${isSelfServiceUser}    where sr.report_name in(${reportListing})    and srp.parameter_id = sp.id   ) order by sp.id"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1003" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1003</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1003"/>
             <column name="parameter_name" value="reportCategoryList"/>
@@ -206,6 +269,11 @@
             <column name="parameter_sql" value="select  r.id as report_id, r.report_name, r.report_type, r.report_subtype, r.report_category,   rp.id as parameter_id, rp.report_parameter_name, p.parameter_name from stretchy_report r   left join stretchy_report_parameter rp on rp.report_id = r.id   left join stretchy_parameter p on p.id = rp.parameter_id   where r.report_category = '${reportCategory}'   and r.use_report is true and r.self_service_user_report = '${isSelfServiceUser}'     and exists   (select 'f'   from m_appuser_role ur    join m_role rr on rr.id = ur.role_id   join m_role_permission rp on rp.role_id = rr.id   join m_permission p on p.id = rp.permission_id   where ur.appuser_id = ${currentUserId} and (p.code in ('ALL_FUNCTIONS_READ', 'ALL_FUNCTIONS') or p.code = concat('READ_', r.report_name)) )   order by r.report_category, r.report_name, rp.id"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1004" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1004</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1004"/>
             <column name="parameter_name" value="selectAccount"/>
@@ -220,6 +288,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1005" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1005</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1005"/>
             <column name="parameter_name" value="savingsProductIdSelectAll"/>
@@ -234,6 +307,11 @@
             <column name="parameter_sql" value="select p.id, p.name  from m_savings_product p  order by 2"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1006" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1006</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1006"/>
             <column name="parameter_name" value="transactionId"/>
@@ -248,6 +326,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1007" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1007</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1007"/>
             <column name="parameter_name" value="selectCenterId"/>
@@ -262,6 +345,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1008" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1008</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1008"/>
             <column name="parameter_name" value="SelectGLAccountNO"/>
@@ -276,6 +364,11 @@
             <column name="parameter_sql" value="select id aid,name aname  from acc_gl_account"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1009" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1009</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1009"/>
             <column name="parameter_name" value="asOnDate"/>
@@ -290,6 +383,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id1010" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1010</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1010"/>
             <column name="parameter_name" value="SavingsAccountSubStatus"/>
@@ -304,6 +402,11 @@
             <column name="parameter_sql" value="select * from  (select 100 as id, 'Inactive' as name  union all  select 200 as id, 'Dormant' as  name union all   select 300 as id, 'Escheat' as name) x  order by x.id"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1011" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1011</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1011"/>
             <column name="parameter_name" value="cycleXSelect"/>
@@ -318,6 +421,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1012" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1012</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1012"/>
             <column name="parameter_name" value="cycleYSelect"/>
@@ -332,6 +440,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1013" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1013</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1013"/>
             <column name="parameter_name" value="fromXSelect"/>
@@ -346,6 +459,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1014" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1014</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1014"/>
             <column name="parameter_name" value="toYSelect"/>
@@ -360,6 +478,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1015" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1015</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1015"/>
             <column name="parameter_name" value="overdueXSelect"/>
@@ -374,6 +497,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1016" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1016</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1016"/>
             <column name="parameter_name" value="overdueYSelect"/>
@@ -388,6 +516,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1017" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1017</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1017"/>
             <column name="parameter_name" value="DefaultLoan"/>
@@ -402,6 +535,11 @@
             <column name="parameter_sql" value="select ml.id  from m_loan ml  left join m_client mc on mc.id = ml.client_id  left join m_office mo on mo.id = mc.office_id  where mo.id = '${officeId}' or '${officeId}' = -1"/>
             <column name="parent_id" valueNumeric="5"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1018" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1018</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1018"/>
             <column name="parameter_name" value="DefaultClient"/>
@@ -416,6 +554,11 @@
             <column name="parameter_sql" value="select mc.id  from m_client mc  left join m_office mo on mc.office_id = mo.id  where mo.id = '${officeId}' or '${officeId}' = -1"/>
             <column name="parent_id" valueNumeric="5"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1019" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1019</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1019"/>
             <column name="parameter_name" value="DefaultGroup"/>
@@ -430,6 +573,11 @@
             <column name="parameter_sql" value="select mg.id  from m_group mg left join m_office mo on mg.office_id = mo.id where mo.id = '${officeId}' or '${officeId}' = -1"/>
             <column name="parent_id" valueNumeric="5"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1020" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1020</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1020"/>
             <column name="parameter_name" value="SelectLoanType"/>
@@ -444,6 +592,11 @@
             <column name="parameter_sql" value="select enum_id as id, enum_value as value from r_enum_value where enum_name = 'loan_type_enum'"/>
             <column name="parent_id"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1021" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1021</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1021"/>
             <column name="parameter_name" value="DefaultSavings"/>
@@ -458,6 +611,11 @@
             <column name="parameter_sql"/>
             <column name="parent_id" valueNumeric="5"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="1-postgresql-id-1022" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_parameter  WHERE id = 1022</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_parameter">
             <column name="id" valueNumeric="1022"/>
             <column name="parameter_name" value="DefaultSavingsTransactionId"/>
@@ -473,7 +631,10 @@
             <column name="parent_id" valueNumeric="5"/>
         </insert>
     </changeSet>
-    <changeSet author="fineract" id="2-postgresql" context="postgresql">
+    <changeSet author="fineract" id="2-postgresql-id-1" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 1</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="1"/>
             <column name="report_name" value="Client Listing"/>
@@ -486,6 +647,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-2" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 2</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="2"/>
             <column name="report_name" value="Client Loans Listing"/>
@@ -498,6 +664,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-5" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 5</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="5"/>
             <column name="report_name" value="Loans Awaiting Disbursal"/>
@@ -510,6 +681,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-6" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 6</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="6"/>
             <column name="report_name" value="Loans Awaiting Disbursal Summary"/>
@@ -522,6 +698,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-7" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 7</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="7"/>
             <column name="report_name" value="Loans Awaiting Disbursal Summary by Month"/>
@@ -534,6 +715,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-8" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 8</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="8"/>
             <column name="report_name" value="Loans Pending Approval"/>
@@ -546,6 +732,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-11" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 11</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="11"/>
             <column name="report_name" value="Active Loans - Summary"/>
@@ -558,6 +749,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-12" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 12</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="12"/>
             <column name="report_name" value="Active Loans - Details"/>
@@ -570,6 +766,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-13" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 13</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="13"/>
             <column name="report_name" value="Obligation Met Loans Details"/>
@@ -582,6 +783,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-14" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 14</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="14"/>
             <column name="report_name" value="Obligation Met Loans Summary"/>
@@ -594,6 +800,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-15" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 15</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="15"/>
             <column name="report_name" value="Portfolio at Risk"/>
@@ -606,6 +817,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-16" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 16</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="16"/>
             <column name="report_name" value="Portfolio at Risk by Branch"/>
@@ -618,6 +834,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-20" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 20</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="20"/>
             <column name="report_name" value="Funds Disbursed Between Dates Summary"/>
@@ -630,6 +851,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-21" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 21</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="21"/>
             <column name="report_name" value="Funds Disbursed Between Dates Summary by Office"/>
@@ -642,6 +868,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-48" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 48</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="48"/>
             <column name="report_name" value="Balance Sheet"/>
@@ -654,6 +885,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-49" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 49</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="49"/>
             <column name="report_name" value="Income Statement"/>
@@ -666,6 +902,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-50" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 50</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="50"/>
             <column name="report_name" value="Trial Balance"/>
@@ -678,6 +919,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-51" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 51</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="51"/>
             <column name="report_name" value="Written-Off Loans"/>
@@ -690,6 +936,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-52" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 52</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="52"/>
             <column name="report_name" value="Aging Detail"/>
@@ -702,6 +953,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-53" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 53</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="53"/>
             <column name="report_name" value="Aging Summary (Arrears in Weeks)"/>
@@ -714,6 +970,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-54" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 54</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="54"/>
             <column name="report_name" value="Rescheduled Loans"/>
@@ -726,6 +987,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-55" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 55</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="55"/>
             <column name="report_name" value="Active Loans Passed Final Maturity"/>
@@ -738,6 +1004,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-56" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 56</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="56"/>
             <column name="report_name" value="Active Loans Passed Final Maturity Summary"/>
@@ -750,6 +1021,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-57" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 57</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="57"/>
             <column name="report_name" value="Active Loans in last installment"/>
@@ -762,6 +1038,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-58" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 58</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="58"/>
             <column name="report_name" value="Active Loans in last installment Summary"/>
@@ -774,6 +1055,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-59" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 59</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="59"/>
             <column name="report_name" value="Active Loans by Disbursal Period"/>
@@ -786,6 +1072,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-61" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 61</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="61"/>
             <column name="report_name" value="Aging Summary (Arrears in Months)"/>
@@ -798,6 +1089,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-91" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 91</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="91"/>
             <column name="report_name" value="Loan Account Schedule"/>
@@ -810,6 +1106,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-92" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 92</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="92"/>
             <column name="report_name" value="Branch Expected Cash Flow"/>
@@ -822,6 +1123,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-93" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 93</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="93"/>
             <column name="report_name" value="Expected Payments By Date - Basic"/>
@@ -834,6 +1140,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-94" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 94</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="94"/>
             <column name="report_name" value="Expected Payments By Date - Formatted"/>
@@ -846,6 +1157,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-96" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 96</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="96"/>
             <column name="report_name" value="GroupSummaryCounts"/>
@@ -858,6 +1174,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-97" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 97</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="97"/>
             <column name="report_name" value="GroupSummaryAmounts"/>
@@ -870,6 +1191,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-106" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 106</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="106"/>
             <column name="report_name" value="TxnRunningBalances"/>
@@ -882,6 +1208,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-107" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 107</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="107"/>
             <column name="report_name" value="FieldAgentStats"/>
@@ -894,6 +1225,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-108" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 108</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="108"/>
             <column name="report_name" value="FieldAgentPrograms"/>
@@ -906,6 +1242,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-109" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 109</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="109"/>
             <column name="report_name" value="ProgramDetails"/>
@@ -918,6 +1259,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-110" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 110</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="110"/>
             <column name="report_name" value="ChildrenStaffList"/>
@@ -930,6 +1276,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-111" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 111</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="111"/>
             <column name="report_name" value="CoordinatorStats"/>
@@ -942,6 +1293,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-112" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 112</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="112"/>
             <column name="report_name" value="BranchManagerStats"/>
@@ -954,6 +1310,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-113" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 113</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="113"/>
             <column name="report_name" value="ProgramDirectorStats"/>
@@ -966,6 +1327,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-114" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 114</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="114"/>
             <column name="report_name" value="ProgramStats"/>
@@ -978,6 +1344,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-115" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 115</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="115"/>
             <column name="report_name" value="ClientSummary "/>
@@ -990,6 +1361,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-116" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 116</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="116"/>
             <column name="report_name" value="LoanCyclePerProduct"/>
@@ -1002,6 +1378,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-117" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 117</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="117"/>
             <column name="report_name" value="GroupSavingSummary"/>
@@ -1014,6 +1395,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-118" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 118</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="118"/>
             <column name="report_name" value="Savings Transactions"/>
@@ -1026,6 +1412,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-119" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 119</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="119"/>
             <column name="report_name" value="Client Savings Summary"/>
@@ -1038,6 +1429,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-120" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 120</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="120"/>
             <column name="report_name" value="Active Loans - Details(Pentaho)"/>
@@ -1050,6 +1446,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-121" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 121</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="121"/>
             <column name="report_name" value="Active Loans - Summary(Pentaho)"/>
@@ -1062,6 +1463,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-122" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 122</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="122"/>
             <column name="report_name" value="Active Loans by Disbursal Period(Pentaho)"/>
@@ -1074,6 +1480,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-123" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 123</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="123"/>
             <column name="report_name" value="Active Loans in last installment Summary(Pentaho)"/>
@@ -1086,6 +1497,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-124" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 124</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="124"/>
             <column name="report_name" value="Active Loans in last installment(Pentaho)"/>
@@ -1098,6 +1514,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-125" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 125</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="125"/>
             <column name="report_name" value="Active Loans Passed Final Maturity Summary(Pentaho)"/>
@@ -1110,6 +1531,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-126" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 126</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="126"/>
             <column name="report_name" value="Active Loans Passed Final Maturity(Pentaho)"/>
@@ -1122,6 +1548,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-127" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 127</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="127"/>
             <column name="report_name" value="Aging Detail(Pentaho)"/>
@@ -1134,6 +1565,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-128" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 128</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="128"/>
             <column name="report_name" value="Aging Summary (Arrears in Months)(Pentaho)"/>
@@ -1146,6 +1582,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-129" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 129</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="129"/>
             <column name="report_name" value="Aging Summary (Arrears in Weeks)(Pentaho)"/>
@@ -1158,6 +1599,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-130" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 130</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="130"/>
             <column name="report_name" value="Client Listing(Pentaho)"/>
@@ -1170,6 +1616,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-131" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 131</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="131"/>
             <column name="report_name" value="Client Loans Listing(Pentaho)"/>
@@ -1182,6 +1633,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-132" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 132</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="132"/>
             <column name="report_name" value="Expected Payments By Date - Basic(Pentaho)"/>
@@ -1194,6 +1650,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-133" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 133</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="133"/>
             <column name="report_name" value="Funds Disbursed Between Dates Summary by Office(Pentaho)"/>
@@ -1206,6 +1667,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-134" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 134</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="134"/>
             <column name="report_name" value="Funds Disbursed Between Dates Summary(Pentaho)"/>
@@ -1218,6 +1684,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-135" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 135</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="135"/>
             <column name="report_name" value="Loans Awaiting Disbursal Summary by Month(Pentaho)"/>
@@ -1230,6 +1701,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-136" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 136</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="136"/>
             <column name="report_name" value="Loans Awaiting Disbursal Summary(Pentaho)"/>
@@ -1242,6 +1718,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-137" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 137</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="137"/>
             <column name="report_name" value="Loans Awaiting Disbursal(Pentaho)"/>
@@ -1254,6 +1735,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-138" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 138</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="138"/>
             <column name="report_name" value="Loans Pending Approval(Pentaho)"/>
@@ -1266,6 +1752,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-139" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 139</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="139"/>
             <column name="report_name" value="Obligation Met Loans Details(Pentaho)"/>
@@ -1278,6 +1769,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-140" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 140</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="140"/>
             <column name="report_name" value="Obligation Met Loans Summary(Pentaho)"/>
@@ -1290,6 +1786,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-141" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 141</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="141"/>
             <column name="report_name" value="Portfolio at Risk by Branch(Pentaho)"/>
@@ -1302,6 +1803,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-142" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 142</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="142"/>
             <column name="report_name" value="Portfolio at Risk(Pentaho)"/>
@@ -1314,6 +1820,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-143" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 143</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="143"/>
             <column name="report_name" value="Rescheduled Loans(Pentaho)"/>
@@ -1326,6 +1837,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-144" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 144</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="144"/>
             <column name="report_name" value="TxnRunningBalances(Pentaho)"/>
@@ -1338,6 +1854,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-145" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 145</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="145"/>
             <column name="report_name" value="Written-Off Loans(Pentaho)"/>
@@ -1350,6 +1871,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-146" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 146</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="146"/>
             <column name="report_name" value="Client Saving Transactions"/>
@@ -1362,6 +1888,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-147" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 147</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="147"/>
             <column name="report_name" value="Client Loan Account Schedule"/>
@@ -1374,6 +1905,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-148" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 148</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="148"/>
             <column name="report_name" value="GroupNamesByStaff"/>
@@ -1386,6 +1922,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-149" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 149</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="149"/>
             <column name="report_name" value="ClientTrendsByDay"/>
@@ -1398,6 +1939,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-150" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 150</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="150"/>
             <column name="report_name" value="ClientTrendsByWeek"/>
@@ -1410,6 +1956,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-151" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 151</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="151"/>
             <column name="report_name" value="ClientTrendsByMonth"/>
@@ -1422,6 +1973,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-152" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 152</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="152"/>
             <column name="report_name" value="LoanTrendsByDay"/>
@@ -1434,6 +1990,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-153" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 153</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="153"/>
             <column name="report_name" value="LoanTrendsByWeek"/>
@@ -1446,6 +2007,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-154" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 154</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="154"/>
             <column name="report_name" value="LoanTrendsByMonth"/>
@@ -1458,6 +2024,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-155" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 155</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="155"/>
             <column name="report_name" value="Demand_Vs_Collection"/>
@@ -1470,6 +2041,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-156" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 156</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="156"/>
             <column name="report_name" value="Disbursal_Vs_Awaitingdisbursal"/>
@@ -1482,6 +2058,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-157" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 157</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="157"/>
             <column name="report_name" value="Savings Transaction Receipt"/>
@@ -1494,6 +2075,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-158" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 158</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="158"/>
             <column name="report_name" value="Loan Transaction Receipt"/>
@@ -1506,6 +2092,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-159" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 159</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="159"/>
             <column name="report_name" value="Staff Assignment History"/>
@@ -1518,6 +2109,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-160" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 160</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="160"/>
             <column name="report_name" value="GeneralLedgerReport"/>
@@ -1530,6 +2126,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-161" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 161</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="161"/>
             <column name="report_name" value="Active Loan Summary per Branch"/>
@@ -1542,6 +2143,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-162" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 162</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="162"/>
             <column name="report_name" value="Balance Outstanding"/>
@@ -1554,6 +2160,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-163" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 163</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="163"/>
             <column name="report_name" value="Collection Report"/>
@@ -1566,6 +2177,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-164" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 164</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="164"/>
             <column name="report_name" value="Disbursal Report"/>
@@ -1578,6 +2194,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-165" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 165</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="165"/>
             <column name="report_name" value="Savings Accounts Dormancy Report"/>
@@ -1590,6 +2211,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-166" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 166</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="166"/>
             <column name="report_name" value="Active Clients"/>
@@ -1602,6 +2228,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-167" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 167</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="167"/>
             <column name="report_name" value="Prospective Clients"/>
@@ -1614,6 +2245,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-168" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 168</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="168"/>
             <column name="report_name" value="Active Loan Clients"/>
@@ -1626,6 +2262,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-169" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 169</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="169"/>
             <column name="report_name" value="Loan in arrears"/>
@@ -1638,6 +2279,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-170" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 170</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="170"/>
             <column name="report_name" value="Loan payments due"/>
@@ -1650,6 +2296,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-171" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 171</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="171"/>
             <column name="report_name" value="Dormant Prospects"/>
@@ -1662,6 +2313,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-172" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 172</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="172"/>
             <column name="report_name" value="Active group leaders"/>
@@ -1674,6 +2330,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-173" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 173</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="173"/>
             <column name="report_name" value="Loan payments due (Overdue Loans)"/>
@@ -1686,6 +2347,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-174" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 174</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="174"/>
             <column name="report_name" value="Loan payments received (Active Loans)"/>
@@ -1698,6 +2364,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-175" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 175</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="175"/>
             <column name="report_name" value="Loan payments received (Overdue Loans)"/>
@@ -1710,6 +2381,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-176" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 176</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="176"/>
             <column name="report_name" value="Happy Birthday"/>
@@ -1722,6 +2398,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-177" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 177</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="177"/>
             <column name="report_name" value="Loan fully repaid"/>
@@ -1734,6 +2415,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-178" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 178</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="178"/>
             <column name="report_name" value="Loan outstanding after final instalment date"/>
@@ -1746,6 +2432,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-179" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 179</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="179"/>
             <column name="report_name" value="Loan Repayment"/>
@@ -1758,6 +2449,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-180" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 180</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="180"/>
             <column name="report_name" value="Loan Approved"/>
@@ -1770,6 +2466,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-181" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 181</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="181"/>
             <column name="report_name" value="Loan Rejected"/>
@@ -1782,6 +2483,11 @@
             <column name="use_report" valueBoolean="falsee"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-182" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 182</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="182"/>
             <column name="report_name" value="Client Rejected"/>
@@ -1794,6 +2500,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-183" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 183</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="183"/>
             <column name="report_name" value="Client Activated"/>
@@ -1806,6 +2517,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-184" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 184</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="184"/>
             <column name="report_name" value="Savings Rejected"/>
@@ -1818,6 +2534,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-185" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 185</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="185"/>
             <column name="report_name" value="Savings Activated"/>
@@ -1830,6 +2551,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-186" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 186</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="186"/>
             <column name="report_name" value="Savings Deposit"/>
@@ -1842,6 +2568,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-187" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 187</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="187"/>
             <column name="report_name" value="Savings Withdrawal"/>
@@ -1854,6 +2585,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-188" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 188</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="188"/>
             <column name="report_name" value="ReportCategoryList"/>
@@ -1866,6 +2602,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-189" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 189</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="189"/>
             <column name="report_name" value="FullReportList"/>
@@ -1878,6 +2619,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-190" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 190</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="190"/>
             <column name="report_name" value="Loan Approved - Email"/>
@@ -1890,6 +2636,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-191" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 191</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="191"/>
             <column name="report_name" value="Loan Rejected - Email"/>
@@ -1902,6 +2653,11 @@
             <column name="use_report" valueBoolean="true"/>
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="2-postgresql-id-192" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0"> select count(id) from stretchy_report  WHERE id = 192</sqlCheck>
+        </preConditions>
         <insert tableName="stretchy_report">
             <column name="id" valueNumeric="192"/>
             <column name="report_name" value="Loan Repayment - Email"/>
@@ -1915,55 +2671,65 @@
             <column name="self_service_user_report" valueBoolean="false"/>
         </insert>
     </changeSet>
-    <changeSet author="fineract" id="3-postgresql" context="postgresql">
-        <sql>
-            SELECT SETVAL('c_cache_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_cache;
-            SELECT SETVAL('c_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_configuration;
-            SELECT SETVAL('c_external_service_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_external_service;
-            SELECT SETVAL('job_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job;
-            SELECT SETVAL('job_parameters_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job_parameters;
-            SELECT SETVAL('m_appuser_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_appuser;
-            SELECT SETVAL('m_code_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code;
-            SELECT SETVAL('m_code_value_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code_value;
-            SELECT SETVAL('m_creditbureau_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau;
-            SELECT SETVAL('m_creditbureau_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau_configuration;
-            SELECT SETVAL('m_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_currency;
-            SELECT SETVAL('m_entity_relation_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_entity_relation;
-            SELECT SETVAL('m_field_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_field_configuration;
-            SELECT SETVAL('m_group_level_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_group_level;
-            SELECT SETVAL('m_hook_schema_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_schema;
-            SELECT SETVAL('m_hook_templates_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_templates;
-            SELECT SETVAL('m_office_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_office;
-            SELECT SETVAL('m_organisation_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_organisation_currency;
-            SELECT SETVAL('m_password_validation_policy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_password_validation_policy;
-            SELECT SETVAL('m_payment_type_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_payment_type;
-            SELECT SETVAL('m_permission_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_permission;
-            SELECT SETVAL('m_provision_category_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_provision_category;
-            SELECT SETVAL('m_report_mailing_job_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_report_mailing_job_configuration;
-            SELECT SETVAL('m_role_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_role;
-            SELECT SETVAL('m_working_days_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_working_days;
-            SELECT SETVAL('mix_taxonomy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy;
-            SELECT SETVAL('mix_taxonomy_mapping_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy_mapping;
-            SELECT SETVAL('mix_xbrl_namespace_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_xbrl_namespace;
-            SELECT SETVAL('ppi_scores_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ppi_scores;
-            SELECT SETVAL('ref_loan_transaction_processing_strategy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ref_loan_transaction_processing_strategy;
-            SELECT SETVAL('scheduled_email_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduled_email_configuration;
-            SELECT SETVAL('scheduler_detail_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduler_detail;
-            SELECT SETVAL('topic_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic;
-            SELECT SETVAL('topic_subscriber_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic_subscriber;
-            SELECT SETVAL('stretchy_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_parameter;
-            SELECT SETVAL('stretchy_report_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report;
-            SELECT SETVAL('stretchy_report_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report_parameter;
-            SELECT SETVAL('twofactor_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM twofactor_configuration;
-        </sql>
-    </changeSet>
-    <changeSet author="fineract" id="883-postgresql" context="postgresql">
+<!--    <changeSet author="fineract" id="3-postgresql" context="postgresql">-->
+<!--        <sql>-->
+<!--            SELECT SETVAL('c_cache_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_cache;-->
+<!--            SELECT SETVAL('c_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_configuration;-->
+<!--            SELECT SETVAL('c_external_service_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_external_service;-->
+<!--            SELECT SETVAL('job_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job;-->
+<!--            SELECT SETVAL('job_parameters_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM job_parameters;-->
+<!--            SELECT SETVAL('m_appuser_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_appuser;-->
+<!--            SELECT SETVAL('m_code_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code;-->
+<!--            SELECT SETVAL('m_code_value_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_code_value;-->
+<!--            SELECT SETVAL('m_creditbureau_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau;-->
+<!--            SELECT SETVAL('m_creditbureau_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_creditbureau_configuration;-->
+<!--            SELECT SETVAL('m_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_currency;-->
+<!--            SELECT SETVAL('m_entity_relation_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_entity_relation;-->
+<!--            SELECT SETVAL('m_field_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_field_configuration;-->
+<!--            SELECT SETVAL('m_group_level_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_group_level;-->
+<!--            SELECT SETVAL('m_hook_schema_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_schema;-->
+<!--            SELECT SETVAL('m_hook_templates_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_hook_templates;-->
+<!--            SELECT SETVAL('m_office_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_office;-->
+<!--            SELECT SETVAL('m_organisation_currency_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_organisation_currency;-->
+<!--            SELECT SETVAL('m_password_validation_policy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_password_validation_policy;-->
+<!--            SELECT SETVAL('m_payment_type_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_payment_type;-->
+<!--            SELECT SETVAL('m_permission_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_permission;-->
+<!--            SELECT SETVAL('m_provision_category_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_provision_category;-->
+<!--            SELECT SETVAL('m_report_mailing_job_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_report_mailing_job_configuration;-->
+<!--            SELECT SETVAL('m_role_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_role;-->
+<!--            SELECT SETVAL('m_working_days_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM m_working_days;-->
+<!--            SELECT SETVAL('mix_taxonomy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy;-->
+<!--            SELECT SETVAL('mix_taxonomy_mapping_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_taxonomy_mapping;-->
+<!--            SELECT SETVAL('mix_xbrl_namespace_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM mix_xbrl_namespace;-->
+<!--            SELECT SETVAL('ppi_scores_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ppi_scores;-->
+<!--            SELECT SETVAL('ref_loan_transaction_processing_strategy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ref_loan_transaction_processing_strategy;-->
+<!--            SELECT SETVAL('scheduled_email_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduled_email_configuration;-->
+<!--            SELECT SETVAL('scheduler_detail_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduler_detail;-->
+<!--            SELECT SETVAL('topic_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic;-->
+<!--            SELECT SETVAL('topic_subscriber_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic_subscriber;-->
+<!--            SELECT SETVAL('stretchy_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_parameter;-->
+<!--            SELECT SETVAL('stretchy_report_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report;-->
+<!--            SELECT SETVAL('stretchy_report_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report_parameter;-->
+<!--            SELECT SETVAL('twofactor_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM twofactor_configuration;-->
+<!--        </sql>-->
+<!--    </changeSet>-->
+    <changeSet author="fineract" id="883-postgresql-1" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_report_parameter_001"/>
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="report_id" baseTableName="stretchy_report_parameter"
                                  constraintName="fk_report_parameter_001" deferrable="false" initiallyDeferred="false"
                                  onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id"
                                  referencedTableName="stretchy_report" validate="true"/>
     </changeSet>
-    <changeSet author="fineract" id="884-postgresql" context="postgresql">
+    <changeSet author="fineract" id="884-postgresql-112" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_report_parameter_002"/>
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="parameter_id" baseTableName="stretchy_report_parameter"
                                  constraintName="fk_report_parameter_002" deferrable="false" initiallyDeferred="false"
                                  onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id"

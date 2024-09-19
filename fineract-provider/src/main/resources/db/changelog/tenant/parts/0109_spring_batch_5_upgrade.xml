@@ -46,7 +46,7 @@
             WHERE TYPE_CD = 'DOUBLE'
         </sql>
     </changeSet>
-    <changeSet author="fineract" id="2" context="postgresql">
+    <changeSet author="fineract" id="21" context="postgresql">
         <sql>
             UPDATE BATCH_JOB_EXECUTION_PARAMS
             SET STRING_VAL = TO_CHAR(DATE_VAL, 'YYYY-MM-DDTHH:MM:SSZ')
@@ -63,7 +63,7 @@
             WHERE TYPE_CD = 'DOUBLE'
         </sql>
     </changeSet>
-    <changeSet author="fineract" id="4" context="postgresql">
+    <changeSet author="fineract" id="41" context="postgresql">
         <!--
             org/springframework/batch/core/migration/5.0/migration-postgresql.sql
         -->
