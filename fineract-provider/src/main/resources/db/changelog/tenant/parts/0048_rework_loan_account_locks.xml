@@ -38,7 +38,12 @@
             </column>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="10" context="postgresql">
+    <changeSet author="fineract" id="101" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_loan_account_locks" columnName="lock_placed_on"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_loan_account_locks">
             <column name="lock_placed_on" type="TIMESTAMP WITH TIME ZONE">
                 <constraints nullable="false"/>

@@ -22,6 +22,39 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="fix_r_enum_value_can-enum_type" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE r_enum_value ADD COLUMN temp_enum_type SMALLINT;
+        </sql>
+        <sql>
+            UPDATE r_enum_value
+            SET temp_enum_type = enum_type where enum_id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE r_enum_value ALTER COLUMN enum_type DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE r_enum_value
+            ALTER COLUMN enum_type TYPE BOOLEAN
+            USING CASE
+            WHEN enum_type = 0 THEN false
+            WHEN enum_type = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE r_enum_value
+            SET enum_type = CASE
+            WHEN temp_enum_type = 0 THEN false
+            WHEN temp_enum_type = 1 THEN true
+            END  where enum_id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE r_enum_value DROP COLUMN temp_enum_type;
+        </sql>
+
+    </changeSet>
+
     <changeSet author="fineract" id="1">
         <insert tableName="r_enum_value">
             <column name="enum_name" value="transaction_type_enum"/>

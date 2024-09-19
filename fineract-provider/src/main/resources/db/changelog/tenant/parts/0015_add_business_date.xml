@@ -42,6 +42,68 @@
             <column defaultValueComputed="NULL" name="lastmodified_date" type="DATETIME"/>
         </createTable>
     </changeSet>
+    <changeSet id="fix_c_configuration_can-enabled" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE c_configuration ADD COLUMN temp_enabled SMALLINT;
+        </sql>
+        <sql>
+            UPDATE c_configuration
+            SET temp_enabled = enabled where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE c_configuration ALTER COLUMN enabled DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE c_configuration
+            ALTER COLUMN enabled TYPE BOOLEAN
+            USING CASE
+            WHEN enabled = 0 THEN false
+            WHEN enabled = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE c_configuration
+            SET enabled = CASE
+            WHEN temp_enabled = 0 THEN false
+            WHEN temp_enabled = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE c_configuration DROP COLUMN temp_enabled;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_c_configuration_can-is_trap_door" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE c_configuration ADD COLUMN temp_is_trap_door SMALLINT;
+        </sql>
+        <sql>
+            UPDATE c_configuration
+            SET temp_is_trap_door = is_trap_door where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE c_configuration ALTER COLUMN is_trap_door DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE c_configuration
+            ALTER COLUMN is_trap_door TYPE BOOLEAN
+            USING CASE
+            WHEN is_trap_door = 0 THEN false
+            WHEN is_trap_door = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE c_configuration
+            SET is_trap_door = CASE
+            WHEN temp_is_trap_door = 0 THEN false
+            WHEN temp_is_trap_door = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE c_configuration DROP COLUMN temp_is_trap_door;
+        </sql>
+
+    </changeSet>
     <changeSet id="2" author="fineract">
         <insert tableName="c_configuration">
             <column name="name" value="enable_business_date"/>
@@ -78,8 +140,175 @@
             <column name="can_maker_checker" valueBoolean="false"/>
         </insert>
     </changeSet>
-    <changeSet id="4" author="fineract">
-        <validCheckSum>8:f7e5e697680e1e81eca6566f2481b879</validCheckSum>
+    <changeSet id="fix_job_can-is_active" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE job ADD COLUMN temp_is_active SMALLINT;
+        </sql>
+        <sql>
+            UPDATE job
+            SET temp_is_active = is_active where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job ALTER COLUMN is_active DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE job
+            ALTER COLUMN is_active TYPE BOOLEAN
+            USING CASE
+            WHEN is_active = 0 THEN false
+            WHEN is_active = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE job
+            SET is_active = CASE
+            WHEN temp_is_active = 0 THEN false
+            WHEN temp_is_active = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job DROP COLUMN temp_is_active;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_job_can-currently_running" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE job ADD COLUMN temp_currently_running SMALLINT;
+        </sql>
+        <sql>
+            UPDATE job
+            SET temp_currently_running = currently_running where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job ALTER COLUMN currently_running DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE job
+            ALTER COLUMN currently_running TYPE BOOLEAN
+            USING CASE
+            WHEN currently_running = 0 THEN false
+            WHEN currently_running = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE job
+            SET currently_running = CASE
+            WHEN temp_currently_running = 0 THEN false
+            WHEN temp_currently_running = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job DROP COLUMN temp_currently_running;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_job_can-is_misfired" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE job ADD COLUMN temp_is_misfired SMALLINT;
+        </sql>
+        <sql>
+            UPDATE job
+            SET temp_is_misfired = is_misfired where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job ALTER COLUMN is_misfired DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE job
+            ALTER COLUMN is_misfired TYPE BOOLEAN
+            USING CASE
+            WHEN is_misfired = 0 THEN false
+            WHEN is_misfired = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE job
+            SET is_misfired = CASE
+            WHEN temp_is_misfired = 0 THEN false
+            WHEN temp_is_misfired = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job DROP COLUMN temp_is_misfired;
+        </sql>
+
+    </changeSet>
+    <changeSet id="fix_job_can-updates_allowed" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE job ADD COLUMN temp_updates_allowed SMALLINT;
+        </sql>
+        <sql>
+            UPDATE job
+            SET temp_updates_allowed = updates_allowed where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job ALTER COLUMN updates_allowed DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE job
+            ALTER COLUMN updates_allowed TYPE BOOLEAN
+            USING CASE
+            WHEN updates_allowed = 0 THEN false
+            WHEN updates_allowed = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE job
+            SET updates_allowed = CASE
+            WHEN temp_updates_allowed = 0 THEN false
+            WHEN temp_updates_allowed = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job DROP COLUMN temp_updates_allowed;
+        </sql>
+
+    </changeSet>
+
+    <changeSet id="fix_job_can-is_mismatched_job" author="bosco@fiter.io">
+        <sql>
+            ALTER TABLE job ADD COLUMN temp_is_mismatched_job SMALLINT;
+        </sql>
+        <sql>
+            UPDATE job
+            SET temp_is_mismatched_job = is_mismatched_job where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job ALTER COLUMN is_mismatched_job DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE job
+            ALTER COLUMN is_mismatched_job TYPE BOOLEAN
+            USING CASE
+            WHEN is_mismatched_job = 0 THEN false
+            WHEN is_mismatched_job = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE job
+            SET is_mismatched_job = CASE
+            WHEN temp_is_mismatched_job = 0 THEN false
+            WHEN temp_is_mismatched_job = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE job DROP COLUMN temp_is_mismatched_job;
+        </sql>
+
+    </changeSet>
+
+
+
+
+
+    <changeSet id="43" author="fineract">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(1) FROM job WHERE name = 'Increase Business Date by 1 day'
+                </sqlCheck>
+            </not>
+        </preConditions>
         <insert tableName="job">
             <column name="name" value="Increase Business Date by 1 day"/>
             <column name="display_name" value="Increase Business Date by 1 day"/>
@@ -99,8 +328,14 @@
             <column name="is_mismatched_job" valueBoolean="false"/>
         </insert>
     </changeSet>
-    <changeSet id="5" author="fineract">
-        <validCheckSum>8:cb7f67c27941deda1e83d317bd78dabd</validCheckSum>
+    <changeSet id="53" author="fineract">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(1) FROM job WHERE name = 'Increase COB Date by 1 day'
+                </sqlCheck>
+            </not>
+        </preConditions>
         <insert tableName="job">
             <column name="name" value="Increase COB Date by 1 day"/>
             <column name="display_name" value="Increase COB Date by 1 day"/>
