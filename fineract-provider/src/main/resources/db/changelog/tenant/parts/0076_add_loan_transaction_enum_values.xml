@@ -23,7 +23,15 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <changeSet id="fix_r_enum_value_can-enum_type" author="bosco@fiter.io">
+    <changeSet id="fix_r_enum_value_can-enum_type11" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'r_enum_value'
+                AND column_name = 'enum_type'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE r_enum_value ADD COLUMN temp_enum_type SMALLINT;
         </sql>

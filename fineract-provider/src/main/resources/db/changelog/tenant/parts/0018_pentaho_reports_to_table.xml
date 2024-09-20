@@ -132,7 +132,15 @@
             <column name="report_parameter_name" value="toDate"/>
         </insert>
     </changeSet>
-    <changeSet id="fix_stretchy_report_can-core_report" author="bosco@fiter.io">
+    <changeSet id="fix_stretchy_report_can-core_report121" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'stretchy_report'
+                AND column_name = 'core_report'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE stretchy_report ADD COLUMN temp_core_report SMALLINT;
         </sql>
@@ -163,7 +171,15 @@
         </sql>
 
     </changeSet>
-    <changeSet id="fix_stretchy_report_can-use_report" author="bosco@fiter.io">
+    <changeSet id="fix_stretchy_report_can-use_report621" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'stretchy_report'
+                AND column_name = 'use_report'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE stretchy_report ADD COLUMN temp_use_report SMALLINT;
         </sql>
@@ -195,7 +211,15 @@
 
     </changeSet>
 
-    <changeSet id="fix_stretchy_report_can-self_service_user_report" author="bosco@fiter.io">
+    <changeSet id="fix_stretchy_report_can-self_service_user_report12" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'stretchy_report'
+                AND column_name = 'self_service_user_report'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE stretchy_report ADD COLUMN temp_self_service_user_report SMALLINT;
         </sql>
