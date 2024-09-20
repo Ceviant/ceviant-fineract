@@ -42,7 +42,15 @@
             <column defaultValueComputed="NULL" name="lastmodified_date" type="DATETIME"/>
         </createTable>
     </changeSet>
-    <changeSet id="fix_c_configuration_can-enabled" author="bosco@fiter.io">
+    <changeSet id="fix_c_configuration_can-enabled213" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'c_configuration'
+                AND column_name = 'enabled'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE c_configuration ADD COLUMN temp_enabled SMALLINT;
         </sql>
@@ -73,7 +81,15 @@
         </sql>
 
     </changeSet>
-    <changeSet id="fix_c_configuration_can-is_trap_door" author="bosco@fiter.io">
+    <changeSet id="fix_c_configuration_can-is_trap_door241" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'c_configuration'
+                AND column_name = 'is_trap_door'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE c_configuration ADD COLUMN temp_is_trap_door SMALLINT;
         </sql>
@@ -140,7 +156,15 @@
             <column name="can_maker_checker" valueBoolean="false"/>
         </insert>
     </changeSet>
-    <changeSet id="fix_job_can-is_active" author="bosco@fiter.io">
+    <changeSet id="fix_job_can-is_active521" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'job'
+                AND column_name = 'is_active'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE job ADD COLUMN temp_is_active SMALLINT;
         </sql>
@@ -171,7 +195,15 @@
         </sql>
 
     </changeSet>
-    <changeSet id="fix_job_can-currently_running" author="bosco@fiter.io">
+    <changeSet id="fix_job_can-currently_running12451" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'job'
+                AND column_name = 'currently_running'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE job ADD COLUMN temp_currently_running SMALLINT;
         </sql>
@@ -202,7 +234,15 @@
         </sql>
 
     </changeSet>
-    <changeSet id="fix_job_can-is_misfired" author="bosco@fiter.io">
+    <changeSet id="fix_job_can-is_misfired2641" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'job'
+                AND column_name = 'is_misfired'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE job ADD COLUMN temp_is_misfired SMALLINT;
         </sql>
@@ -233,7 +273,15 @@
         </sql>
 
     </changeSet>
-    <changeSet id="fix_job_can-updates_allowed" author="bosco@fiter.io">
+    <changeSet id="fix_job_can-updates_allowed4721" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'job'
+                AND column_name = 'updates_allowed'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE job ADD COLUMN temp_updates_allowed SMALLINT;
         </sql>
@@ -265,7 +313,15 @@
 
     </changeSet>
 
-    <changeSet id="fix_job_can-is_mismatched_job" author="bosco@fiter.io">
+    <changeSet id="fix_job_can-is_mismatched_job1521" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'job'
+                AND column_name = 'is_mismatched_job'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE job ADD COLUMN temp_is_mismatched_job SMALLINT;
         </sql>
@@ -296,11 +352,6 @@
         </sql>
 
     </changeSet>
-
-
-
-
-
     <changeSet id="43" author="fineract">
         <preConditions onFail="MARK_RAN">
             <not>

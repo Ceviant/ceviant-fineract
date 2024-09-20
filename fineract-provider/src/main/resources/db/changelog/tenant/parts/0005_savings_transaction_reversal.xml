@@ -78,7 +78,7 @@
             </column>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="2234">
+    <changeSet author="fineract" id="223154">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sqlCheck expectedResult="1">
@@ -87,6 +87,7 @@
             </not>
         </preConditions>
         <insert tableName="m_permission">
+            <column name="id" valueComputed="1000"/>
             <column name="grouping" value="transaction_savings"/>
             <column name="code" value="REVERSETRANSACTION_SAVINGSACCOUNT"/>
             <column name="entity_name" value="SAVINGSACCOUNT"/>
@@ -94,7 +95,7 @@
             <column name="can_maker_checker" valueBoolean="false"/>
         </insert>
     </changeSet>
-    <changeSet author="fineract" id="26534">
+    <changeSet author="fineract" id="265134">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sqlCheck expectedResult="1">
@@ -103,6 +104,7 @@
             </not>
         </preConditions>
         <insert tableName="m_permission">
+            <column name="id" valueComputed="10001"/>
             <column name="grouping" value="transaction_savings"/>
             <column name="code" value="REVERSETRANSACTION_SAVINGSACCOUNT_CHECKER"/>
             <column name="entity_name" value="SAVINGSACCOUNT"/>
