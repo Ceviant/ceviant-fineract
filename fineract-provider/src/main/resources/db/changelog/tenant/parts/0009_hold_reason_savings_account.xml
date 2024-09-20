@@ -32,7 +32,15 @@
             <column name="reason_for_block" type="VARCHAR(256)"/>
         </addColumn>
     </changeSet>
-    <changeSet id="fix_m_code_can-is_system_defined" author="bosco@fiter.io">
+    <changeSet id="fix_m_code_can-is_system_defined211" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_code'
+                AND column_name = 'is_system_defined'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE m_code ADD COLUMN temp_is_system_defined SMALLINT;
         </sql>

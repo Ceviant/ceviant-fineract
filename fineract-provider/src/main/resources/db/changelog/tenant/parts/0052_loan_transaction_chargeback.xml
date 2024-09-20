@@ -119,7 +119,15 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="fix_m_payment_type_can-is_cash_payment" author="bosco@fiter.io">
+    <changeSet id="fix_m_payment_type_can-is_cash_payment321" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_payment_type'
+                AND column_name = 'is_cash_payment'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE m_payment_type ADD COLUMN temp_is_cash_payment SMALLINT;
         </sql>
