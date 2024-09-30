@@ -73,4 +73,17 @@
         </sql>
 
     </changeSet>
+
+    <changeSet id="drop-unique-constraint-on-mobile-number" author="bosco@fiter.io">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.table_constraints
+                WHERE table_name = 'm_client'
+                AND constraint_type = 'UNIQUE'
+                AND constraint_name = 'm_client_mobile_no_key'
+            </sqlCheck>
+        </preConditions>
+        <dropUniqueConstraint tableName="m_client" constraintName="m_client_mobile_no_key"/>
+    </changeSet>
+
 </databaseChangeLog>
