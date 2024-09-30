@@ -212,7 +212,7 @@ public final class LoanProductDataValidator {
         baseDataValidator.reset().parameter(NAME).value(name).notBlank().notExceedingLengthOf(100);
 
         final String shortName = this.fromApiJsonHelper.extractStringNamed(LoanProductConstants.SHORT_NAME, element);
-        baseDataValidator.reset().parameter(LoanProductConstants.SHORT_NAME).value(shortName).notBlank().notExceedingLengthOf(4);
+        baseDataValidator.reset().parameter(LoanProductConstants.SHORT_NAME).value(shortName).notBlank().notExceedingLengthOf(20);
 
         final String description = this.fromApiJsonHelper.extractStringNamed(DESCRIPTION, element);
         baseDataValidator.reset().parameter(DESCRIPTION).value(description).notExceedingLengthOf(500);
@@ -1200,7 +1200,7 @@ public final class LoanProductDataValidator {
 
         if (this.fromApiJsonHelper.parameterExists(LoanProductConstants.SHORT_NAME, element)) {
             final String shortName = this.fromApiJsonHelper.extractStringNamed(LoanProductConstants.SHORT_NAME, element);
-            baseDataValidator.reset().parameter(LoanProductConstants.SHORT_NAME).value(shortName).notBlank().notExceedingLengthOf(4);
+            baseDataValidator.reset().parameter(LoanProductConstants.SHORT_NAME).value(shortName).notBlank().notExceedingLengthOf(20);
         }
 
         if (this.fromApiJsonHelper.parameterExists(DESCRIPTION, element)) {
