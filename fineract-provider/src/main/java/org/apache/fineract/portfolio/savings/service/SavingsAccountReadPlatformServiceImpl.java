@@ -1263,7 +1263,8 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     + "pd.receipt_number as receiptNumber, pd.bank_number as bankNumber,pd.routing_code as routingCode, "
                     + "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, "
                     + "curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, "
-                    + "curr.display_symbol as currencyDisplaySymbol, pt.value as paymentTypeName, " + "tr.is_manual as postInterestAsOn ";
+                    + "curr.display_symbol as currencyDisplaySymbol, pt.value as paymentTypeName, "
+                    + "tr.is_manual as postInterestAsOn ,tr.unique_transaction_reference AS uniqueTransactionReference ";
         }
 
         private static String buildFrom() {
@@ -1308,6 +1309,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             final Long savingsId = rs.getLong("savingsId");
             final String accountNo = rs.getString("accountNo");
+            final String uniqueTransactionReference = rs.getString("uniqueTransactionReference");
             final boolean postInterestAsOn = rs.getBoolean("postInterestAsOn");
 
             PaymentDetailData paymentDetailData = null;
@@ -1357,9 +1359,12 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             }
             final String submittedByUsername = rs.getString("submittedByUsername");
             final String note = rs.getString("transactionNote");
-            return SavingsAccountTransactionData.create(id, transactionType, paymentDetailData, savingsId, accountNo, date, currency,
-                    amount, outstandingChargeAmount, runningBalance, reversed, transfer, submittedOnDate, postInterestAsOn,
-                    submittedByUsername, note, isReversal, originalTransactionId, lienTransaction, releaseTransactionId, reasonForBlock);
+            SavingsAccountTransactionData transactionData = SavingsAccountTransactionData.create(id, transactionType, paymentDetailData,
+                    savingsId, accountNo, date, currency, amount, outstandingChargeAmount, runningBalance, reversed, transfer,
+                    submittedOnDate, postInterestAsOn, submittedByUsername, note, isReversal, originalTransactionId, lienTransaction,
+                    releaseTransactionId, reasonForBlock);
+            transactionData.setUniqueTransactionReference(uniqueTransactionReference);
+            return transactionData;
         }
     }
 
