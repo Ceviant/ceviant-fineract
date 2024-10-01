@@ -132,7 +132,12 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="fineract" id="1" context="postgresql">
+    <changeSet author="fineract" id="1-m_delinquency_range-1" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="m_delinquency_range"/>
+            </not>
+        </preConditions>
         <createTable tableName="m_delinquency_range">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true"/>

@@ -46,7 +46,14 @@
             WHERE TYPE_CD = 'DOUBLE'
         </sql>
     </changeSet>
-    <changeSet author="fineract" id="2" context="postgresql">
+    <changeSet author="fineract" id="211" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'BATCH_JOB_EXECUTION_PARAMS'
+                AND column_name = 'TYPE_CD'
+            </sqlCheck>
+        </preConditions>
         <sql>
             UPDATE BATCH_JOB_EXECUTION_PARAMS
             SET STRING_VAL = TO_CHAR(DATE_VAL, 'YYYY-MM-DDTHH:MM:SSZ')
@@ -63,10 +70,14 @@
             WHERE TYPE_CD = 'DOUBLE'
         </sql>
     </changeSet>
-    <changeSet author="fineract" id="4" context="postgresql">
-        <!--
-            org/springframework/batch/core/migration/5.0/migration-postgresql.sql
-        -->
+    <changeSet author="fineract" id="412" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'batch_step_execution'
+                AND column_name = 'create_time'
+            </sqlCheck>
+        </preConditions>
         <sql>
             ALTER TABLE BATCH_STEP_EXECUTION ADD CREATE_TIME TIMESTAMP NOT NULL DEFAULT '1970-01-01 00:00:00';
 

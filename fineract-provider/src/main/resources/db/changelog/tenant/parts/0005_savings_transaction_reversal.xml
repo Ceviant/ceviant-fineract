@@ -22,7 +22,55 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
-    <changeSet author="fineract" id="1">
+
+    <changeSet id="fix_m_permission_can-checker-maker" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_permission'
+                AND column_name = 'can_maker_checker'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_permission ADD COLUMN temp_can_maker_checker SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_permission
+            SET temp_can_maker_checker = can_maker_checker where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_permission ALTER COLUMN can_maker_checker DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_permission
+            ALTER COLUMN can_maker_checker TYPE BOOLEAN
+            USING CASE
+            WHEN can_maker_checker = 0 THEN false
+            WHEN can_maker_checker = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_permission
+            SET can_maker_checker = CASE
+            WHEN temp_can_maker_checker = 0 THEN false
+            WHEN temp_can_maker_checker = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_permission DROP COLUMN temp_can_maker_checker;
+        </sql>
+
+    </changeSet>
+    <changeSet author="fineract" id="1-add-column-original-tx-id-and-reversal">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_savings_account_transaction" columnName="original_transaction_id"/>
+            </not>
+            <not>
+                <columnExists tableName="m_savings_account_transaction" columnName="is_reversal"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_savings_account_transaction">
             <column name="original_transaction_id" type="BIGINT"/>
             <column name="is_reversal" type="BOOLEAN" defaultValueBoolean="false">
@@ -30,15 +78,33 @@
             </column>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="2">
+    <changeSet author="fineract" id="223154">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM m_permission WHERE code = 'REVERSETRANSACTION_SAVINGSACCOUNT'
+                </sqlCheck>
+            </not>
+        </preConditions>
         <insert tableName="m_permission">
+            <column name="id" valueComputed="1000"/>
             <column name="grouping" value="transaction_savings"/>
             <column name="code" value="REVERSETRANSACTION_SAVINGSACCOUNT"/>
             <column name="entity_name" value="SAVINGSACCOUNT"/>
             <column name="action_name" value="REVERSETRANSACTION"/>
             <column name="can_maker_checker" valueBoolean="false"/>
         </insert>
+    </changeSet>
+    <changeSet author="fineract" id="265134">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM m_permission WHERE code = 'REVERSETRANSACTION_SAVINGSACCOUNT_CHECKER'
+                </sqlCheck>
+            </not>
+        </preConditions>
         <insert tableName="m_permission">
+            <column name="id" valueComputed="10001"/>
             <column name="grouping" value="transaction_savings"/>
             <column name="code" value="REVERSETRANSACTION_SAVINGSACCOUNT_CHECKER"/>
             <column name="entity_name" value="SAVINGSACCOUNT"/>

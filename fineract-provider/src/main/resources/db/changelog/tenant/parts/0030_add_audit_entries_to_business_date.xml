@@ -28,7 +28,12 @@
             <column name="last_modified_on_utc" type="DATETIME"/>
         </addColumn>
     </changeSet>
-    <changeSet author="fineract" id="business_date-1" context="postgresql">
+    <changeSet author="fineract" id="business_date-11" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_business_date" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_business_date">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="last_modified_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
@@ -60,14 +65,14 @@
         <addNotNullConstraint tableName="m_business_date" columnName="created_on_utc" columnDataType="DATETIME"/>
         <addNotNullConstraint tableName="m_business_date" columnName="last_modified_on_utc" columnDataType="DATETIME"/>
     </changeSet>
-    <changeSet id="business_date-5" author="fineract" context="postgresql">
+    <changeSet id="business_date-51" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_business_date</sqlCheck>
         </preConditions>
         <addNotNullConstraint tableName="m_business_date" columnName="created_on_utc" columnDataType="TIMESTAMP WITH TIME ZONE"/>
         <addNotNullConstraint tableName="m_business_date" columnName="last_modified_on_utc" columnDataType="TIMESTAMP WITH TIME ZONE"/>
     </changeSet>
-    <changeSet id="business_date-6" author="fineract">
+    <changeSet id="business_date-61" author="fineract">
         <addNotNullConstraint tableName="m_business_date" columnName="created_by" columnDataType="BIGINT"/>
         <addNotNullConstraint tableName="m_business_date" columnName="last_modified_by" columnDataType="BIGINT"/>
     </changeSet>

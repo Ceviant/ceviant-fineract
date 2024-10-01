@@ -71,7 +71,12 @@
             <column name="last_modified_on_utc" type="DATETIME(6)"/>
         </addColumn>
     </changeSet>
-    <changeSet id="2" author="fineract" context="postgresql">
+    <changeSet id="21" author="fineract" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_savings_account" columnName="created_on_utc"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_savings_account">
             <column name="created_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
             <column name="last_modified_on_utc" type="TIMESTAMP WITH TIME ZONE"/>
@@ -108,7 +113,7 @@
         <addNotNullConstraint tableName="m_savings_account" columnName="created_on_utc" columnDataType="DATETIME(6)"/>
         <addNotNullConstraint tableName="m_savings_account" columnName="last_modified_on_utc" columnDataType="DATETIME(6)"/>
     </changeSet>
-    <changeSet id="3" author="fineract" context="postgresql">
+    <changeSet id="31" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_savings_account</sqlCheck>
         </preConditions>
@@ -126,7 +131,7 @@
         <addNotNullConstraint tableName="m_savings_account_transaction" columnName="created_on_utc" columnDataType="DATETIME(6)"/>
         <addNotNullConstraint tableName="m_savings_account_transaction" columnName="last_modified_on_utc" columnDataType="DATETIME(6)"/>
     </changeSet>
-    <changeSet id="4" author="fineract" context="postgresql">
+    <changeSet id="41" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_savings_account_transaction</sqlCheck>
         </preConditions>
@@ -144,7 +149,7 @@
         <addNotNullConstraint tableName="m_deposit_account_on_hold_transaction" columnName="created_on_utc" columnDataType="DATETIME(6)"/>
         <addNotNullConstraint tableName="m_deposit_account_on_hold_transaction" columnName="last_modified_on_utc" columnDataType="DATETIME(6)"/>
     </changeSet>
-    <changeSet id="5" author="fineract" context="postgresql">
+    <changeSet id="51" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_deposit_account_on_hold_transaction</sqlCheck>
         </preConditions>
@@ -162,7 +167,7 @@
         <addNotNullConstraint tableName="m_savings_account_charge" columnName="created_on_utc" columnDataType="DATETIME(6)"/>
         <addNotNullConstraint tableName="m_savings_account_charge" columnName="last_modified_on_utc" columnDataType="DATETIME(6)"/>
     </changeSet>
-    <changeSet id="6" author="fineract" context="postgresql">
+    <changeSet id="61" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_savings_account_charge</sqlCheck>
         </preConditions>
@@ -180,7 +185,7 @@
         <addNotNullConstraint tableName="m_savings_officer_assignment_history" columnName="created_on_utc" columnDataType="DATETIME(6)"/>
         <addNotNullConstraint tableName="m_savings_officer_assignment_history" columnName="last_modified_on_utc" columnDataType="DATETIME(6)"/>
     </changeSet>
-    <changeSet id="7" author="fineract" context="postgresql">
+    <changeSet id="71" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_savings_officer_assignment_history</sqlCheck>
         </preConditions>
@@ -198,7 +203,7 @@
         <addNotNullConstraint tableName="m_mandatory_savings_schedule" columnName="created_on_utc" columnDataType="DATETIME(6)"/>
         <addNotNullConstraint tableName="m_mandatory_savings_schedule" columnName="last_modified_on_utc" columnDataType="DATETIME(6)"/>
     </changeSet>
-    <changeSet id="8" author="fineract" context="postgresql">
+    <changeSet id="81" author="fineract" context="postgresql">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">select count(*) from m_mandatory_savings_schedule</sqlCheck>
         </preConditions>

@@ -28,7 +28,12 @@
         </sql>
     </changeSet>
 
-    <changeSet author="fineract" id="2">
+    <changeSet author="fineract" id="21">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="m_portfolio_command_source" columnName="idempotency_key"/>
+            </not>
+        </preConditions>
         <addColumn tableName="m_portfolio_command_source">
             <column defaultValueComputed="NULL" name="idempotency_key" type="VARCHAR(50)"/>
         </addColumn>
