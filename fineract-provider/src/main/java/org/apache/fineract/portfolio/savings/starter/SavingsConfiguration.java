@@ -145,6 +145,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
 public class SavingsConfiguration {
@@ -335,16 +336,16 @@ public class SavingsConfiguration {
     @Bean
     @ConditionalOnMissingBean(SavingsAccountReadPlatformService.class)
     public SavingsAccountReadPlatformService savingsAccountReadPlatformService(PlatformSecurityContext context, JdbcTemplate jdbcTemplate,
-            ClientReadPlatformService clientReadPlatformService, GroupReadPlatformService groupReadPlatformService,
-            SavingsProductReadPlatformService savingProductReadPlatformService, StaffReadPlatformService staffReadPlatformService,
-            SavingsDropdownReadPlatformService dropdownReadPlatformService, ChargeReadPlatformService chargeReadPlatformService,
-            EntityDatatableChecksReadService entityDatatableChecksReadService, ColumnValidator columnValidator,
-            SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper, DatabaseSpecificSQLGenerator sqlGenerator,
-            SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper) {
+                                                                               ClientReadPlatformService clientReadPlatformService, GroupReadPlatformService groupReadPlatformService,
+                                                                               SavingsProductReadPlatformService savingProductReadPlatformService, StaffReadPlatformService staffReadPlatformService,
+                                                                               SavingsDropdownReadPlatformService dropdownReadPlatformService, ChargeReadPlatformService chargeReadPlatformService,
+                                                                               EntityDatatableChecksReadService entityDatatableChecksReadService, ColumnValidator columnValidator,
+                                                                               SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper, DatabaseSpecificSQLGenerator sqlGenerator,
+                                                                               SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper, NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
         return new SavingsAccountReadPlatformServiceImpl(context, jdbcTemplate, clientReadPlatformService, groupReadPlatformService,
                 savingProductReadPlatformService, staffReadPlatformService, dropdownReadPlatformService, chargeReadPlatformService,
                 entityDatatableChecksReadService, columnValidator, savingAccountAssembler, paginationHelper, sqlGenerator,
-                savingsAccountRepositoryWrapper);
+                savingsAccountRepositoryWrapper,namedParameterjdbcTemplate);
     }
 
     @Bean
