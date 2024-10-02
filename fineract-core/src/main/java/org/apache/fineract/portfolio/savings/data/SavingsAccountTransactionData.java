@@ -110,7 +110,7 @@ public final class SavingsAccountTransactionData implements Serializable {
     private String dbaAliasName;
     private BigDecimal partialReversedAmount;
     private String narration;
-    private SavingsAccountDataValidator.TransactionType direction;
+    private TransactionTypeEnum direction;
 
     private SavingsAccountTransactionData(final Long id, final SavingsAccountTransactionEnumData transactionType,
             final PaymentDetailData paymentDetailData, final Long savingsId, final String savingsAccountNo, final LocalDate transactionDate,
@@ -672,12 +672,20 @@ public final class SavingsAccountTransactionData implements Serializable {
         this.tenantId = tenantId;
     }
 
+    public TransactionTypeEnum getDirection() {
+        return direction;
+    }
+
+    public void setDirection(TransactionTypeEnum direction) {
+        this.direction = direction;
+    }
+
     public SavingsAccountTransactionData(final long savingsId, final LocalDate date, final PaymentDetailData paymentDetailData,
-            final LocalDate createdDate, final boolean isReversed, final long userId, final boolean isManualTransaction,
-            final String accountName, final String accountNo, final long accountId, final BigDecimal transactionAmount,
-            final String checkNumber, final String bankNumber, final String currency, final String transactionReferenceNumber,
-            final String dbaAliasName, final BigDecimal partialReversedAmount, final SavingsAccountDataValidator.TransactionType direction,
-            final String narration, boolean isTransfer, final int transactionEnumType) {
+                                         final LocalDate createdDate, final boolean isReversed, final long userId, final boolean isManualTransaction,
+                                         final String accountName, final String accountNo, final long accountId, final BigDecimal transactionAmount,
+                                         final String checkNumber, final String bankNumber, final String currency, final String transactionReferenceNumber,
+                                         final String dbaAliasName, final BigDecimal partialReversedAmount, TransactionTypeEnum direction,
+                                         final String narration, boolean isTransfer, final int transactionEnumType) {
 
         this.transactionType = SavingsEnumerations.transactionType(transactionEnumType, isTransfer);
         this.savingsAccountId = savingsId;

@@ -40,8 +40,11 @@ public class PaymentTypeData implements Serializable {
     private String codeName;
     private Boolean isSystemDefined;
 
+    public PaymentTypeData() {
+    }
+
     public static PaymentTypeData instance(final Long id, final String name, final String description, final Boolean isCashPayment,
-            final Integer position) {
+                                           final Integer position) {
         String codeName = null;
         Boolean isSystemDefined = false;
         return new PaymentTypeData(id, name, description, isCashPayment, position, codeName, isSystemDefined);
