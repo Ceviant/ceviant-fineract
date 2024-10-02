@@ -55,4 +55,13 @@ public class PaymentTypeData implements Serializable {
         Boolean isSystemDefined = false;
         return new PaymentTypeData(id, name, description, isCashPayment, position, codeName, isSystemDefined);
     }
+
+    public PaymentTypeData(final Long id, final String name, final String description, final Boolean isCashPayment,
+            final Integer position) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.isCashPayment = isCashPayment;
+        this.position = position;
+    }
 }
