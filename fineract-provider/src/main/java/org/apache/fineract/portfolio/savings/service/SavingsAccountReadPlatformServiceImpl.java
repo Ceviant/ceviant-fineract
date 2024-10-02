@@ -70,16 +70,7 @@ import org.apache.fineract.portfolio.savings.SavingsInterestCalculationDaysInYea
 import org.apache.fineract.portfolio.savings.SavingsInterestCalculationType;
 import org.apache.fineract.portfolio.savings.SavingsPeriodFrequencyType;
 import org.apache.fineract.portfolio.savings.SavingsPostingInterestPeriodType;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountApplicationTimelineData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountChargeData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountDataValidator;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountStatusEnumData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountSubStatusEnumData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountSummaryData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionData;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionEnumData;
-import org.apache.fineract.portfolio.savings.data.SavingsProductData;
+import org.apache.fineract.portfolio.savings.data.*;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountChargesPaidByData;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountRepositoryWrapper;
@@ -136,7 +127,8 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             final ChargeReadPlatformService chargeReadPlatformService,
             final EntityDatatableChecksReadService entityDatatableChecksReadService, final ColumnValidator columnValidator,
             final SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper,
-            DatabaseSpecificSQLGenerator sqlGenerator, SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper) {
+            DatabaseSpecificSQLGenerator sqlGenerator, SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper,
+                                                 NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
         this.context = context;
         this.jdbcTemplate = jdbcTemplate;
         this.clientReadPlatformService = clientReadPlatformService;
@@ -156,6 +148,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         this.paginationHelper = paginationHelper;
         this.savingAccountMapperForInterestPosting = new SavingAccountMapperForInterestPosting();
         this.savingAccountAssembler = savingAccountAssembler;
+        this.namedParameterjdbcTemplate = namedParameterjdbcTemplate;
     }
 
     @Override
@@ -1805,11 +1798,11 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
                     int transactionEnumType = rs.getInt("sat.transaction_type_enum");
 
-                    SavingsAccountDataValidator.TransactionType direction = null;
+                    TransactionTypeEnum direction = null;
                     if (transactionEnumType == 1) {
-                        direction = SavingsAccountDataValidator.TransactionType.CREDIT;
+                        direction = TransactionTypeEnum.CREDIT;
                     } else if (transactionEnumType == 2) {
-                        direction = SavingsAccountDataValidator.TransactionType.DEBIT;
+                        direction = TransactionTypeEnum.DEBIT;
                     }
 
                     final PaymentDetailData paymentDetailData = new PaymentDetailData(rs.getLong("pd.id"), paymentTypeData,
