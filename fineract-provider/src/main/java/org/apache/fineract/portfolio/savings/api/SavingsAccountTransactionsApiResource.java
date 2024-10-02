@@ -255,4 +255,18 @@ public class SavingsAccountTransactionsApiResource {
 
         return this.toApiJsonSerializer.serialize(result);
     }
+
+    @GET
+    @Path("custom")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String retrieveTemplate(@PathParam("savingsId") final Long savingsId, @QueryParam("accountNumber") final String accountNumber,
+            @QueryParam("accountName") final String accountName, @QueryParam("reference") final String transactionReferenceNumber,
+            @QueryParam("startDate") final String startDate, @QueryParam("endDate") final String endDate, @Context final UriInfo uriInfo) {
+
+        this.context.authenticatedUser();
+        List<SavingsAccountTransactionData> savingsAccountTransactions = this.savingsAccountReadPlatformService
+                .fetchSavingsAccountTransactions(savingsId, accountNumber, accountName, transactionReferenceNumber, startDate, endDate);
+        return this.toApiJsonSerializer.serialize(savingsAccountTransactions);
+    }
 }

@@ -839,4 +839,96 @@ public final class SavingsEnumerations {
         }
         return optionData;
     }
+
+    public static SavingsAccountTransactionEnumData transactionType(final int transactionType, boolean isTransfer) {
+        return transactionType(SavingsAccountTransactionType.fromInt(transactionType), isTransfer);
+    }
+
+    public static SavingsAccountTransactionEnumData transactionType(final SavingsAccountTransactionType type, boolean isTransfer) {
+
+        SavingsAccountTransactionEnumData optionData = new SavingsAccountTransactionEnumData(
+                SavingsAccountTransactionType.INVALID.getValue().longValue(), SavingsAccountTransactionType.INVALID.getCode(), "Invalid");
+        switch (type) {
+            case INVALID:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.INVALID.getValue().longValue(),
+                        SavingsAccountTransactionType.INVALID.getCode(), "Invalid");
+            break;
+            case DEPOSIT:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.DEPOSIT.getValue().longValue(),
+                        SavingsAccountTransactionType.DEPOSIT.getCode(), "Deposit");
+            break;
+            case WITHDRAWAL:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.WITHDRAWAL.getValue().longValue(),
+                        SavingsAccountTransactionType.WITHDRAWAL.getCode(), "Withdrawal");
+            break;
+            case INTEREST_POSTING:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.INTEREST_POSTING.getValue().longValue(),
+                        SavingsAccountTransactionType.INTEREST_POSTING.getCode(), "Interest posting");
+            break;
+            case WITHDRAWAL_FEE:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.WITHDRAWAL_FEE.getValue().longValue(),
+                        SavingsAccountTransactionType.WITHDRAWAL_FEE.getCode(), "Withdrawal fee");
+            break;
+            case ANNUAL_FEE:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.ANNUAL_FEE.getValue().longValue(),
+                        SavingsAccountTransactionType.ANNUAL_FEE.getCode(), "Annual fee");
+            break;
+            case APPROVE_TRANSFER:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.APPROVE_TRANSFER.getValue().longValue(),
+                        SavingsAccountTransactionType.APPROVE_TRANSFER.getCode(), "Transfer approved");
+            break;
+            case INITIATE_TRANSFER:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.INITIATE_TRANSFER.getValue().longValue(),
+                        SavingsAccountTransactionType.INITIATE_TRANSFER.getCode(), "Transfer initiated");
+            break;
+            case REJECT_TRANSFER:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.REJECT_TRANSFER.getValue().longValue(),
+                        SavingsAccountTransactionType.REJECT_TRANSFER.getCode(), "Transfer Rejected");
+            break;
+            case WITHDRAW_TRANSFER:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.WITHDRAW_TRANSFER.getValue().longValue(),
+                        SavingsAccountTransactionType.WITHDRAW_TRANSFER.getCode(), "Transfer Withdrawn");
+            break;
+            case PAY_CHARGE:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.PAY_CHARGE.getValue().longValue(),
+                        SavingsAccountTransactionType.PAY_CHARGE.getCode(), "Pay Charge");
+            break;
+            case WAIVE_CHARGES:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.WAIVE_CHARGES.getValue().longValue(),
+                        SavingsAccountTransactionType.WAIVE_CHARGES.getCode(), "Waive Charge");
+            break;
+            case WRITTEN_OFF:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.WRITTEN_OFF.getValue().longValue(),
+                        SavingsAccountTransactionType.WRITTEN_OFF.getCode(), "writtenoff");
+            break;
+            case OVERDRAFT_INTEREST:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.OVERDRAFT_INTEREST.getValue().longValue(),
+                        SavingsAccountTransactionType.OVERDRAFT_INTEREST.getCode(), "Overdraft Interest");
+            break;
+            case WITHHOLD_TAX:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.WITHHOLD_TAX.getValue().longValue(),
+                        SavingsAccountTransactionType.WITHHOLD_TAX.getCode(), "Withhold Tax");
+            break;
+            case DIVIDEND_PAYOUT:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.DIVIDEND_PAYOUT.getValue().longValue(),
+                        SavingsAccountTransactionType.DIVIDEND_PAYOUT.getCode(), "Dividend Payout");
+            break;
+            case ESCHEAT:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.ESCHEAT.getValue().longValue(),
+                        SavingsAccountTransactionType.ESCHEAT.getCode(), "Escheat");
+            break;
+            case AMOUNT_HOLD:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.AMOUNT_HOLD.getValue().longValue(),
+                        SavingsAccountTransactionType.AMOUNT_HOLD.getCode(), "Amount on hold");
+            break;
+            case AMOUNT_RELEASE:
+                optionData = new SavingsAccountTransactionEnumData(SavingsAccountTransactionType.AMOUNT_RELEASE.getValue().longValue(),
+                        SavingsAccountTransactionType.AMOUNT_RELEASE.getCode(), "Release Amount");
+            break;
+        }
+
+        optionData.setIsTransfer(isTransfer);
+        return optionData;
+    }
+
 }
