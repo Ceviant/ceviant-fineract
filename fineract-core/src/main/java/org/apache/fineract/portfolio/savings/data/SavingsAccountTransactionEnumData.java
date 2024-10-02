@@ -50,6 +50,7 @@ public class SavingsAccountTransactionEnumData implements Serializable {
     private final boolean amountHold;
     private final boolean amountRelease;
     private final boolean accrual;
+    private boolean isTransfer;
 
     public SavingsAccountTransactionEnumData(final Long id, final String code, final String value) {
         this.id = id;
@@ -122,5 +123,9 @@ public class SavingsAccountTransactionEnumData implements Serializable {
 
     public SavingsAccountTransactionType getTransactionTypeEnum() {
         return id == null ? null : SavingsAccountTransactionType.fromInt(id.intValue());
+    }
+
+    public void setIsTransfer(final boolean isTransfer) {
+        this.isTransfer = isTransfer;
     }
 }

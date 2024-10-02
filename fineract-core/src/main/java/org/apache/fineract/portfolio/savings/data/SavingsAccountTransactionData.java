@@ -55,14 +55,14 @@ public final class SavingsAccountTransactionData implements Serializable {
 
     private Long id;
     private final SavingsAccountTransactionEnumData transactionType;
-    private final TransactionEntryType entryType;
+    private TransactionEntryType entryType;
 
-    private final Long accountId;
+    private Long accountId;
     private final String accountNo;
     private final LocalDate date;
     private final CurrencyData currency;
     private final PaymentDetailData paymentDetailData;
-    private final BigDecimal amount;
+    private BigDecimal amount;
     private final BigDecimal outstandingChargeAmount;
     private BigDecimal runningBalance;
     private boolean reversed;
@@ -72,11 +72,11 @@ public final class SavingsAccountTransactionData implements Serializable {
     private final String submittedByUsername;
     private final String note;
     private final boolean isManualTransaction;
-    private final Boolean isReversal;
-    private final Long originalTransactionId;
-    private final Boolean lienTransaction;
-    private final Long releaseTransactionId;
-    private final String reasonForBlock;
+    private Boolean isReversal;
+    private Long originalTransactionId;
+    private Boolean lienTransaction;
+    private Long releaseTransactionId;
+    private String reasonForBlock;
     private final Set<SavingsAccountChargesPaidByData> chargesPaidByData = new HashSet<>();
 
     // templates
@@ -105,6 +105,12 @@ public final class SavingsAccountTransactionData implements Serializable {
     private transient String refNo;
     private String uniqueTransactionReference;
     private String tenantId;
+    private String accountName;
+    private String transactionReferenceNumber;
+    private String dbaAliasName;
+    private BigDecimal partialReversedAmount;
+    private String narration;
+    private SavingsAccountDataValidator.TransactionType direction;
 
     private SavingsAccountTransactionData(final Long id, final SavingsAccountTransactionEnumData transactionType,
             final PaymentDetailData paymentDetailData, final Long savingsId, final String savingsAccountNo, final LocalDate transactionDate,
@@ -664,5 +670,48 @@ public final class SavingsAccountTransactionData implements Serializable {
 
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public SavingsAccountTransactionData(final long savingsId, final LocalDate date, final PaymentDetailData paymentDetailData,
+            final LocalDate createdDate, final boolean isReversed, final long userId, final boolean isManualTransaction,
+            final String accountName, final String accountNo, final long accountId, final BigDecimal transactionAmount,
+            final String checkNumber, final String bankNumber, final String currency, final String transactionReferenceNumber,
+            final String dbaAliasName, final BigDecimal partialReversedAmount, final SavingsAccountDataValidator.TransactionType direction,
+            final String narration, boolean isTransfer, final int transactionEnumType) {
+
+        this.transactionType = SavingsEnumerations.transactionType(transactionEnumType, isTransfer);
+        this.savingsAccountId = savingsId;
+        this.paymentDetailData = paymentDetailData;
+        this.transactionDate = date;
+        this.submittedOnDate = createdDate;
+        this.accountName = accountName;
+        this.isManualTransaction = isManualTransaction;
+        this.id = savingsId;
+        this.currency = new CurrencyData(currency);
+        this.accountNo = accountNo;
+        this.date = date;
+        this.outstandingChargeAmount = null;
+        this.runningBalance = null;
+        this.reversed = isReversed;
+        this.transfer = null;
+        this.interestedPostedAsOn = false;
+        this.rowIndex = null;
+        this.dateFormat = null;
+        this.locale = null;
+        this.transactionAmount = transactionAmount;
+        this.paymentTypeId = null;
+        this.accountNumber = null;
+        this.checkNumber = checkNumber;
+        this.routingCode = null;
+        this.receiptNumber = null;
+        this.bankNumber = bankNumber;
+        this.paymentTypeOptions = null;
+        this.submittedByUsername = null;
+        this.note = null;
+        this.transactionReferenceNumber = transactionReferenceNumber;
+        this.dbaAliasName = dbaAliasName;
+        this.partialReversedAmount = partialReversedAmount;
+        this.narration = narration;
+        this.direction = direction;
     }
 }
