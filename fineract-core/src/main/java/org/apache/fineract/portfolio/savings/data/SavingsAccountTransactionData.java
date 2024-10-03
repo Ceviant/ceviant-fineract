@@ -681,11 +681,11 @@ public final class SavingsAccountTransactionData implements Serializable {
     }
 
     public SavingsAccountTransactionData(final long savingsId, final LocalDate date, final PaymentDetailData paymentDetailData,
-                                         final LocalDate createdDate, final boolean isReversed, final long userId, final boolean isManualTransaction,
-                                         final String accountName, final String accountNo, final long accountId, final BigDecimal transactionAmount,
-                                         final String checkNumber, final String bankNumber, final String currency, final String transactionReferenceNumber,
-                                         final String dbaAliasName, final BigDecimal partialReversedAmount, TransactionTypeEnum direction,
-                                         final String narration, boolean isTransfer, final int transactionEnumType) {
+            final LocalDate createdDate, final boolean isReversed, final long userId, final boolean isManualTransaction,
+            final String accountName, final String accountNo, final long accountId, final BigDecimal transactionAmount,
+            final String checkNumber, final String bankNumber, final String currency, final String transactionReferenceNumber,
+            final String dbaAliasName, final BigDecimal partialReversedAmount, TransactionTypeEnum direction, final String narration,
+            boolean isTransfer, final int transactionEnumType) {
 
         this.transactionType = SavingsEnumerations.transactionType(transactionEnumType, isTransfer);
         this.savingsAccountId = savingsId;

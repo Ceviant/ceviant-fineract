@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
@@ -77,7 +76,6 @@ import org.apache.fineract.portfolio.savings.domain.SavingsAccountRepositoryWrap
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountStatusType;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountSubStatusEnum;
 import org.apache.fineract.portfolio.savings.exception.SavingsAccountNotFoundException;
-import org.apache.fineract.portfolio.savings.exception.SavingsAccountTransactionNotFoundException;
 import org.apache.fineract.portfolio.tax.data.TaxComponentData;
 import org.apache.fineract.portfolio.tax.data.TaxDetailsData;
 import org.apache.fineract.portfolio.tax.data.TaxGroupData;
@@ -108,7 +106,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     private final SavingsAccountTransactionsForBatchMapper savingsAccountTransactionsForBatchMapper;
     private final SavingAccountMapper savingAccountMapper;
     private final SavingAccountMapperForInterestPosting savingAccountMapperForInterestPosting;
-    // private final SavingsAccountAnnualFeeMapper annualFeeMapper;
+    private SavingsAccountTransactionPackDataMapper savingsAccountTransactionPackDataMapper;
 
     // pagination
     private final PaginationHelper paginationHelper;
@@ -116,7 +114,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     private final EntityDatatableChecksReadService entityDatatableChecksReadService;
     private final ColumnValidator columnValidator;
     private final SavingsAccountAssembler savingAccountAssembler;
-    private NamedParameterJdbcTemplate namedParameterjdbcTemplate;
 
     private final SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper;
 
@@ -127,8 +124,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             final ChargeReadPlatformService chargeReadPlatformService,
             final EntityDatatableChecksReadService entityDatatableChecksReadService, final ColumnValidator columnValidator,
             final SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper,
-            DatabaseSpecificSQLGenerator sqlGenerator, SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper,
-                                                 NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
+            DatabaseSpecificSQLGenerator sqlGenerator, SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper) {
         this.context = context;
         this.jdbcTemplate = jdbcTemplate;
         this.clientReadPlatformService = clientReadPlatformService;
@@ -148,7 +144,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         this.paginationHelper = paginationHelper;
         this.savingAccountMapperForInterestPosting = new SavingAccountMapperForInterestPosting();
         this.savingAccountAssembler = savingAccountAssembler;
-        this.namedParameterjdbcTemplate = namedParameterjdbcTemplate;
+        this.savingsAccountTransactionPackDataMapper = new SavingsAccountTransactionPackDataMapper();
     }
 
     @Override
@@ -1746,85 +1742,132 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     public List<SavingsAccountTransactionData> fetchSavingsAccountTransactions(Long savingsId, String accountNumber, String accountName,
             String transactionReferenceNumber, String startDate, String endDate) {
 
-        Map<String, Object> paramMap = new HashMap<>();
-        StringBuilder query = new StringBuilder("SELECT sat.*,pd.*,pt.*,sa.*,ft.*,tt.* from m_savings_account_transaction sat "
-                + "LEFT JOIN m_payment_detail pd on sat.payment_detail_id = pd.id  "
-                + "LEFT JOIN m_account_transfer_transaction ft on sat.id = ft.from_savings_transaction_id  "
-                + "LEFT JOIN m_account_transfer_transaction tt on sat.id = tt.to_savings_transaction_id "
-                + "INNER JOIN m_savings_account sa on sat.savings_account_id = sa.id  "
-                + "LEFT JOIN m_payment_type pt on pd.payment_type_id = pt.id  where sat.savings_account_id= :savingsId ");
+        StringBuilder query = new StringBuilder(" SELECT " + this.savingsAccountTransactionPackDataMapper.schema());
+        query.append(" LEFT JOIN m_payment_detail pd on sat.payment_detail_id = pd.id  ");
+        query.append(" LEFT JOIN m_account_transfer_transaction ft on sat.id = ft.from_savings_transaction_id  ");
+        query.append(" LEFT JOIN m_account_transfer_transaction tt on sat.id = tt.to_savings_transaction_id ");
+        query.append(" INNER JOIN m_savings_account sa on sat.savings_account_id = sa.id  ");
+        query.append(" LEFT JOIN m_payment_type pt on pd.payment_type_id = pt.id  where sat.savings_account_id= ? ");
 
-        paramMap.put("savingsId", savingsId);
-
+        List<Object> paramList = new ArrayList<>();
+        paramList.add(savingsId);
         if (StringUtils.isNotBlank(accountNumber)) {
-            query.append(" AND pd.account_number = :accountNumber ");
-            paramMap.put("accountNumber", accountNumber);
+            query.append(" AND pd.account_number = ? ");
+            paramList.add(accountNumber);
         }
 
         if (StringUtils.isNotBlank(accountName)) {
-            query.append(" AND sa.account_name = :accountName ");
-            paramMap.put("accountName", accountName);
+            query.append(" AND sa.account_name = ? ");
+            paramList.add(accountName);
         }
 
         if (StringUtils.isNotBlank(transactionReferenceNumber)) {
-            query.append(" AND sat.unique_transaction_reference = :transactionReferenceNumber ");
-            paramMap.put("transactionReferenceNumber", transactionReferenceNumber);
-        }
-
-        if (StringUtils.isNotBlank(accountName)) {
-            query.append(" AND sa.account_name = :accountName ");
-            paramMap.put("accountName", accountName);
+            query.append(" AND sat.unique_transaction_reference = ? ");
+            paramList.add(transactionReferenceNumber);
         }
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        if (startDate != null) {
+        if (StringUtils.isNotBlank(startDate)) {
             LocalDate startLocalDate = LocalDate.parse(startDate, dtf);
-            query.append(" and sat.transaction_date >= :startDate");
-            paramMap.put("startDate", startLocalDate);
+            query.append(" and sat.transaction_date >= ? ");
+            paramList.add(startLocalDate);
         }
-        if (endDate != null) {
+        if (StringUtils.isNotBlank(endDate)) {
             LocalDate endLocalDate = LocalDate.parse(endDate, dtf);
-            query.append(" and sat.transaction_date <= :endDate");
-            paramMap.put("endDate", endLocalDate);
+            query.append(" and sat.transaction_date <= ? ");
+            paramList.add(endLocalDate);
         }
 
-        query.append(" ORDER BY sat.transaction_date DESC");
-        List<SavingsAccountTransactionData> savingsAccountTransactionData = this.namedParameterjdbcTemplate.query(query.toString(),
-                paramMap, (rs, rowNum) -> {
-                    PaymentTypeData paymentTypeData = new PaymentTypeData(rs.getLong("pt.id"), rs.getString("pt.value"),
-                            rs.getString("pt.description"), rs.getBoolean("pt.is_cash_payment"), rs.getInt("pt.order_position"));
-
-                    final boolean isTransfer = rs.getLong("ft.id") != 0 || rs.getLong("tt.id") != 0;
-
-                    int transactionEnumType = rs.getInt("sat.transaction_type_enum");
-
-                    TransactionTypeEnum direction = null;
-                    if (transactionEnumType == 1) {
-                        direction = TransactionTypeEnum.CREDIT;
-                    } else if (transactionEnumType == 2) {
-                        direction = TransactionTypeEnum.DEBIT;
-                    }
-
-                    final PaymentDetailData paymentDetailData = new PaymentDetailData(rs.getLong("pd.id"), paymentTypeData,
-                            rs.getString("pd.account_number"), rs.getString("pd.check_number"), rs.getString("pd.receipt_number"),
-                            rs.getString("pd.bank_number"));
-                    SavingsAccountTransactionData transactionData = new SavingsAccountTransactionData(rs.getLong("sat.id"),
-                            rs.getDate("sat.transaction_date").toLocalDate(), paymentDetailData,
-                            JdbcSupport.getLocalDate(rs, "sat.created_date"), rs.getBoolean("sat.is_reversed"),
-                            rs.getLong("sat.appuser_id"), rs.getBoolean("sat.is_manual"), rs.getString("sa.account_name"),
-                            rs.getString("sa.account_no"), rs.getLong("sa.id"), rs.getBigDecimal("sat.amount"),
-                            rs.getString("pd.check_number"), rs.getString("pd.bank_number"), rs.getString("sat.currency"),
-                            rs.getString("sat.unique_transaction_reference"), rs.getString("sa.dba_alias_name"),
-                            rs.getBigDecimal("sat.partial_reversed_amount"), direction, rs.getString("sat.narration"), isTransfer,
-                            transactionEnumType);
-
-                    return transactionData;
-                });
-
-        if (savingsAccountTransactionData.isEmpty() && StringUtils.isNotBlank(transactionReferenceNumber)) {
-            throw new SavingsAccountTransactionNotFoundException(transactionReferenceNumber);
-        }
-
-        return savingsAccountTransactionData;
+        query.append(" ORDER BY sat.transaction_date DESC ");
+        Object[] queryParameters = paramList.toArray();
+        return this.jdbcTemplate.query(query.toString(), this.savingsAccountTransactionPackDataMapper, queryParameters);
     }
+
+    public static final class SavingsAccountTransactionPackDataMapper implements RowMapper<SavingsAccountTransactionData> {
+
+        private final String schemaSql;
+
+        SavingsAccountTransactionPackDataMapper() {
+            final StringBuilder sqlBuilder = new StringBuilder(400);
+            sqlBuilder.append(
+                    " sat.id AS id,sat.transaction_date as transactionDate,sat.created_date AS createdDate,sat.is_reversed AS isReversed,sat.created_by AS appuserId, ");
+            sqlBuilder.append(
+                    " sat.is_manual AS isManual,sat.amount AS amount,sat.currency AS currency,sat.unique_transaction_reference AS uniqueTransactionReference,");
+            sqlBuilder.append(
+                    " sat.partial_reversed_amount AS partialReversedAmount,sat.transaction_type_enum AS transactionTypeEnum,sat.narration AS narration,");
+
+            sqlBuilder.append(
+                    " pd.id AS paymentTypeId,pd.account_number AS accountNumber,pd.check_number AS checkNumber,pd.bank_number AS bankNumber,pd.receipt_number AS receiptNumber ,");
+
+            sqlBuilder.append(
+                    " pt.id AS ptId,pt.value AS ptValue,pt.description AS ptDescription,pt.is_cash_payment AS ptIsCashPayment,pt.order_position AS ptOrderPosition, ");
+            sqlBuilder.append(
+                    " sa.account_name AS saAccountName,sa.account_no AS accountNo,sa.id AS accountId,sa.dba_alias_name AS dbaAliasName ,ft.id AS ftId,tt.id as ttId from m_savings_account_transaction sat ");
+
+            this.schemaSql = sqlBuilder.toString();
+        }
+
+        public String schema() {
+            return this.schemaSql;
+        }
+
+        @Override
+        public SavingsAccountTransactionData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
+
+            final Long id = rs.getLong("id");
+            final LocalDate transactionDate = JdbcSupport.getLocalDate(rs, "transactionDate");
+            final LocalDate createdDate = JdbcSupport.getLocalDate(rs, "createdDate");
+            final Boolean isReversed = rs.getBoolean("isReversed");
+            final Long appuserId = rs.getLong("appuserId");
+            final Boolean isManual = rs.getBoolean("isManual");
+            final BigDecimal amount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "amount");
+            final String currency = rs.getString("currency");
+            final String uniqueTransactionReference = rs.getString("uniqueTransactionReference");
+            final BigDecimal partialReversedAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "partialReversedAmount");
+            final Integer transactionEnumType = rs.getInt("transactionTypeEnum");
+            final String narration = rs.getString("narration");
+
+            final Long paymentTypeId = rs.getLong("paymentTypeId");
+            final String accountNumber = rs.getString("accountNumber");
+            final String checkNumber = rs.getString("checkNumber");
+            final String bankNumber = rs.getString("bankNumber");
+            final String receiptNumber = rs.getString("receiptNumber");
+
+            final Long ptId = rs.getLong("ptId");
+            final String ptValue = rs.getString("ptValue");
+            final String ptDescription = rs.getString("ptDescription");
+            final Boolean ptIsCashPayment = rs.getBoolean("ptIsCashPayment");
+            final Integer ptOrderPosition = rs.getInt("ptOrderPosition");
+            final String saAccountName = rs.getString("saAccountName");
+            final String accountNo = rs.getString("accountNo");
+            final Integer accountId = rs.getInt("accountId");
+            final String dbaAliasName = rs.getString("dbaAliasName");
+
+            final Long ftId = rs.getLong("ftId");
+            final Long ttId = rs.getLong("ttId");
+
+            PaymentTypeData paymentTypeData = new PaymentTypeData(ptId, ptValue, ptDescription, ptIsCashPayment, ptOrderPosition);
+
+            final boolean isTransfer = ftId != 0 || ttId != 0;
+
+            TransactionTypeEnum direction = null;
+            if (transactionEnumType == 1) {
+                direction = TransactionTypeEnum.CREDIT;
+            } else if (transactionEnumType == 2) {
+                direction = TransactionTypeEnum.DEBIT;
+            }
+
+            final PaymentDetailData paymentDetailData = new PaymentDetailData(paymentTypeId, paymentTypeData, accountNumber, checkNumber,
+                    receiptNumber, bankNumber);
+
+            SavingsAccountTransactionData transactionData = new SavingsAccountTransactionData(id, transactionDate, paymentDetailData,
+                    createdDate, isReversed, appuserId, isManual, saAccountName, accountNo, accountId, amount, checkNumber, bankNumber,
+                    currency, uniqueTransactionReference, dbaAliasName, partialReversedAmount, direction, narration, isTransfer,
+                    transactionEnumType);
+
+            return transactionData;
+
+        }
+    }
+
 }
