@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
@@ -77,7 +76,6 @@ import org.apache.fineract.portfolio.savings.domain.SavingsAccountRepositoryWrap
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountStatusType;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountSubStatusEnum;
 import org.apache.fineract.portfolio.savings.exception.SavingsAccountNotFoundException;
-import org.apache.fineract.portfolio.savings.exception.SavingsAccountTransactionNotFoundException;
 import org.apache.fineract.portfolio.tax.data.TaxComponentData;
 import org.apache.fineract.portfolio.tax.data.TaxDetailsData;
 import org.apache.fineract.portfolio.tax.data.TaxGroupData;
@@ -116,7 +114,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     private final EntityDatatableChecksReadService entityDatatableChecksReadService;
     private final ColumnValidator columnValidator;
     private final SavingsAccountAssembler savingAccountAssembler;
-    private NamedParameterJdbcTemplate namedParameterjdbcTemplate;
 
     private final SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper;
 
@@ -127,8 +124,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             final ChargeReadPlatformService chargeReadPlatformService,
             final EntityDatatableChecksReadService entityDatatableChecksReadService, final ColumnValidator columnValidator,
             final SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper,
-            DatabaseSpecificSQLGenerator sqlGenerator, SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper,
-            NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
+            DatabaseSpecificSQLGenerator sqlGenerator, SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper) {
         this.context = context;
         this.jdbcTemplate = jdbcTemplate;
         this.clientReadPlatformService = clientReadPlatformService;
@@ -148,7 +144,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         this.paginationHelper = paginationHelper;
         this.savingAccountMapperForInterestPosting = new SavingAccountMapperForInterestPosting();
         this.savingAccountAssembler = savingAccountAssembler;
-        this.namedParameterjdbcTemplate = namedParameterjdbcTemplate;
         this.savingsAccountTransactionPackDataMapper = new SavingsAccountTransactionPackDataMapper();
     }
 
@@ -1741,91 +1736,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     @Override
     public Long retrieveAccountIdByExternalId(final ExternalId externalId) {
         return savingsAccountRepositoryWrapper.findIdByExternalId(externalId);
-    }
-
-    public List<SavingsAccountTransactionData> fetchSavingsAccountTransactionsdc(Long savingsId, String accountNumber, String accountName,
-            String transactionReferenceNumber, String startDate, String endDate) {
-
-        Map<String, Object> paramMap = new HashMap<>();
-        StringBuilder query = new StringBuilder("SELECT sat.*,pd.*,pt.*,sa.*,ft.*,tt.* from m_savings_account_transaction sat "
-                + "LEFT JOIN m_payment_detail pd on sat.payment_detail_id = pd.id  "
-                + "LEFT JOIN m_account_transfer_transaction ft on sat.id = ft.from_savings_transaction_id  "
-                + "LEFT JOIN m_account_transfer_transaction tt on sat.id = tt.to_savings_transaction_id "
-                + "INNER JOIN m_savings_account sa on sat.savings_account_id = sa.id  "
-                + "LEFT JOIN m_payment_type pt on pd.payment_type_id = pt.id  where sat.savings_account_id= :savingsId ");
-
-        paramMap.put("savingsId", savingsId);
-
-        if (StringUtils.isNotBlank(accountNumber)) {
-            query.append(" AND pd.account_number = :accountNumber ");
-            paramMap.put("accountNumber", accountNumber);
-        }
-
-        if (StringUtils.isNotBlank(accountName)) {
-            query.append(" AND sa.account_name = :accountName ");
-            paramMap.put("accountName", accountName);
-        }
-
-        if (StringUtils.isNotBlank(transactionReferenceNumber)) {
-            query.append(" AND sat.unique_transaction_reference = :transactionReferenceNumber ");
-            paramMap.put("transactionReferenceNumber", transactionReferenceNumber);
-        }
-
-        if (StringUtils.isNotBlank(accountName)) {
-            query.append(" AND sa.account_name = :accountName ");
-            paramMap.put("accountName", accountName);
-        }
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        if (startDate != null) {
-            LocalDate startLocalDate = LocalDate.parse(startDate, dtf);
-            query.append(" and sat.transaction_date >= :startDate");
-            paramMap.put("startDate", startLocalDate);
-        }
-        if (endDate != null) {
-            LocalDate endLocalDate = LocalDate.parse(endDate, dtf);
-            query.append(" and sat.transaction_date <= :endDate");
-            paramMap.put("endDate", endLocalDate);
-        }
-
-        query.append(" ORDER BY sat.transaction_date DESC");
-        List<SavingsAccountTransactionData> savingsAccountTransactionData = this.namedParameterjdbcTemplate.query(query.toString(),
-                paramMap, (rs, rowNum) -> {
-                    PaymentTypeData paymentTypeData = new PaymentTypeData(rs.getLong("pt.id"), rs.getString("pt.value"),
-                            rs.getString("pt.description"), rs.getBoolean("pt.is_cash_payment"), rs.getInt("pt.order_position"));
-
-                    final boolean isTransfer = rs.getLong("ft.id") != 0 || rs.getLong("tt.id") != 0;
-
-                    int transactionEnumType = rs.getInt("sat.transaction_type_enum");
-
-                    TransactionTypeEnum direction = null;
-                    if (transactionEnumType == 1) {
-                        direction = TransactionTypeEnum.CREDIT;
-                    } else if (transactionEnumType == 2) {
-                        direction = TransactionTypeEnum.DEBIT;
-                    }
-
-                    final PaymentDetailData paymentDetailData = new PaymentDetailData(rs.getLong("pd.id"), paymentTypeData,
-                            rs.getString("pd.account_number"), rs.getString("pd.check_number"), rs.getString("pd.receipt_number"),
-                            rs.getString("pd.bank_number"));
-                    SavingsAccountTransactionData transactionData = new SavingsAccountTransactionData(rs.getLong("sat.id"),
-                            rs.getDate("sat.transaction_date").toLocalDate(), paymentDetailData,
-                            JdbcSupport.getLocalDate(rs, "sat.created_date"), rs.getBoolean("sat.is_reversed"),
-                            rs.getLong("sat.appuser_id"), rs.getBoolean("sat.is_manual"), rs.getString("sa.account_name"),
-                            rs.getString("sa.account_no"), rs.getLong("sa.id"), rs.getBigDecimal("sat.amount"),
-                            rs.getString("pd.check_number"), rs.getString("pd.bank_number"), rs.getString("sat.currency"),
-                            rs.getString("sat.unique_transaction_reference"), rs.getString("sa.dba_alias_name"),
-                            rs.getBigDecimal("sat.partial_reversed_amount"), direction, rs.getString("sat.narration"), isTransfer,
-                            transactionEnumType);
-
-                    return transactionData;
-                });
-
-        if (savingsAccountTransactionData.isEmpty() && StringUtils.isNotBlank(transactionReferenceNumber)) {
-            throw new SavingsAccountTransactionNotFoundException(transactionReferenceNumber);
-        }
-
-        return savingsAccountTransactionData;
     }
 
     @Override

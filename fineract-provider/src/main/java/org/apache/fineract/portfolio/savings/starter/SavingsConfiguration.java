@@ -341,11 +341,11 @@ public class SavingsConfiguration {
             SavingsDropdownReadPlatformService dropdownReadPlatformService, ChargeReadPlatformService chargeReadPlatformService,
             EntityDatatableChecksReadService entityDatatableChecksReadService, ColumnValidator columnValidator,
             SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper, DatabaseSpecificSQLGenerator sqlGenerator,
-            SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper, NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
+            SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper) {
         return new SavingsAccountReadPlatformServiceImpl(context, jdbcTemplate, clientReadPlatformService, groupReadPlatformService,
                 savingProductReadPlatformService, staffReadPlatformService, dropdownReadPlatformService, chargeReadPlatformService,
                 entityDatatableChecksReadService, columnValidator, savingAccountAssembler, paginationHelper, sqlGenerator,
-                savingsAccountRepositoryWrapper, namedParameterjdbcTemplate);
+                savingsAccountRepositoryWrapper);
     }
 
     @Bean
