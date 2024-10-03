@@ -336,16 +336,16 @@ public class SavingsConfiguration {
     @Bean
     @ConditionalOnMissingBean(SavingsAccountReadPlatformService.class)
     public SavingsAccountReadPlatformService savingsAccountReadPlatformService(PlatformSecurityContext context, JdbcTemplate jdbcTemplate,
-                                                                               ClientReadPlatformService clientReadPlatformService, GroupReadPlatformService groupReadPlatformService,
-                                                                               SavingsProductReadPlatformService savingProductReadPlatformService, StaffReadPlatformService staffReadPlatformService,
-                                                                               SavingsDropdownReadPlatformService dropdownReadPlatformService, ChargeReadPlatformService chargeReadPlatformService,
-                                                                               EntityDatatableChecksReadService entityDatatableChecksReadService, ColumnValidator columnValidator,
-                                                                               SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper, DatabaseSpecificSQLGenerator sqlGenerator,
-                                                                               SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper, NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
+            ClientReadPlatformService clientReadPlatformService, GroupReadPlatformService groupReadPlatformService,
+            SavingsProductReadPlatformService savingProductReadPlatformService, StaffReadPlatformService staffReadPlatformService,
+            SavingsDropdownReadPlatformService dropdownReadPlatformService, ChargeReadPlatformService chargeReadPlatformService,
+            EntityDatatableChecksReadService entityDatatableChecksReadService, ColumnValidator columnValidator,
+            SavingsAccountAssembler savingAccountAssembler, PaginationHelper paginationHelper, DatabaseSpecificSQLGenerator sqlGenerator,
+            SavingsAccountRepositoryWrapper savingsAccountRepositoryWrapper, NamedParameterJdbcTemplate namedParameterjdbcTemplate) {
         return new SavingsAccountReadPlatformServiceImpl(context, jdbcTemplate, clientReadPlatformService, groupReadPlatformService,
                 savingProductReadPlatformService, staffReadPlatformService, dropdownReadPlatformService, chargeReadPlatformService,
                 entityDatatableChecksReadService, columnValidator, savingAccountAssembler, paginationHelper, sqlGenerator,
-                savingsAccountRepositoryWrapper,namedParameterjdbcTemplate);
+                savingsAccountRepositoryWrapper, namedParameterjdbcTemplate);
     }
 
     @Bean
