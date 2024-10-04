@@ -167,8 +167,8 @@ public class JobExecutionRepository {
                                 INNER JOIN BATCH_JOB_EXECUTION_PARAMS BJEP ON BJE.JOB_EXECUTION_ID = BJEP.JOB_EXECUTION_ID
                                 inner join batch_custom_job_parameters CJP ON cast(BJEP.parameter_value as bigint) = CJP.id
                                 AND BJEP.parameter_name = :jobCustomParamKeyName
-                                CROSS JOIN LATERAL json_array_elements(CJP.parameter_json) J
-                                CROSS JOIN LATERAL json_array_elements(CJP.parameter_json) J2
+                                CROSS JOIN LATERAL json_array_elements(CJP.parameter_json::json) J
+                                CROSS JOIN LATERAL json_array_elements(CJP.parameter_json::json) J2
                         WHERE
                                     J ->> 'parameterName' = :filterParameterName
                           AND J ->> 'parameterValue' = :filterParameterValue
