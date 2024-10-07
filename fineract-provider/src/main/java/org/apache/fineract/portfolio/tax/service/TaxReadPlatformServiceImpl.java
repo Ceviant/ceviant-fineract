@@ -19,6 +19,7 @@
 package org.apache.fineract.portfolio.tax.service;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -51,7 +52,11 @@ public class TaxReadPlatformServiceImpl implements TaxReadPlatformService {
     @Override
     public Collection<TaxComponentData> retrieveAllTaxComponents() {
         String sql = "select " + TAX_COMPONENT_MAPPER.getSchema();
-        return this.jdbcTemplate.query(sql, TAX_COMPONENT_MAPPER); // NOSONAR
+        return this.jdbcTemplate.query(con -> {
+            PreparedStatement preparedStatement = con.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE);
+            return preparedStatement;
+        }, TAX_COMPONENT_MAPPER);
     }
 
     @Override
