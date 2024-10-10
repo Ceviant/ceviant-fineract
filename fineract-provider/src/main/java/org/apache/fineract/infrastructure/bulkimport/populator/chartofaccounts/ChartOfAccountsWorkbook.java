@@ -75,8 +75,8 @@ public class ChartOfAccountsWorkbook extends AbstractWorkbookPopulator {
     private void setAccountTypeToAccountNameAndTag() {
         accountTypeToAccountNameAndTag = new HashMap<>();
         for (GLAccountData glAccount : glAccounts) {
-            addToaccountTypeToAccountNameMap(glAccount.getType().getValue(), glAccount.getName() + "-" + glAccount.getId() + "-"
-                    + glAccount.getTagId().getName() + "-" + glAccount.getTagId().getId());
+            addToaccountTypeToAccountNameMap(glAccount.getType().getValue(), glAccount.getName() + "##" + glAccount.getId() + "##"
+                    + glAccount.getTagId().getName() + "##" + glAccount.getTagId().getId());
         }
     }
 
@@ -218,7 +218,7 @@ public class ChartOfAccountsWorkbook extends AbstractWorkbookPopulator {
             if (!accountNamesandTags.isEmpty()) {
                 for (String accountNameandTag : accountNamesandTags) {
                     if (chartOfAccountsSheet.getRow(rowIndex) != null) {
-                        List<String> accountNameAndTagAr = Splitter.on('-').splitToList(accountNameandTag);
+                        List<String> accountNameAndTagAr = Splitter.on("##").splitToList(accountNameandTag);
                         writeString(ChartOfAcountsConstants.LOOKUP_ACCOUNT_NAME_COL, row, accountNameAndTagAr.get(0));
                         writeString(ChartOfAcountsConstants.LOOKUP_ACCOUNT_ID_COL, row, accountNameAndTagAr.get(1));
                         writeString(ChartOfAcountsConstants.LOOKUP_TAG_COL, row, accountNameAndTagAr.get(2));
@@ -226,7 +226,7 @@ public class ChartOfAccountsWorkbook extends AbstractWorkbookPopulator {
                         rowIndex++;
                     } else {
                         row = chartOfAccountsSheet.createRow(rowIndex);
-                        List<String> accountNameAndTagAr = Splitter.on('-').splitToList(accountNameandTag);
+                        List<String> accountNameAndTagAr = Splitter.on("##").splitToList(accountNameandTag);
                         writeString(ChartOfAcountsConstants.LOOKUP_ACCOUNT_NAME_COL, row, accountNameAndTagAr.get(0));
                         writeString(ChartOfAcountsConstants.LOOKUP_ACCOUNT_ID_COL, row, accountNameAndTagAr.get(1));
                         writeString(ChartOfAcountsConstants.LOOKUP_TAG_COL, row, accountNameAndTagAr.get(2));

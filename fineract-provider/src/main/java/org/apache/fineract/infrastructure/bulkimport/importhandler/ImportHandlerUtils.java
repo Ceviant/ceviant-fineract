@@ -107,7 +107,7 @@ public final class ImportHandlerUtils {
 
                     String res = trimEmptyDecimalPortion(value.getStringValue());
 
-                    if (!StringUtils.isNotEmpty(res)) {
+                    if (StringUtils.isNotEmpty(res)) {
                         return res.trim();
                     }
                 } catch (Exception e) {

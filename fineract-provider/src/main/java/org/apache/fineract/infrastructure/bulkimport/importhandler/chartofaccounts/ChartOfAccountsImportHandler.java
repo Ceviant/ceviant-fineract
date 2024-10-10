@@ -24,6 +24,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.accounting.glaccount.domain.GLAccountRepositoryWrapper;
@@ -112,6 +114,7 @@ public class ChartOfAccountsImportHandler implements ImportHandler {
         EnumOptionData accountTypeEnum = GLAccountType.fromString(accountType);
         String accountName = ImportHandlerUtils.readAsString(ChartOfAcountsConstants.ACCOUNT_NAME_COL, row);
         String usage = ImportHandlerUtils.readAsString(ChartOfAcountsConstants.ACCOUNT_USAGE_COL, row);
+        String parentIdCol = ImportHandlerUtils.readAsString(ChartOfAcountsConstants.PARENT_ID_COL, row);
         Long usageId = null;
         EnumOptionData usageEnum = null;
         if (usage != null && usage.equals(GLAccountUsage.DETAIL.toString())) {
@@ -123,13 +126,13 @@ public class ChartOfAccountsImportHandler implements ImportHandler {
         }
         Boolean manualEntriesAllowed = ImportHandlerUtils.readAsBoolean(ChartOfAcountsConstants.MANUAL_ENTRIES_ALLOWED_COL, row);
         Long parentId = null;
-        if (ImportHandlerUtils.readAsString(ChartOfAcountsConstants.PARENT_ID_COL, row) != null) {
-            parentId = Long.parseLong(Objects.requireNonNull(ImportHandlerUtils.readAsString(ChartOfAcountsConstants.PARENT_ID_COL, row)));
+        if (!StringUtils.isBlank(parentIdCol)) {
+            parentId = Long.parseLong(Objects.requireNonNull(parentIdCol));
         }
         String glCode = ImportHandlerUtils.readAsString(ChartOfAcountsConstants.GL_CODE_COL, row);
         Long tagId = null;
         CodeValueData tagIdCodeValueData = null;
-        if (ImportHandlerUtils.readAsString(ChartOfAcountsConstants.TAG_ID_COL, row) != null) {
+        if (!StringUtils.isBlank(ImportHandlerUtils.readAsString(ChartOfAcountsConstants.TAG_ID_COL, row))) {
             tagId = Long.parseLong(Objects.requireNonNull(ImportHandlerUtils.readAsString(ChartOfAcountsConstants.TAG_ID_COL, row)));
             tagIdCodeValueData = new CodeValueData().setId(tagId);
         }
