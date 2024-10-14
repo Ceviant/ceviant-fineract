@@ -142,7 +142,7 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     private String uniqueTransactionReference;
 
     @Column(name = "tenant_id")
-    private String tenantId;
+    private Integer tenantId;
 
     SavingsAccountTransaction() {}
 
@@ -892,7 +892,7 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
         this.uniqueTransactionReference = uniqueTransactionReference;
     }
 
-    public void setTenantId(String tenantId) {
+    public void setTenantId(Integer tenantId) {
         this.tenantId = tenantId;
     }
 }

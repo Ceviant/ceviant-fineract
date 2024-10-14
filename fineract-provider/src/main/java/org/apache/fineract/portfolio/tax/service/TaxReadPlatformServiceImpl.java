@@ -53,8 +53,7 @@ public class TaxReadPlatformServiceImpl implements TaxReadPlatformService {
     public Collection<TaxComponentData> retrieveAllTaxComponents() {
         String sql = "select " + TAX_COMPONENT_MAPPER.getSchema();
         return this.jdbcTemplate.query(con -> {
-            PreparedStatement preparedStatement = con.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_UPDATABLE);
+            PreparedStatement preparedStatement = con.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             return preparedStatement;
         }, TAX_COMPONENT_MAPPER);
     }
