@@ -1457,10 +1457,13 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         Money minRequiredBalance = minRequiredBalanceDerived(getCurrency());
         LocalDate lastSavingsDate = null;
         final BigDecimal withdrawalFee = null;
+        LOG.info("Actual Transaction Amount - : " + transactionAmount);
         for (final SavingsAccountTransaction transaction : transactionsSortedByDate) {
             if (transaction.isNotReversed() && transaction.isCredit() && !transaction.isReversalTransaction()) {
                 runningBalance = runningBalance.plus(transaction.getAmount(this.currency));
+                LOG.info("runningBalance after credit transaction -Credit-: " + runningBalance);
             } else if (transaction.isNotReversed() && transaction.isDebit() && !transaction.isReversalTransaction()) {
+                LOG.info("runningBalance after credit transaction -Debit-: " + runningBalance);
                 runningBalance = runningBalance.minus(transaction.getAmount(this.currency));
             } else {
                 continue;
