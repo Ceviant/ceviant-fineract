@@ -188,7 +188,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
         final StringBuilder sqlBuilder = new StringBuilder(200);
         sqlBuilder.append("SELECT ");
         sqlBuilder.append(DEPOSIT_ACCOUNT_FOR_MATURITY_MAPPER.schema());
-        sqlBuilder.append(" WHERE da.deposit_type_enum in (?, ?) and da.status_enum = ? AND da.id = 25");
+        sqlBuilder.append(" WHERE da.deposit_type_enum in (?, ?) and da.status_enum = ?");
 
         return this.jdbcTemplate.query(sqlBuilder.toString(), DEPOSIT_ACCOUNT_FOR_MATURITY_MAPPER,
                 DepositAccountType.FIXED_DEPOSIT.getValue(), DepositAccountType.RECURRING_DEPOSIT.getValue(),
