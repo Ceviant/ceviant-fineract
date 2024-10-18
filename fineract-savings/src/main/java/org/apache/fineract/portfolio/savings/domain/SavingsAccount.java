@@ -1463,7 +1463,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                 runningBalance = runningBalance.plus(transaction.getAmount(this.currency));
                 LOG.info("runningBalance after credit transaction -Credit-: " + runningBalance);
             } else if (transaction.isNotReversed() && transaction.isDebit() && !transaction.isReversalTransaction()) {
-                LOG.info("runningBalance after credit transaction -Debit-: " + runningBalance);
+                LOG.info("runningBalance after Debit transaction -Debit-: " + runningBalance);
                 runningBalance = runningBalance.minus(transaction.getAmount(this.currency));
             } else {
                 continue;
