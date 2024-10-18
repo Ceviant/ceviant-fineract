@@ -363,7 +363,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("txd.id as taxDetailsId, txd.amount as taxAmount, ");
             sqlBuilder.append("apm.gl_account_id as glAccountIdForInterestOnSavings, apm1.gl_account_id as glAccountIdForSavingsControl, ");
             sqlBuilder.append(
-                    "mtc.id as taxComponentId, mtc.debit_account_id as debitAccountId, mtc.credit_account_id as creditAccountId, mtc.percentage as taxPercentage ");
+                    "mtc.id as taxComponentId, mtc.debit_account_id as debitAccountId, mtc.credit_account_id as creditAccountId, mtc.percentage as taxPercentage,datp.maturity_date as fdaMaturityDate  ");
             sqlBuilder.append("from m_savings_account sa ");
             sqlBuilder.append("join m_savings_product sp ON sa.product_id = sp.id ");
             sqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
@@ -379,6 +379,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("left join m_tax_component mtc on mtc.id = txd.tax_component_id ");
             sqlBuilder.append("left join acc_product_mapping apm on apm.product_id = sp.id and apm.financial_account_type=3 ");
             sqlBuilder.append("left join acc_product_mapping apm1 on apm1.product_id = sp.id and apm1.financial_account_type=2 ");
+            sqlBuilder.append("left join m_deposit_account_term_and_preclosure datp on datp.savings_account_id = sa.id  ");
 
             this.schemaSql = sqlBuilder.toString();
         }
@@ -473,6 +474,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     final LocalDate submittedOnDate = JdbcSupport.getLocalDate(rs, "submittedOnDate");
                     final LocalDate activatedOnDate = JdbcSupport.getLocalDate(rs, "activatedOnDate");
                     final LocalDate closedOnDate = JdbcSupport.getLocalDate(rs, "closedOnDate");
+                    final LocalDate fdaMaturityDate = JdbcSupport.getLocalDate(rs, "fdaMaturityDate");
                     final SavingsAccountApplicationTimelineData timeline = new SavingsAccountApplicationTimelineData(submittedOnDate, null,
                             null, null, null, null, null, null, withdrawnOnDate, null, null, null, approvedOnDate, null, null, null,
                             activatedOnDate, null, null, null, closedOnDate, null, null, null);
@@ -590,6 +592,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     savingsAccountData.setSavingsProduct(savingsProductData);
                     savingsAccountData.setGlAccountIdForInterestOnSavings(glAccountIdForInterestOnSavings);
                     savingsAccountData.setGlAccountIdForSavingsControl(glAccountIdForSavingsControl);
+                    savingsAccountData.setFdaMaturityDate(fdaMaturityDate);
                 }
 
                 if (!transMap.containsValue(transactionId)) {

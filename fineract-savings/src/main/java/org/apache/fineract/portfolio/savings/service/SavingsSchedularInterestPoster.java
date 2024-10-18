@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.accounting.journalentry.domain.JournalEntryType;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -187,6 +188,13 @@ public class SavingsSchedularInterestPoster {
                     UUID uuid = UUID.randomUUID();
                     savingsAccountTransactionData.setRefNo(uuid.toString());
                     transRefNo.add(uuid.toString());
+                    if( (savingsAccountData.depositAccountType().isFixedDeposit() ||
+                            savingsAccountData.depositAccountType().isRecurringDeposit()) &&
+                            (savingsAccountTransactionData.getTransactionDate().isBefore(savingsAccountData.getFdaMaturityDate()) ||
+                             savingsAccountTransactionData.getTransactionDate().isEqual(savingsAccountData.getFdaMaturityDate()))){
+
+                        log.info("Interest Computation --- >> {}  {} {} {} ", savingsAccountData.getId(), savingsAccountTransactionData.getTransactionDate(), savingsAccountTransactionData.getAmount() , savingsAccountData.getFdaMaturityDate());
+
                     paramsForTransactionInsertion.add(new Object[] { savingsAccountData.getId(), savingsAccountData.getOfficeId(),
                             savingsAccountTransactionData.isReversed(), savingsAccountTransactionData.getTransactionType().getId(),
                             savingsAccountTransactionData.getTransactionDate(), savingsAccountTransactionData.getAmount(),
@@ -195,13 +203,24 @@ public class SavingsSchedularInterestPoster {
                             auditTime, userId, auditTime, userId, savingsAccountTransactionData.isManualTransaction(),
                             savingsAccountTransactionData.getRefNo(), savingsAccountTransactionData.isReversalTransaction(),
                             savingsAccountTransactionData.getOverdraftAmount(), currentDate });
+                    }
                 } else {
-                    paramsForTransactionUpdate.add(new Object[] { savingsAccountTransactionData.isReversed(),
+
+                    if ((savingsAccountData.depositAccountType().isFixedDeposit() ||
+                            savingsAccountData.depositAccountType().isRecurringDeposit()) &&
+                            (savingsAccountTransactionData.getTransactionDate().isBefore(savingsAccountData.getFdaMaturityDate()) ||
+                                    savingsAccountTransactionData.getTransactionDate().isEqual(savingsAccountData.getFdaMaturityDate()))) {
+
+                        log.info("Interest Computation --- >> {}  {} {} {} ", savingsAccountData.getId(), savingsAccountTransactionData.getTransactionDate(), savingsAccountTransactionData.getAmount() , savingsAccountData.getFdaMaturityDate());
+
+
+                        paramsForTransactionUpdate.add(new Object[]{savingsAccountTransactionData.isReversed(),
                             savingsAccountTransactionData.getAmount(), savingsAccountTransactionData.getOverdraftAmount(),
                             savingsAccountTransactionData.getBalanceEndDate(), savingsAccountTransactionData.getBalanceNumberOfDays(),
                             savingsAccountTransactionData.getRunningBalance(), savingsAccountTransactionData.getCumulativeBalance(),
                             savingsAccountTransactionData.isReversalTransaction(), auditTime, userId,
-                            savingsAccountTransactionData.getId() });
+                            savingsAccountTransactionData.getId()});
+                }
                 }
             }
             savingsAccountData.setUpdatedTransactions(savingsAccountTransactionDataList);
