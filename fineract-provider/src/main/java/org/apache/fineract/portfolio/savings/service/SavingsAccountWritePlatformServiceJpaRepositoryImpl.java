@@ -592,12 +592,70 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             final Set<Long> existingReversedTransactionIds = new HashSet<>();
             updateExistingTransactionsDetails(savingsAccountData, existingTransactionIds, existingReversedTransactionIds);
 
-            final LocalDate today = DateUtils.getBusinessLocalDate();
+            LocalDate today = DateUtils.getBusinessLocalDate();
             final MathContext mc = new MathContext(10, MoneyHelper.getRoundingMode());
             boolean isInterestTransfer = false;
             LocalDate postInterestOnDate = null;
-            if (postInterestAs) {
-                postInterestOnDate = transactionDate;
+
+            /*
+             * https://fiterio.atlassian.net/browse/CEV-145
+             *
+             */
+
+            if ((savingsAccountData.depositAccountType().isFixedDeposit() || savingsAccountData.depositAccountType().isRecurringDeposit())
+                    && savingsAccountData.getOnAccountClosure() == null) {
+                /*
+                 * if onAccountClosure is null then it is a normal FD/RD account
+                 *
+                 * For Fixed Deposit and recurring add this logic to avoid posting interest after maturity period is
+                 * due. The logic should prevent posting interest after maturity period unless the account has re-invest
+                 *
+                 */
+                if (postInterestAs) {
+                    postInterestOnDate = getPostInterestOnDate(savingsAccountData, transactionDate);
+                } else if (savingsAccountData.getFdaMaturityDate() != null && (today.isAfter(savingsAccountData.getFdaMaturityDate())
+                        || today.isEqual(savingsAccountData.getFdaMaturityDate()))) {
+                    // filter out logic for re-invested FD/RD accounts
+                    today = savingsAccountData.getFdaMaturityDate();
+                    log.info("AFTER --- FD/RD account with maturity date {} and today date {} Account ID --> {}",
+                            savingsAccountData.getFdaMaturityDate(), today, savingsAccountData.getId());
+                }
+            } else if ((savingsAccountData.depositAccountType().isFixedDeposit()
+                    || savingsAccountData.depositAccountType().isRecurringDeposit())
+                    && (savingsAccountData.getOnAccountClosure().getId() == 100
+                            || savingsAccountData.getOnAccountClosure().getId() == 200)) {
+
+                log.info(
+                        "--*****************************************100 and 200*********************************************************--");
+                log.info("ID {} Account Closure {} ", savingsAccountData.getId(), savingsAccountData.getOnAccountClosure().getId());
+                log.info("--**************************************************************************************************--");
+                /*
+                 * The Logic should run on DepositAccountOnClosureType.id = 100,200 and re-invest should run out of this
+                 * logic
+                 *
+                 * For Fixed Deposit and recurring add this logic to avoid posting interest after maturity period is
+                 * due. The logic should prevent posting interest after maturity period unless the account has re-invest
+                 */
+                if (postInterestAs) {
+                    postInterestOnDate = getPostInterestOnDate(savingsAccountData, transactionDate);
+                } else if (savingsAccountData.getFdaMaturityDate() != null && (today.isAfter(savingsAccountData.getFdaMaturityDate())
+                        || today.isEqual(savingsAccountData.getFdaMaturityDate()))) {
+
+                    today = savingsAccountData.getFdaMaturityDate();
+                    log.info("AFTER --- FD/RD account with maturity date {} and today date {} Account ID --> {}",
+                            savingsAccountData.getFdaMaturityDate(), today, savingsAccountData.getId());
+                }
+
+            } else {
+                /*
+                 * //For Savings Account use default implementation or if it's FD/RD account with re-invest
+                 *
+                 */
+                log.info("ID ** {} Account Closure {} ", savingsAccountData.getId(), savingsAccountData.getOnAccountClosure().getId());
+
+                if (postInterestAs) {
+                    postInterestOnDate = transactionDate;
+                }
             }
 
             savingsAccountData = this.savingsAccountInterestPostingService.postInterest(mc, today, isInterestTransfer,
@@ -616,6 +674,18 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             savingsAccountData.setExistingReversedTransactionIds(existingReversedTransactionIds);
         }
         return savingsAccountData;
+    }
+
+    private static LocalDate getPostInterestOnDate(SavingsAccountData savingsAccountData, LocalDate transactionDate) {
+        LocalDate postInterestOnDate;
+        // add same logic with maturity period here with re-invest concept too
+        if (savingsAccountData.getFdaMaturityDate() != null && (transactionDate.isAfter(savingsAccountData.getFdaMaturityDate())
+                || transactionDate.isEqual(savingsAccountData.getFdaMaturityDate()))) {
+            postInterestOnDate = savingsAccountData.getFdaMaturityDate();
+        } else {
+            postInterestOnDate = transactionDate;
+        }
+        return postInterestOnDate;
     }
 
     @Override

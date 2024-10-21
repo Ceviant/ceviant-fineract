@@ -363,7 +363,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("txd.id as taxDetailsId, txd.amount as taxAmount, ");
             sqlBuilder.append("apm.gl_account_id as glAccountIdForInterestOnSavings, apm1.gl_account_id as glAccountIdForSavingsControl, ");
             sqlBuilder.append(
-                    "mtc.id as taxComponentId, mtc.debit_account_id as debitAccountId, mtc.credit_account_id as creditAccountId, mtc.percentage as taxPercentage,datp.maturity_date as fdaMaturityDate  ");
+                    "mtc.id as taxComponentId, mtc.debit_account_id as debitAccountId, mtc.credit_account_id as creditAccountId, mtc.percentage as taxPercentage,datp.maturity_date as fdaMaturityDate , datp.on_account_closure_enum as onAccountClosureId    ");
             sqlBuilder.append("from m_savings_account sa ");
             sqlBuilder.append("join m_savings_product sp ON sa.product_id = sp.id ");
             sqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
@@ -475,6 +475,9 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     final LocalDate activatedOnDate = JdbcSupport.getLocalDate(rs, "activatedOnDate");
                     final LocalDate closedOnDate = JdbcSupport.getLocalDate(rs, "closedOnDate");
                     final LocalDate fdaMaturityDate = JdbcSupport.getLocalDate(rs, "fdaMaturityDate");
+                    final Integer onAccountClosureId = JdbcSupport.getInteger(rs, "onAccountClosureId");
+                    final EnumOptionData onAccountClosureType = (onAccountClosureId == null) ? null
+                            : SavingsEnumerations.depositAccountOnClosureType(onAccountClosureId);
                     final SavingsAccountApplicationTimelineData timeline = new SavingsAccountApplicationTimelineData(submittedOnDate, null,
                             null, null, null, null, null, null, withdrawnOnDate, null, null, null, approvedOnDate, null, null, null,
                             activatedOnDate, null, null, null, closedOnDate, null, null, null);
@@ -593,6 +596,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     savingsAccountData.setGlAccountIdForInterestOnSavings(glAccountIdForInterestOnSavings);
                     savingsAccountData.setGlAccountIdForSavingsControl(glAccountIdForSavingsControl);
                     savingsAccountData.setFdaMaturityDate(fdaMaturityDate);
+                    savingsAccountData.setOnAccountClosure(onAccountClosureType);
                 }
 
                 if (!transMap.containsValue(transactionId)) {
