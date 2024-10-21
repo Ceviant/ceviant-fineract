@@ -187,6 +187,7 @@ public class SavingsSchedularInterestPoster {
                     UUID uuid = UUID.randomUUID();
                     savingsAccountTransactionData.setRefNo(uuid.toString());
                     transRefNo.add(uuid.toString());
+
                     paramsForTransactionInsertion.add(new Object[] { savingsAccountData.getId(), savingsAccountData.getOfficeId(),
                             savingsAccountTransactionData.isReversed(), savingsAccountTransactionData.getTransactionType().getId(),
                             savingsAccountTransactionData.getTransactionDate(), savingsAccountTransactionData.getAmount(),
@@ -196,12 +197,14 @@ public class SavingsSchedularInterestPoster {
                             savingsAccountTransactionData.getRefNo(), savingsAccountTransactionData.isReversalTransaction(),
                             savingsAccountTransactionData.getOverdraftAmount(), currentDate });
                 } else {
+
                     paramsForTransactionUpdate.add(new Object[] { savingsAccountTransactionData.isReversed(),
                             savingsAccountTransactionData.getAmount(), savingsAccountTransactionData.getOverdraftAmount(),
                             savingsAccountTransactionData.getBalanceEndDate(), savingsAccountTransactionData.getBalanceNumberOfDays(),
                             savingsAccountTransactionData.getRunningBalance(), savingsAccountTransactionData.getCumulativeBalance(),
                             savingsAccountTransactionData.isReversalTransaction(), auditTime, userId,
                             savingsAccountTransactionData.getId() });
+
                 }
             }
             savingsAccountData.setUpdatedTransactions(savingsAccountTransactionDataList);
