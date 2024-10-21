@@ -54,6 +54,6 @@ public interface SavingsAccountTransactionRepository
     List<SavingsAccountTransaction> findBySavingsAccountIdAndLessThanDateOfAndReversedIsFalse(@Param("savingsId") Long savingsId,
             @Param("transactionDate") LocalDate transactionDate, Pageable pageable);
 
-    @Query("select sat from SavingsAccountTransaction sat where sat.uniqueTransactionReference = :uniqueTransactionReference")
+    @Query("select sat from SavingsAccountTransaction sat where sat.reference = :uniqueTransactionReference")
     SavingsAccountTransaction findUniqueTransactionReference(@Param("uniqueTransactionReference") String uniqueTransactionReference);
 }

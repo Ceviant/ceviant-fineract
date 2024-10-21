@@ -1310,7 +1310,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             final Long savingsId = rs.getLong("savingsId");
             final String accountNo = rs.getString("accountNo");
-            final String uniqueTransactionReference = rs.getString("uniqueTransactionReference");
+            final String reference = rs.getString("uniqueTransactionReference");
             final boolean postInterestAsOn = rs.getBoolean("postInterestAsOn");
 
             PaymentDetailData paymentDetailData = null;
@@ -1364,7 +1364,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     savingsId, accountNo, date, currency, amount, outstandingChargeAmount, runningBalance, reversed, transfer,
                     submittedOnDate, postInterestAsOn, submittedByUsername, note, isReversal, originalTransactionId, lienTransaction,
                     releaseTransactionId, reasonForBlock);
-            transactionData.setUniqueTransactionReference(uniqueTransactionReference);
+            transactionData.setReference(reference);
             return transactionData;
         }
     }
@@ -1828,7 +1828,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             final Boolean isManual = rs.getBoolean("isManual");
             final BigDecimal amount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "amount");
             final String currency = rs.getString("currency");
-            final String uniqueTransactionReference = rs.getString("uniqueTransactionReference");
+            final String reference = rs.getString("uniqueTransactionReference");
             final BigDecimal partialReversedAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "partialReversedAmount");
             final Integer transactionEnumType = rs.getInt("transactionTypeEnum");
             final String narration = rs.getString("narration");
@@ -1868,8 +1868,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             SavingsAccountTransactionData transactionData = new SavingsAccountTransactionData(id, transactionDate, paymentDetailData,
                     createdDate, isReversed, appuserId, isManual, saAccountName, accountNo, accountId, amount, checkNumber, bankNumber,
-                    currency, uniqueTransactionReference, dbaAliasName, partialReversedAmount, direction, narration, isTransfer,
-                    transactionEnumType);
+                    currency, reference, dbaAliasName, partialReversedAmount, direction, narration, isTransfer, transactionEnumType);
 
             return transactionData;
 
