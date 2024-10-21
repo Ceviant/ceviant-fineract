@@ -24,9 +24,7 @@ public class DuplicateSavingsAccountTransactionFoundException extends AbstractPl
 
     public DuplicateSavingsAccountTransactionFoundException(final String reference) {
         super("error.msg.duplicate.saving.account.transaction.found",
-                "Duplicate Savings account Transaction with transaction reference already exists " + reference
-                        + " ",
-                reference);
+                "Duplicate Savings account Transaction with transaction reference already exists " + reference + " ", reference);
     }
 
 }

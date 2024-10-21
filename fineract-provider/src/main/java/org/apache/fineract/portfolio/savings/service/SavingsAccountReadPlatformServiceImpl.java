@@ -1861,8 +1861,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             SavingsAccountTransactionData transactionData = new SavingsAccountTransactionData(id, transactionDate, paymentDetailData,
                     createdDate, isReversed, appuserId, isManual, saAccountName, accountNo, accountId, amount, checkNumber, bankNumber,
-                    currency, reference, dbaAliasName, partialReversedAmount, direction, narration, isTransfer,
-                    transactionEnumType);
+                    currency, reference, dbaAliasName, partialReversedAmount, direction, narration, isTransfer, transactionEnumType);
 
             return transactionData;
 
