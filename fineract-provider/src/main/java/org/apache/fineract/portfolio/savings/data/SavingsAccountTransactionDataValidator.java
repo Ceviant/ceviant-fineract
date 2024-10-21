@@ -113,7 +113,7 @@ public class SavingsAccountTransactionDataValidator {
         baseDataValidator.reset().parameter(transactionAmountParamName).value(transactionAmount).notNull().positiveAmount();
 
         final Integer paymentType = this.fromApiJsonHelper.extractIntegerWithLocaleNamed(paymentTypeIdParamName, element);
-        baseDataValidator.reset().parameter(paymentTypeIdParamName).value(paymentType).notNull();
+        baseDataValidator.reset().parameter(paymentTypeIdParamName).value(paymentType).ignoreIfNull().integerGreaterThanZero();
 
         validatePaymentTypeDetails(baseDataValidator, element);
 
