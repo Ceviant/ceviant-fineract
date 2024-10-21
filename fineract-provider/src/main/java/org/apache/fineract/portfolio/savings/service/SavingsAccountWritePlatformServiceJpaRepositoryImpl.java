@@ -297,13 +297,13 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
         final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
-        final String uniqueTransactionReference = command.stringValueOfParameterNamed("uniqueTransactionReference");
+        final String reference = command.stringValueOfParameterNamed("reference");
 
         this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(transactionDate, account);
         final SavingsAccountTransaction savingsAccountTransaction = this.savingsAccountTransactionRepository
-                .findUniqueTransactionReference(uniqueTransactionReference);
+                .findUniqueTransactionReference(reference);
         if (savingsAccountTransaction != null) {
-            throw new DuplicateSavingsAccountTransactionFoundException(uniqueTransactionReference);
+            throw new DuplicateSavingsAccountTransactionFoundException(reference);
         }
         final Map<String, Object> changes = new LinkedHashMap<>();
         final PaymentDetail paymentDetail = this.paymentDetailWritePlatformService.createAndPersistPaymentDetail(command, changes);
@@ -311,7 +311,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         boolean isRegularTransaction = true;
         final SavingsAccountTransaction deposit = this.savingsAccountDomainService.handleDeposit(account, fmt, transactionDate,
                 transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
-        deposit.setUniqueTransactionReference(uniqueTransactionReference);
+        deposit.setReference(reference);
 
         if (isGsim && (deposit.getId() != null)) {
 
@@ -329,7 +329,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         }
 
-        final String noteText = command.stringValueOfParameterNamed("note");
+        final String noteText = command.stringValueOfParameterNamed("narration");
         if (StringUtils.isNotBlank(noteText)) {
             final Note note = Note.savingsTransactionNote(account, deposit, noteText);
             this.noteRepository.save(note);
@@ -360,7 +360,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
         final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
-        final String uniqueTransactionReference = command.stringValueOfParameterNamed("uniqueTransactionReference");
+        final String reference = command.stringValueOfParameterNamed("reference");
 
         final Locale locale = command.extractLocale();
         final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
@@ -370,9 +370,9 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final boolean backdatedTxnsAllowedTill = this.savingAccountAssembler.getPivotConfigStatus();
         final SavingsAccountTransaction savingsAccountTransaction = this.savingsAccountTransactionRepository
-                .findUniqueTransactionReference(uniqueTransactionReference);
+                .findUniqueTransactionReference(reference);
         if (savingsAccountTransaction != null) {
-            throw new DuplicateSavingsAccountTransactionFoundException(uniqueTransactionReference);
+            throw new DuplicateSavingsAccountTransactionFoundException(reference);
         }
 
         final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
@@ -393,7 +393,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 isRegularTransaction, isApplyWithdrawFee, isInterestTransfer, isWithdrawBalance);
         final SavingsAccountTransaction withdrawal = this.savingsAccountDomainService.handleWithdrawal(account, fmt, transactionDate,
                 transactionAmount, paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
-        withdrawal.setUniqueTransactionReference(uniqueTransactionReference);
+        withdrawal.setReference(reference);
 
         if (isGsim && (withdrawal.getId() != null)) {
             GroupSavingsIndividualMonitoring gsim = gsimRepository.findById(account.getGsim().getId()).orElseThrow();
@@ -403,7 +403,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         }
 
-        final String noteText = command.stringValueOfParameterNamed("note");
+        final String noteText = command.stringValueOfParameterNamed("narration");
         if (StringUtils.isNotBlank(noteText)) {
             final Note note = Note.savingsTransactionNote(account, withdrawal, noteText);
             this.noteRepository.save(note);

@@ -139,7 +139,7 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     private String refNo;
 
     @Column(name = "unique_transaction_reference", nullable = true)
-    private String uniqueTransactionReference;
+    private String reference;
 
     @Column(name = "tenant_id")
     private Integer tenantId;
@@ -888,8 +888,8 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
                 isChargeTransactionAndNotReversed(), isDividendPayoutAndNotReversed());
     }
 
-    public void setUniqueTransactionReference(String uniqueTransactionReference) {
-        this.uniqueTransactionReference = uniqueTransactionReference;
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
     public void setTenantId(Integer tenantId) {
