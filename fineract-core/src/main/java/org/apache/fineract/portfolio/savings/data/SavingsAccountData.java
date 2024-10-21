@@ -93,6 +93,7 @@ public final class SavingsAccountData implements Serializable {
     private final BigDecimal savingsAmountOnHold;
     // associations
     private final SavingsAccountSummaryData summary;
+    private EnumOptionData onAccountClosure;
     @SuppressWarnings("unused")
     private final Collection<SavingsAccountTransactionData> transactions;
 
@@ -132,6 +133,7 @@ public final class SavingsAccountData implements Serializable {
     private transient SavingsAccountSummaryData savingsAccountSummaryData;
     private transient LocalDate activatedOnDate;
     private transient LocalDate lockedInUntilDate;
+    private transient LocalDate fdaMaturityDate;
     private transient ClientData clientData;
     private transient SavingsProductData savingsProductData;
     private transient List<SavingsAccountTransactionData> newSavingsAccountTransactionData = new ArrayList<>();
@@ -961,5 +963,17 @@ public final class SavingsAccountData implements Serializable {
 
     public boolean isIsDormancyTrackingActive() {
         return this.isDormancyTrackingActive;
+    }
+
+    public void setFdaMaturityDate(LocalDate fdaMaturityDate) {
+        this.fdaMaturityDate = fdaMaturityDate;
+    }
+
+    public EnumOptionData getOnAccountClosure() {
+        return onAccountClosure;
+    }
+
+    public void setOnAccountClosure(EnumOptionData onAccountClosure) {
+        this.onAccountClosure = onAccountClosure;
     }
 }
