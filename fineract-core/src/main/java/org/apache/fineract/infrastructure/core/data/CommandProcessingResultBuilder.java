@@ -43,13 +43,16 @@ public class CommandProcessingResultBuilder {
     private Long productId;
     private boolean rollbackTransaction = false;
     private ExternalId entityExternalId = ExternalId.empty();
+    private String reference;
+    private String narration;
 
     private ExternalId subEntityExternalId = ExternalId.empty();
 
     public CommandProcessingResult build() {
         return CommandProcessingResult.fromDetails(this.commandId, this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId,
                 this.resourceIdentifier, this.entityId, this.gsimId, this.glimId, this.creditBureauReportData, this.transactionId,
-                this.changes, this.productId, this.rollbackTransaction, this.subEntityId, this.entityExternalId, this.subEntityExternalId);
+                this.changes, this.productId, this.rollbackTransaction, this.subEntityId, this.entityExternalId, this.subEntityExternalId,
+                this.reference, this.narration);
     }
 
     public CommandProcessingResultBuilder withCommandId(final Long withCommandId) {
@@ -139,6 +142,16 @@ public class CommandProcessingResultBuilder {
 
     public CommandProcessingResultBuilder withSubEntityExternalId(final ExternalId subEntityExternalId) {
         this.subEntityExternalId = subEntityExternalId;
+        return this;
+    }
+
+    public CommandProcessingResultBuilder withReference(final String reference) {
+        this.reference = reference;
+        return this;
+    }
+
+    public CommandProcessingResultBuilder withNarration(final String narration) {
+        this.narration = narration;
         return this;
     }
 
