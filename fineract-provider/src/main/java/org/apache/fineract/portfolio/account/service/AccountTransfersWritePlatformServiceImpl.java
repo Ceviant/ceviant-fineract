@@ -69,6 +69,7 @@ import org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountDomainService;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountWritePlatformService;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
@@ -273,9 +274,8 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
             this.accountTransferRepository.save(accountTransfer);
         }
     }
-
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    @Transactional
     public Long transferFunds(final AccountTransferDTO accountTransferDTO) {
         Long transferTransactionId = null;
         final boolean isAccountTransfer = true;

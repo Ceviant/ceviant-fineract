@@ -56,6 +56,10 @@ public class TransferInterestToSavingsTasklet implements Tasklet {
                 log.warn("InsufficientAccountBalanceException while trasfering Interest from {} to {} ",
                         accountTransferDTO.getFromAccountId(), accountTransferDTO.getToAccountId(), e);
                 errors.add(e);
+            } catch (final Exception e) {
+                log.error("Exception while trasfering Interest from {} to {}", accountTransferDTO.getFromAccountId(),
+                        accountTransferDTO.getToAccountId(), e);
+                errors.add(e);
             }
         }
         if (!errors.isEmpty()) {
