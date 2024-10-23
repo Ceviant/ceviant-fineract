@@ -274,7 +274,13 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
             this.accountTransferRepository.save(accountTransfer);
         }
     }
+
+    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Long transferFundsWithTransactions(final AccountTransferDTO accountTransferDTO) {
+        return transferFunds(accountTransferDTO);
+    }
+
     @Override
     public Long transferFunds(final AccountTransferDTO accountTransferDTO) {
         Long transferTransactionId = null;

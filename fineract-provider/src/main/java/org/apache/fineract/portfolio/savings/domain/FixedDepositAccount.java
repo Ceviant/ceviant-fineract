@@ -797,8 +797,8 @@ public class FixedDepositAccount extends SavingsAccount {
     public FixedDepositAccount reInvest(BigDecimal depositAmount) {
 
         final DepositAccountTermAndPreClosure newAccountTermAndPreClosure = this.accountTermAndPreClosure.copy(depositAmount);
-        final SavingsProduct product = this.product;
-        final InterestRateChart productChart = product.applicableChart(getClosedOnDate());
+        final FixedDepositProduct product = (FixedDepositProduct) this.product;
+        final InterestRateChart productChart = product.applicableChart(DateUtils.getBusinessLocalDate());
         final DepositAccountInterestRateChart newChart = DepositAccountInterestRateChart.from(productChart);
 
         final AccountType accountType = AccountType.fromInt(this.accountType);
