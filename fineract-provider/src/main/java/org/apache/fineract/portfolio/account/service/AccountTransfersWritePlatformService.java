@@ -34,6 +34,8 @@ public interface AccountTransfersWritePlatformService {
 
     Long transferFunds(AccountTransferDTO accountTransferDTO);
 
+    Long transferFundsWithTransactions(AccountTransferDTO accountTransferDTO);
+
     void reverseAllTransactions(Long accountId, PortfolioAccountType accountTypeId);
 
     void updateLoanTransaction(Long loanTransactionId, LoanTransaction newLoanTransaction);
