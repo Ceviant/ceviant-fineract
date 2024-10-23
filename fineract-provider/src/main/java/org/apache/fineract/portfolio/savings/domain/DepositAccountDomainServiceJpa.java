@@ -249,7 +249,6 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         return savingsTransactionId;
     }
 
-    @Transactional
     @Override
     public Long handleFDAccountMaturityClosure(final FixedDepositAccount account, final PaymentDetail paymentDetail, final AppUser user,
             final DateTimeFormatter fmt, final LocalDate closedDate, final Integer onAccountClosureId, final Long toSavingsId,
