@@ -412,7 +412,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         this.externalId = externalId;
         this.status = status.getValue();
         this.accountType = accountType.getValue();
-        this.submittedOnDate = submittedOnDate;
+        this.submittedOnDate = submittedOnDate == null ? DateUtils.getBusinessLocalDate() : submittedOnDate;
         this.submittedBy = submittedBy;
         this.nominalAnnualInterestRate = nominalAnnualInterestRate;
         this.interestCompoundingPeriodType = interestCompoundingPeriodType.getValue();
@@ -2134,6 +2134,14 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         return submittedOnDate;
     }
 
+    public void setSubmittedOnDate(LocalDate submittedOnDate) {
+        this.submittedOnDate = submittedOnDate;
+    }
+
+    public void setExternalId(ExternalId externalId) {
+        this.externalId = externalId;
+    }
+
     public LocalDate getApprovedOnDate() {
         return approvedOnDate;
     }
@@ -3249,7 +3257,11 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     }
 
     public LocalDate accountSubmittedOrActivationDate() {
-        return getActivationDate() == null ? getSubmittedOnDate() : getActivationDate();
+        LocalDate date = getActivationDate() == null ? getSubmittedOnDate() : getActivationDate();
+        if (date == null && this.status == 100) {
+            date = DateUtils.getBusinessLocalDate();
+        }
+        return date;
     }
 
     public DepositAccountType depositAccountType() {
