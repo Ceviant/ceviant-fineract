@@ -798,7 +798,8 @@ public class FixedDepositAccount extends SavingsAccount {
 
         final DepositAccountTermAndPreClosure newAccountTermAndPreClosure = this.accountTermAndPreClosure.copy(depositAmount);
         final FixedDepositProduct product = (FixedDepositProduct) this.product;
-        final InterestRateChart productChart = product.applicableChart(DateUtils.getBusinessLocalDate());
+        LocalDate dateClosed = (getClosedOnDate() != null) ? getClosedOnDate() : this.maturityDate();
+        final InterestRateChart productChart = product.applicableChart(dateClosed);
         final DepositAccountInterestRateChart newChart = DepositAccountInterestRateChart.from(productChart);
 
         final AccountType accountType = AccountType.fromInt(this.accountType);
@@ -821,7 +822,7 @@ public class FixedDepositAccount extends SavingsAccount {
                 postingPeriodType, interestCalculationType, daysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency,
                 lockinPeriodFrequencyType, withdrawalFeeApplicableForTransfer, savingsAccountCharges, newAccountTermAndPreClosure, newChart,
                 withHoldTax);
-
+        reInvestedAccount.setExternalId(new ExternalId(this.accountNumber));
         newAccountTermAndPreClosure.updateAccountReference(reInvestedAccount);
         newChart.updateDepositAccountReference(reInvestedAccount);
 
