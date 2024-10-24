@@ -337,6 +337,12 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     @JoinColumn(name = "tax_group_id")
     private TaxGroup taxGroup;
 
+    @Column(name = "account_name", nullable = false)
+    private String accountName;
+
+    @Column(name = "dba_alias_name", nullable = false)
+    private String dbaAliasName;
+
     @Column(name = "total_savings_amount_on_hold", scale = 6, precision = 19, nullable = true)
     private BigDecimal savingsOnHoldAmount;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true, fetch = FetchType.LAZY)
@@ -3856,5 +3862,17 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         return transactions.stream()
                 .map(transaction -> transaction.toSavingsAccountTransactionDetailsForPostingPeriod(this.currency, this.allowOverdraft))
                 .toList();
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public void setDbaAliasName(String dbaAliasName) {
+        this.dbaAliasName = dbaAliasName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 }
