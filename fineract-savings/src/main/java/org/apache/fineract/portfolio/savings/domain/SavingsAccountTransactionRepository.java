@@ -56,4 +56,8 @@ public interface SavingsAccountTransactionRepository
 
     @Query("select sat from SavingsAccountTransaction sat where sat.reference = :uniqueTransactionReference")
     SavingsAccountTransaction findUniqueTransactionReference(@Param("uniqueTransactionReference") String uniqueTransactionReference);
+
+    @Query("select sat from SavingsAccountTransaction sat where sat.reference = :uniqueTransactionReference")
+    List<SavingsAccountTransaction> findByUniqueTransactionReference(
+            @Param("uniqueTransactionReference") String uniqueTransactionReference);
 }

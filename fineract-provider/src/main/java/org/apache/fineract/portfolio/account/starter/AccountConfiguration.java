@@ -51,6 +51,7 @@ import org.apache.fineract.portfolio.loanaccount.service.LoanAssembler;
 import org.apache.fineract.portfolio.loanaccount.service.LoanReadPlatformService;
 import org.apache.fineract.portfolio.savings.domain.GSIMRepositoy;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransactionRepository;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountDomainService;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountWritePlatformService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -88,12 +89,13 @@ public class AccountConfiguration {
             GSIMRepositoy gsimRepository, ConfigurationDomainService configurationDomainService, ExternalIdFactory externalIdFactory,
             FineractProperties fineractProperties, TenantDetailsService tenantDetailsService,
             MultiTenantTransferRepository multiTenantTransferRepository,
-            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
+            SavingsAccountTransactionRepository savingsAccountTransactionRepository) {
         return new AccountTransfersWritePlatformServiceImpl(accountTransfersDataValidator, accountTransferAssembler,
                 accountTransferRepository, savingsAccountAssembler, savingsAccountDomainService, loanAccountAssembler,
                 loanAccountDomainService, savingsAccountWritePlatformService, accountTransferDetailRepository, loanReadPlatformService,
                 gsimRepository, configurationDomainService, externalIdFactory, fineractProperties, tenantDetailsService,
-                multiTenantTransferRepository, commandsSourceWritePlatformService);
+                multiTenantTransferRepository, commandsSourceWritePlatformService, savingsAccountTransactionRepository);
     }
 
     @Bean
