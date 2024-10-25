@@ -22,26 +22,38 @@ import static org.apache.fineract.portfolio.account.AccountDetailConstants.fromA
 import static org.apache.fineract.portfolio.account.AccountDetailConstants.fromAccountTypeParamName;
 import static org.apache.fineract.portfolio.account.AccountDetailConstants.toAccountIdParamName;
 import static org.apache.fineract.portfolio.account.AccountDetailConstants.toAccountTypeParamName;
+import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants.referenceParamName;
 import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants.transferAmountParamName;
 import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants.transferDateParamName;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.fineract.commands.domain.CommandWrapper;
+import org.apache.fineract.commands.service.CommandWrapperBuilder;
+import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.domain.ExternalId;
+import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.exception.GeneralPlatformDomainRuleException;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
+import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
+import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsService;
+import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentiferException;
 import org.apache.fineract.portfolio.account.PortfolioAccountType;
 import org.apache.fineract.portfolio.account.data.AccountTransferDTO;
 import org.apache.fineract.portfolio.account.data.AccountTransfersDataValidator;
@@ -51,7 +63,12 @@ import org.apache.fineract.portfolio.account.domain.AccountTransferDetails;
 import org.apache.fineract.portfolio.account.domain.AccountTransferRepository;
 import org.apache.fineract.portfolio.account.domain.AccountTransferTransaction;
 import org.apache.fineract.portfolio.account.domain.AccountTransferType;
+import org.apache.fineract.portfolio.account.domain.MultiTenantTransferDetails;
+import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepository;
 import org.apache.fineract.portfolio.account.exception.DifferentCurrenciesException;
+import org.apache.fineract.portfolio.account.exception.SavingsAccountTransactionExistsException;
+import org.apache.fineract.portfolio.account.exception.TransactionUndoNotAllowedException;
+import org.apache.fineract.portfolio.account.exception.TransferNotAllowedException;
 import org.apache.fineract.portfolio.loanaccount.data.HolidayDetailDTO;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanAccountDomainService;
@@ -67,6 +84,7 @@ import org.apache.fineract.portfolio.savings.domain.GroupSavingsIndividualMonito
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransactionRepository;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountDomainService;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountWritePlatformService;
 import org.springframework.transaction.annotation.Propagation;
@@ -89,6 +107,10 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
     private final ConfigurationDomainService configurationDomainService;
     private final ExternalIdFactory externalIdFactory;
     private final FineractProperties fineractProperties;
+    private final TenantDetailsService tenantDetailsService;
+    private final MultiTenantTransferRepository multiTenantTransferRepository;
+    private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
+    private final SavingsAccountTransactionRepository savingsAccountTransactionRepository;
 
     @Transactional
     @Override
@@ -99,6 +121,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
 
         final LocalDate transactionDate = command.localDateValueOfParameterNamed(transferDateParamName);
         final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed(transferAmountParamName);
+        final String uniqueTransactionReference = command.stringValueOfParameterNamed(referenceParamName);
 
         final Locale locale = command.extractLocale();
         final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
@@ -118,6 +141,14 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         boolean isWithdrawBalance = false;
         final boolean backdatedTxnsAllowedTill = false;
 
+        if (StringUtils.isNotBlank(uniqueTransactionReference)) {
+            List<SavingsAccountTransaction> savingsAccountTransactions = savingsAccountTransactionRepository
+                    .findByUniqueTransactionReference(uniqueTransactionReference);
+            if (!savingsAccountTransactions.isEmpty()) {
+                throw new SavingsAccountTransactionExistsException(uniqueTransactionReference);
+            }
+        }
+
         if (isSavingsToSavingsAccountTransfer(fromAccountType, toAccountType)) {
 
             fromSavingsAccountId = command.longValueOfParameterNamed(fromAccountIdParamName);
@@ -128,12 +159,14 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
                     isRegularTransaction, fromSavingsAccount.isWithdrawalFeeApplicableForTransfer(), isInterestTransfer, isWithdrawBalance);
             final SavingsAccountTransaction withdrawal = this.savingsAccountDomainService.handleWithdrawal(fromSavingsAccount, fmt,
                     transactionDate, transactionAmount, paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
+            withdrawal.setReference(uniqueTransactionReference);
 
             final Long toSavingsId = command.longValueOfParameterNamed(toAccountIdParamName);
             final SavingsAccount toSavingsAccount = this.savingsAccountAssembler.assembleFrom(toSavingsId, backdatedTxnsAllowedTill);
 
             final SavingsAccountTransaction deposit = this.savingsAccountDomainService.handleDeposit(toSavingsAccount, fmt, transactionDate,
                     transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
+            deposit.setReference(uniqueTransactionReference);
 
             if (!fromSavingsAccount.getCurrency().getCode().equals(toSavingsAccount.getCurrency().getCode())) {
                 throw new DifferentCurrenciesException(fromSavingsAccount.getCurrency().getCode(),
@@ -189,6 +222,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
 
             final SavingsAccountTransaction deposit = this.savingsAccountDomainService.handleDeposit(toSavingsAccount, fmt, transactionDate,
                     transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
+            deposit.setReference(uniqueTransactionReference);
 
             final AccountTransferDetails accountTransferDetails = this.accountTransferAssembler.assembleLoanToSavingsTransfer(command,
                     fromLoanAccount, toSavingsAccount, deposit, loanRefundTransaction);
@@ -197,7 +231,8 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
 
         }
 
-        final CommandProcessingResultBuilder builder = new CommandProcessingResultBuilder().withEntityId(transferDetailId);
+        final CommandProcessingResultBuilder builder = new CommandProcessingResultBuilder().withEntityId(transferDetailId)
+                .withReference(uniqueTransactionReference);
 
         if (fromAccountType.isSavingsAccount()) {
             builder.withSavingsId(fromSavingsAccountId);
@@ -506,6 +541,58 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         this.accountTransferDetailRepository.saveAndFlush(accountTransferDetails);
 
         return accountTransferDetails;
+    }
+
+    @Override
+    public CommandProcessingResult undoInterTenantTransfer(String reference) {
+
+        MultiTenantTransferDetails multiTenantTransferDetails = multiTenantTransferRepository.findByReference(reference)
+                .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, reference));
+
+        // Rollback Deposit
+        undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getToSavingsAccountId(),
+                multiTenantTransferDetails.getToTenantId());
+
+        // Rollback WithDrawl
+        undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getFromSavingsAccountId(),
+                multiTenantTransferDetails.getFromTenantId());
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("fromAccountId", multiTenantTransferDetails.getFromSavingsAccountId());
+        payload.put("toAccountId", multiTenantTransferDetails.getToSavingsAccountId());
+        payload.put("fromTenantId", multiTenantTransferDetails.getFromTenantId());
+        payload.put("toTenantId", multiTenantTransferDetails.getToTenantId());
+        payload.put("reference", reference);
+        payload.put("reversed", true);
+        payload.put("reversedAmount", multiTenantTransferDetails.getTransferAmount());
+        Gson gson = new Gson();
+        final CommandProcessingResultBuilder builder = new CommandProcessingResultBuilder()
+                .withEntityId(multiTenantTransferDetails.getFromSavingsAccountId()).with(payload).withReference(reference);
+        return builder.build();
+    }
+
+    private void undoMultiTenantTransaction(MultiTenantTransferDetails multiTenantTransferDetails, Long savingsAccountId, String tenantId) {
+        ThreadLocalContextUtil.setTenant(getFineractPlatformTenant(tenantId));
+        final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
+                .withUseReference(multiTenantTransferDetails.getReference() + "");
+        final CommandWrapper commandRequest = undoWithdrawBuilder
+                .undoSavingsAccountTransaction(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true").build();
+        this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
+                .findByReference(multiTenantTransferDetails.getReference())
+                .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, multiTenantTransferDetails.getReference()));
+        newMultiTenantTransferDetails.setRolledBack(true);
+        multiTenantTransferRepository.save(newMultiTenantTransferDetails);
+    }
+
+    private FineractPlatformTenant getFineractPlatformTenant(String toTenantId) {
+        FineractPlatformTenant fineractPlatformTenant = null;
+        try {
+            fineractPlatformTenant = tenantDetailsService.loadTenantById(toTenantId);
+        } catch (InvalidTenantIdentiferException ex) {
+            throw new TransferNotAllowedException(toTenantId);
+        }
+        return fineractPlatformTenant;
     }
 
     @Override
