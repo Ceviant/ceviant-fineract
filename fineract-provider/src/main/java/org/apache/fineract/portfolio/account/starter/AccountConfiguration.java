@@ -18,20 +18,18 @@
  */
 package org.apache.fineract.portfolio.account.starter;
 
+import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
 import org.apache.fineract.infrastructure.core.service.PaginationHelper;
 import org.apache.fineract.infrastructure.core.service.database.DatabaseSpecificSQLGenerator;
+import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsService;
 import org.apache.fineract.infrastructure.security.utils.ColumnValidator;
 import org.apache.fineract.organisation.office.service.OfficeReadPlatformService;
 import org.apache.fineract.portfolio.account.data.AccountTransfersDataValidator;
 import org.apache.fineract.portfolio.account.data.StandingInstructionDataValidator;
-import org.apache.fineract.portfolio.account.domain.AccountTransferAssembler;
-import org.apache.fineract.portfolio.account.domain.AccountTransferDetailRepository;
-import org.apache.fineract.portfolio.account.domain.AccountTransferRepository;
-import org.apache.fineract.portfolio.account.domain.StandingInstructionAssembler;
-import org.apache.fineract.portfolio.account.domain.StandingInstructionRepository;
+import org.apache.fineract.portfolio.account.domain.*;
 import org.apache.fineract.portfolio.account.service.AccountAssociationsReadPlatformService;
 import org.apache.fineract.portfolio.account.service.AccountAssociationsReadPlatformServiceImpl;
 import org.apache.fineract.portfolio.account.service.AccountTransfersReadPlatformService;
@@ -88,11 +86,14 @@ public class AccountConfiguration {
             LoanAccountDomainService loanAccountDomainService, SavingsAccountWritePlatformService savingsAccountWritePlatformService,
             AccountTransferDetailRepository accountTransferDetailRepository, LoanReadPlatformService loanReadPlatformService,
             GSIMRepositoy gsimRepository, ConfigurationDomainService configurationDomainService, ExternalIdFactory externalIdFactory,
-            FineractProperties fineractProperties) {
+            FineractProperties fineractProperties, TenantDetailsService tenantDetailsService,
+            MultiTenantTransferRepository multiTenantTransferRepository,
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
         return new AccountTransfersWritePlatformServiceImpl(accountTransfersDataValidator, accountTransferAssembler,
                 accountTransferRepository, savingsAccountAssembler, savingsAccountDomainService, loanAccountAssembler,
                 loanAccountDomainService, savingsAccountWritePlatformService, accountTransferDetailRepository, loanReadPlatformService,
-                gsimRepository, configurationDomainService, externalIdFactory, fineractProperties);
+                gsimRepository, configurationDomainService, externalIdFactory, fineractProperties, tenantDetailsService,
+                multiTenantTransferRepository, commandsSourceWritePlatformService);
     }
 
     @Bean

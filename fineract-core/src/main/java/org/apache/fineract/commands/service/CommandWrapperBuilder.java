@@ -47,6 +47,10 @@ public class CommandWrapperBuilder {
     private Long organisationCreditBureauId;
     private String jobName;
     private String idempotencyKey;
+    private String useRef;
+    private String transactionAmount;
+
+    private String reference;
 
     @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD", justification = "TODO: fix this!")
     public CommandWrapper build() {
@@ -1570,6 +1574,20 @@ public class CommandWrapperBuilder {
         this.entityId = accountId;
         this.subentityId = transactionId;
         this.transactionId = transactionId.toString();
+        this.href = "/savingsaccounts/" + accountId + "/transactions/" + transactionId + "?command=undo";
+        return this;
+    }
+
+    public CommandWrapperBuilder undoSavingsAccountTransaction(final Long accountId, final String reference, final String transactionAmount,
+            String useRef) {
+        this.actionName = "UNDOTRANSACTION";
+        this.entityName = "SAVINGSACCOUNT";
+        this.savingsId = accountId;
+        this.entityId = accountId;
+        this.reference = reference;
+        this.transactionId = reference;
+        this.transactionAmount = transactionAmount;
+        this.useRef = useRef;
         this.href = "/savingsaccounts/" + accountId + "/transactions/" + transactionId + "?command=undo";
         return this;
     }
@@ -3714,4 +3732,18 @@ public class CommandWrapperBuilder {
         this.href = "/loans/" + loanId + "/delinquency-action";
         return this;
     }
+
+    public CommandWrapperBuilder undoInterTenantTransfer(final String reference) {
+        this.actionName = "UNDO_SAVINGS_ACCOUNT_TRANSACTION";
+        this.entityName = "SAVINGSACCOUNT";
+        this.entityId = null;
+        this.href = "/uniqueReference/" + reference;
+        return this;
+    }
+
+    public CommandWrapperBuilder withUseReference(String useRef) {
+        this.useRef = useRef;
+        return this;
+    }
+
 }
