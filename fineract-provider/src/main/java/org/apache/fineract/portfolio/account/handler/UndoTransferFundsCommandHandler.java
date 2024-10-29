@@ -37,7 +37,6 @@ public class UndoTransferFundsCommandHandler implements NewCommandSourceHandler 
     @Transactional
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
-
-        return this.writePlatformService.undoInterTenantTransfer(command.stringValueOfParameterNamed("reference"));
+        return this.writePlatformService.undoInterTenantTransfer(command.getTransactionId());
     }
 }

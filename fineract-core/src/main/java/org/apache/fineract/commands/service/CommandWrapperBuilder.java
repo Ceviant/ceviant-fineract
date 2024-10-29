@@ -3734,9 +3734,10 @@ public class CommandWrapperBuilder {
     }
 
     public CommandWrapperBuilder undoInterTenantTransfer(final String reference) {
-        this.actionName = "UNDO_SAVINGS_ACCOUNT_TRANSACTION";
-        this.entityName = "SAVINGSACCOUNT";
+        this.actionName = "REFUNDBYTRANSFER";
+        this.entityName = "ACCOUNTTRANSFER";
         this.entityId = null;
+        this.transactionId = reference;
         this.href = "/uniqueReference/" + reference;
         return this;
     }
