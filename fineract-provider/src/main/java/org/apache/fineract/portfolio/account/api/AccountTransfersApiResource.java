@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.account.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,7 +52,10 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.infrastructure.security.service.SqlValidator;
 import org.apache.fineract.portfolio.account.data.AccountTransferData;
 import org.apache.fineract.portfolio.account.service.AccountTransfersReadPlatformService;
+import org.apache.fineract.portfolio.account.service.MultiTenantTransferServiceImpl;
 import org.springframework.stereotype.Component;
+
+import java.text.ParseException;
 
 @Path("/v1/accounttransfers")
 @Component
@@ -221,4 +225,24 @@ public class AccountTransfersApiResource {
 
         return this.toApiJsonSerializer.serialize(result);
     }
+
+    @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path("multi-tenant")
+    @Operation(summary = "Transfer amount from one tenant to another tenant", description = "Transfer amount from one tenant to another tenant\n\n"
+            + "Example Requests :\n\n" + "\n\n" + "/accounttransfers/multi-tenant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AccountTransfersApiResourceSwagger.GetAccountTransfersResponse.GetAccountTransfersPageItems.class))) })
+    public String transferToAnotherTenant(@Parameter(hidden = true) final String apiRequestBodyAsJson)
+            {
+
+        final CommandWrapper commandRequest = new CommandWrapperBuilder()
+                .multiTenantTransfer()
+                .withJson(apiRequestBodyAsJson)
+                .build();
+        final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        return this.toApiJsonSerializer.serialize(result);
+    }
+
 }

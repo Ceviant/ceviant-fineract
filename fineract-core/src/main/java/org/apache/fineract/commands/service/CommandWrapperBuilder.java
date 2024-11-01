@@ -3747,4 +3747,12 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder multiTenantTransfer() {
+        this.actionName = "MULTI_TENANT_TRANSFER";
+        this.entityName = "ACCOUNTTRANSFER";
+        this.entityId = null;
+        this.href = "/refundByTransfer";
+        return this;
+    }
+
 }
