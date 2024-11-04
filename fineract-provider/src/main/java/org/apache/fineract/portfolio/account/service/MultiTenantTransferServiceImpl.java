@@ -19,21 +19,12 @@
 
 package org.apache.fineract.portfolio.account.service;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import org.apache.fineract.commands.domain.CommandWrapper;
-import org.apache.fineract.commands.service.CommandWrapperBuilder;
-import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
-import org.apache.fineract.infrastructure.core.api.JsonCommand;
-import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
-import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
-import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
-import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentiferException;
-import org.apache.fineract.infrastructure.security.domain.TenantDetail;
-import org.apache.fineract.portfolio.account.domain.MultiTenantTransferDetails;
-import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepository;
-import org.apache.fineract.portfolio.account.exception.TransactionUndoNotAllowedException;
-import org.apache.fineract.portfolio.account.exception.TransferNotAllowedException;
+import com.google.gson.JsonElement;
+import jakarta.transaction.Transactional;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -42,28 +33,46 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.fineract.commands.domain.CommandWrapper;
+import org.apache.fineract.commands.service.CommandWrapperBuilder;
+import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
+import org.apache.fineract.infrastructure.core.api.JsonCommand;
+import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
+import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
+import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
+import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsService;
+import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentiferException;
+import org.apache.fineract.organisation.monetary.domain.Money;
+import org.apache.fineract.portfolio.account.domain.MultiTenantTransferDetails;
+import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepository;
+import org.apache.fineract.portfolio.account.exception.TransactionUndoNotAllowedException;
+import org.apache.fineract.portfolio.account.exception.TransferNotAllowedException;
+import org.apache.fineract.portfolio.account.AccountDetailConstants;
 
+@Slf4j
+@RequiredArgsConstructor
 public class MultiTenantTransferServiceImpl implements MultiTenantTransferService {
-
-
-    private final TenantDetail tenantDetailsService;
+    private final TenantDetailsService tenantDetailsService;
 
     private final MultiTenantTransferRepository multiTenantTransferRepository;
 
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
+    private final FromJsonHelper fromApiJsonHelper;
 
-    public MultiTenantTransferServiceImpl(final TenantDetail tenantDetailsService,
-                                          final MultiTenantTransferRepository multiTenantTransferRepository,
-                                          final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
-
-        this.tenantDetailsService = tenantDetailsService;
-        this.multiTenantTransferRepository = multiTenantTransferRepository;
-        this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
-    }
-
+    @Transactional
     @Override
-    public CommandProcessingResult transferToAnotherTenant(final JsonCommand command)  {
-        Map<String, String> jsonObject = command.mapValueOfParameterNamed("apiRequestBodyAsJson");
+    public CommandProcessingResult transferToAnotherTenant(final JsonCommand command) {
+
+
+        final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
+        this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, command.json(),
+                AccountDetailConstants.REQUEST_DATA_PARAMETERS);
+        final JsonElement element = this.fromApiJsonHelper.parse(command.json());
+
+        Map jsonObject = element.getAsJsonObject().asMap();
 
         final String fromTenantId = ThreadLocalContextUtil.getTenant().getTenantIdentifier();
         final String toTenantId = getDestinationTenant(jsonObject);
@@ -105,17 +114,17 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         }
         FineractPlatformTenant fineractPlatformTenant = getFineractPlatformTenant(fromTenantId);
         ThreadLocalContextUtil.setTenant(fineractPlatformTenant);
-//        return composeResponse(jsonObject, fromTenantId, (Long) multiTenantTransferDetails.getId());
+        // return composeResponse(jsonObject, fromTenantId, (Long) multiTenantTransferDetails.getId());
         return null;
     }
 
     private MultiTenantTransferDetails saveTransferMetadata(Map apiJson, String fromTenantId) throws ParseException {
-        Long fromOfficeId = ((Integer) apiJson.get("fromOfficeId")).longValue();
-        Long fromClientId = ((Integer) apiJson.get("fromClientId")).longValue();
-        Long fromAccountId = ((Integer) apiJson.get("fromAccountId")).longValue();
-        Long toClientId = ((Integer) apiJson.get("toClientId")).longValue();
-        Long toAccountId = ((Integer) apiJson.get("toAccountId")).longValue();
-        Long toOfficeId = ((Integer) apiJson.get("toOfficeId")).longValue();
+        Long fromOfficeId = Long.parseLong(apiJson.get("fromOfficeId").toString());
+        Long fromClientId = Long.parseLong(apiJson.get("fromClientId").toString());
+        Long fromAccountId = Long.parseLong(apiJson.get("fromAccountId").toString());
+        Long toClientId = Long.parseLong(apiJson.get("toClientId").toString());
+        Long toAccountId = Long.parseLong(apiJson.get("toAccountId").toString());
+        Long toOfficeId = Long.parseLong( apiJson.get("toOfficeId").toString());
         String dateFormat = String.valueOf(apiJson.get("dateFormat"));
         String transferDate = String.valueOf(apiJson.get("transferDate"));
         BigDecimal transferAmount = formatAmount(String.valueOf(apiJson.get("transferAmount")));
