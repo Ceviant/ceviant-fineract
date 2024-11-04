@@ -214,7 +214,6 @@ public class AccountTransfersApiResource {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AccountTransfersApiResourceSwagger.GetAccountTransfersResponse.GetAccountTransfersPageItems.class))) })
     public String undoInterTenantTransfer(@PathParam("reference") @Parameter(description = "reference") final String reference,
             @Parameter(hidden = true) final String apiRequestBodyAsJson) {
-        // return this.multiTenantTransferService.undoInterTenantTransfer(reference);
         final CommandWrapper commandRequest = new CommandWrapperBuilder().undoInterTenantTransfer(reference).withJson(apiRequestBodyAsJson)
                 .build();
 
