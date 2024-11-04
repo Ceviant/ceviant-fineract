@@ -1324,8 +1324,15 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
                         fdAccount.getOnAccountClosureId(), toSavingsId, "Apply maturity instructions", changes);
 
                 if (changes.get("reinvestedDepositId") != null) {
+
                     Long reinvestedDepositId = (Long) changes.get("reinvestedDepositId");
+
                     Money amountForDeposit = account.activateWithBalance();
+                    if (((FixedDepositAccount) account).getAccountTermAndPreClosure().getOnAccountClosureType() == 300) {
+                        amountForDeposit = Money.of(account.getCurrency(),
+                                ((FixedDepositAccount) account).getAccountTermAndPreClosure().maturityAmount());
+                    }
+
                     final FixedDepositAccount reinvestAccount = (FixedDepositAccount) this.depositAccountAssembler
                             .assembleFrom(reinvestedDepositId, DepositAccountType.FIXED_DEPOSIT);
                     Money activationChargeAmount = getActivationCharge(reinvestAccount);
