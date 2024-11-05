@@ -89,52 +89,50 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         MultiTenantTransferDetails multiTenantTransferDetails = null;
 
         // WITHDRAW ON TENANT 1
-        CommandProcessingResult withdrawResult = null;
-        try {
-            withdrawResult = withdraw(jsonObject);
-            multiTenantTransferDetails = saveTransferMetadata(jsonObject, fromTenantId,transferDate);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-//        depositMoneyToAnotherTenant(toTenantId, jsonObject, toSavingsAccountId, fromTenantId, withdrawResult, multiTenantTransferDetails, transferDate);
-//        FineractPlatformTenant fineractPlatformTenant = getFineractPlatformTenant(fromTenantId);
-//        ThreadLocalContextUtil.setTenant(fineractPlatformTenant);
+        withdraw(jsonObject);
+        multiTenantTransferDetails = saveTransferMetadata(jsonObject, fromTenantId,transferDate);
+
+
+        depositMoneyToAnotherTenant(toTenantId, jsonObject, toSavingsAccountId, fromTenantId, multiTenantTransferDetails, transferDate);
+        FineractPlatformTenant fineractPlatformTenant = getFineractPlatformTenant(fromTenantId);
+        ThreadLocalContextUtil.setTenant(fineractPlatformTenant);
+
         return new CommandProcessingResultBuilder() //
                 .withCommandId(command.commandId()) //
                 .withReference(jsonObject.get("reference").toString()) //
-//                .withResourceIdAsString(multiTenantTransferDetails.getId().toString())
+                .withResourceIdAsString(multiTenantTransferDetails.getId().toString())
                 .build();
     }
 
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void depositMoneyToAnotherTenant(String toTenantId, Map jsonObject, Long toSavingsAccountId, String fromTenantId, CommandProcessingResult withdrawResult, MultiTenantTransferDetails multiTenantTransferDetails, LocalDate transferDate) {
+    private void depositMoneyToAnotherTenant(String toTenantId, Map jsonObject, Long toSavingsAccountId, String fromTenantId,  MultiTenantTransferDetails multiTenantTransferDetails, LocalDate transferDate) {
+
+        CommandProcessingResult depositResult = null;
         try {
             FineractPlatformTenant fineractPlatformTenant = getFineractPlatformTenant(toTenantId);
             ThreadLocalContextUtil.setTenant(fineractPlatformTenant);
-            deposit(jsonObject, toSavingsAccountId);
+            depositResult = deposit(jsonObject, toSavingsAccountId);
 
         } catch (Exception ex) {
             // Rollback WithDrawl
             FineractPlatformTenant fineractPlatformTenant = getFineractPlatformTenant(fromTenantId);
             ThreadLocalContextUtil.setTenant(fineractPlatformTenant);
             Long fromSavingsAccountId = Long.parseLong(getFromSavingsAccountId(jsonObject));
-            undoWithdraw(jsonObject, fineractPlatformTenant, fromSavingsAccountId, withdrawResult);
+            undoWithdraw(jsonObject, fineractPlatformTenant, fromSavingsAccountId, depositResult);
             multiTenantTransferDetails.setRolledBack(true);
             multiTenantTransferRepository.save(multiTenantTransferDetails);
             throw ex;
         }
 
         // DEPOSIT WITHDRAW ON TENANT 2
-        try {
+
             saveTransferMetadata(jsonObject, fromTenantId, transferDate);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+
     }
 
-    private MultiTenantTransferDetails saveTransferMetadata(Map apiJson, String fromTenantId,LocalDate transferDate) throws ParseException {
+    private MultiTenantTransferDetails saveTransferMetadata(Map apiJson, String fromTenantId,LocalDate transferDate)  {
 
         Long fromOfficeId = Long.parseLong(apiJson.get("fromOfficeId").toString());
         Long fromClientId = Long.parseLong(apiJson.get("fromClientId").toString());
@@ -143,7 +141,12 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         Long toAccountId = Long.parseLong(apiJson.get("toAccountId").toString());
         Long toOfficeId = Long.parseLong( apiJson.get("toOfficeId").toString());
 
-        BigDecimal transferAmount = formatAmount(String.valueOf(apiJson.get("transferAmount")));
+        BigDecimal transferAmount = null;
+        try {
+            transferAmount = formatAmount(String.valueOf(apiJson.get("transferAmount")));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
         String toTenantId = String.valueOf(apiJson.get("toTenantId")).replace("\"", "");
         String transferDescription = String.valueOf(apiJson.get("transferDescription")).replace("\"", "");
         String reference = String.valueOf(apiJson.get("reference")).replace("\"", "");
@@ -171,12 +174,12 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
     }
 
     private CommandProcessingResult undoWithdraw(Map jsonObject, FineractPlatformTenant fineractPlatformTenant, Long toSavingsAccountId,
-            CommandProcessingResult withdrawResult) {
+            CommandProcessingResult depositResult) {
         ThreadLocalContextUtil.setTenant(fineractPlatformTenant);
         String composeUndoJson = getDepositOrWithDrawlJson(jsonObject);
         Long fromSavingsAccountId = Long.parseLong(getFromSavingsAccountId(jsonObject));
         final CommandWrapperBuilder undoBuilder = new CommandWrapperBuilder().withJson(composeUndoJson).withSavingsId(fromSavingsAccountId)
-                .withUseReference(withdrawResult.resourceId() + "");
+                .withUseReference(depositResult.resourceId() + "");
         final CommandWrapper commandRequest = undoBuilder
                 .undoSavingsAccountTransaction(toSavingsAccountId, String.valueOf(jsonObject.get("reference")), null, "true").build();
         return this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
