@@ -358,58 +358,58 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         this.savingsAccountTransactionDataValidator.validate(command);
 
-        boolean isGsim = false;
+            boolean isGsim = false;
 
-        final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
-        final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
-        final String reference = command.stringValueOfParameterNamed("reference");
+            final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
+            final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
+            final String reference = command.stringValueOfParameterNamed("reference");
 
-        final Locale locale = command.extractLocale();
-        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
+            final Locale locale = command.extractLocale();
+            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
 
-        final Map<String, Object> changes = new LinkedHashMap<>();
-        final PaymentDetail paymentDetail = this.paymentDetailWritePlatformService.createAndPersistPaymentDetail(command, changes);
+            final Map<String, Object> changes = new LinkedHashMap<>();
+            final PaymentDetail paymentDetail = this.paymentDetailWritePlatformService.createAndPersistPaymentDetail(command, changes);
 
-        final boolean backdatedTxnsAllowedTill = this.savingAccountAssembler.getPivotConfigStatus();
-        final SavingsAccountTransaction savingsAccountTransaction = this.savingsAccountTransactionRepository
-                .findUniqueTransactionReference(reference);
-        if (savingsAccountTransaction != null) {
-            throw new DuplicateSavingsAccountTransactionFoundException(reference);
-        }
+            final boolean backdatedTxnsAllowedTill = this.savingAccountAssembler.getPivotConfigStatus();
+            final SavingsAccountTransaction savingsAccountTransaction = this.savingsAccountTransactionRepository
+                    .findUniqueTransactionReference(reference);
+            if (savingsAccountTransaction != null) {
+                throw new DuplicateSavingsAccountTransactionFoundException(reference);
+            }
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
+            final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
 
-        if (account.getGsim() != null) {
-            isGsim = true;
-        }
-        checkClientOrGroupActive(account);
+            if (account.getGsim() != null) {
+                isGsim = true;
+            }
+            checkClientOrGroupActive(account);
 
-        this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(transactionDate, account);
+            this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(transactionDate, account);
 
-        final boolean isAccountTransfer = false;
-        final boolean isRegularTransaction = true;
-        final boolean isApplyWithdrawFee = true;
-        final boolean isInterestTransfer = false;
-        final boolean isWithdrawBalance = false;
-        final SavingsTransactionBooleanValues transactionBooleanValues = new SavingsTransactionBooleanValues(isAccountTransfer,
-                isRegularTransaction, isApplyWithdrawFee, isInterestTransfer, isWithdrawBalance);
-        final SavingsAccountTransaction withdrawal = this.savingsAccountDomainService.handleWithdrawal(account, fmt, transactionDate,
-                transactionAmount, paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
-        withdrawal.setReference(reference);
+            final boolean isAccountTransfer = false;
+            final boolean isRegularTransaction = true;
+            final boolean isApplyWithdrawFee = true;
+            final boolean isInterestTransfer = false;
+            final boolean isWithdrawBalance = false;
+            final SavingsTransactionBooleanValues transactionBooleanValues = new SavingsTransactionBooleanValues(isAccountTransfer,
+                    isRegularTransaction, isApplyWithdrawFee, isInterestTransfer, isWithdrawBalance);
+            final SavingsAccountTransaction withdrawal = this.savingsAccountDomainService.handleWithdrawal(account, fmt, transactionDate,
+                    transactionAmount, paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
+            withdrawal.setReference(reference);
 
-        if (isGsim && (withdrawal.getId() != null)) {
-            GroupSavingsIndividualMonitoring gsim = gsimRepository.findById(account.getGsim().getId()).orElseThrow();
-            BigDecimal currentBalance = gsim.getParentDeposit().subtract(transactionAmount);
-            gsim.setParentDeposit(currentBalance);
-            gsimRepository.save(gsim);
+            if (isGsim && (withdrawal.getId() != null)) {
+                GroupSavingsIndividualMonitoring gsim = gsimRepository.findById(account.getGsim().getId()).orElseThrow();
+                BigDecimal currentBalance = gsim.getParentDeposit().subtract(transactionAmount);
+                gsim.setParentDeposit(currentBalance);
+                gsimRepository.save(gsim);
 
-        }
+            }
 
-        final String noteText = command.stringValueOfParameterNamed("narration");
-        if (StringUtils.isNotBlank(noteText)) {
-            final Note note = Note.savingsTransactionNote(account, withdrawal, noteText);
-            this.noteRepository.save(note);
-        }
+            final String noteText = command.stringValueOfParameterNamed("narration");
+            if (StringUtils.isNotBlank(noteText)) {
+                final Note note = Note.savingsTransactionNote(account, withdrawal, noteText);
+                this.noteRepository.save(note);
+            }
 
         return new CommandProcessingResultBuilder() //
                 .withEntityId(withdrawal.getId()) //
