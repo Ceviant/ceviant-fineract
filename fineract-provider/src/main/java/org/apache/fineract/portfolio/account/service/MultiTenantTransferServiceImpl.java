@@ -108,7 +108,6 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         CommandProcessingResult depositResult = null;
         try {
             changeTenantDataContext(toTenantId);
-            saveTransferMetadata(jsonObject, fromTenantId, transferDate);
             deposit(jsonObject, toSavingsAccountId);
         } catch (Exception ex) {
             // Rollback WithDrawl
@@ -119,6 +118,8 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
             multiTenantTransferRepository.save(multiTenantTransferDetails);
             throw ex;
         }
+
+        saveTransferMetadata(jsonObject, fromTenantId, transferDate);
 
     }
 
