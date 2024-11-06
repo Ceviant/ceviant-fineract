@@ -49,9 +49,8 @@ public final class AccountDetailConstants {
     public static final String referenceParamName = "reference";
     public static final String transferDescriptionParamName = "transferDescription";
 
-    public static final Set<String> REQUEST_DATA_PARAMETERS = new HashSet<>(
-            Arrays.asList(fromOfficeIdParamName,fromClientIdParamName,fromAccountTypeParamName,fromAccountIdParamName,
-                    toTenantIdParamName,toOfficeIdParamName,toClientIdParamName,toAccountTypeParamName,toAccountIdParamName,
-                    dateFormatParamName,localeParamName,transferDateParamName,transferAmountParamName,
-                    referenceParamName,transferDescriptionParamName));
+    public static final Set<String> REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(fromOfficeIdParamName, fromClientIdParamName,
+            fromAccountTypeParamName, fromAccountIdParamName, toTenantIdParamName, toOfficeIdParamName, toClientIdParamName,
+            toAccountTypeParamName, toAccountIdParamName, dateFormatParamName, localeParamName, transferDateParamName,
+            transferAmountParamName, referenceParamName, transferDescriptionParamName));
 }

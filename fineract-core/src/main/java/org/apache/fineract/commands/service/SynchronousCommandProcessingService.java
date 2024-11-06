@@ -88,7 +88,15 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
         setIdempotencyKeyStoreFlag(false);
 
         Long commandId = (Long) fineractRequestContextHolder.getAttribute(COMMAND_SOURCE_ID, null);
-        boolean isRetry = commandId != null;
+
+        /*
+         * Add this change to accommodate the multi-tenant transfer .
+         *
+         * So Multi Tenant transfer is a feature that allows the transfer of funds between two tenants. and it creates
+         * three commands 1. Create a transfer 2. WithDraw from source tenant account 3. Deposit to destination Tenant
+         * Account
+         */
+        boolean isRetry = commandId != null && commandId.equals(command.commandId());
         boolean isEnclosingTransaction = BatchRequestContextHolder.isEnclosingTransaction();
 
         CommandSource commandSource = null;

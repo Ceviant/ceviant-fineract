@@ -142,8 +142,10 @@ public class AccountConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MultiTenantTransferService.class)
-    public MultiTenantTransferService multiTenantTransferService(TenantDetailsService tenantDetailsService, MultiTenantTransferRepository multiTenantTransferRepository,
-                                                                 PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService, FromJsonHelper fromApiJsonHelper) {
-        return new MultiTenantTransferServiceImpl(tenantDetailsService,multiTenantTransferRepository, commandsSourceWritePlatformService,fromApiJsonHelper);
+    public MultiTenantTransferService multiTenantTransferService(TenantDetailsService tenantDetailsService,
+            MultiTenantTransferRepository multiTenantTransferRepository,
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService, FromJsonHelper fromApiJsonHelper) {
+        return new MultiTenantTransferServiceImpl(tenantDetailsService, multiTenantTransferRepository, commandsSourceWritePlatformService,
+                fromApiJsonHelper);
     }
 }
