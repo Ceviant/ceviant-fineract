@@ -94,7 +94,9 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
          *
          * So Multi Tenant transfer is a feature that allows the transfer of funds between two tenants. and it creates
          * three commands 1. Create a transfer 2. WithDraw from source tenant account 3. Deposit to destination Tenant
-         * Account
+         * Account.
+         * Without this change , it keeps re-using the first command id and system crashes at the third operation because in the new tenant the command is doesn't exists
+         *  so we need to create a new command for the three operations.
          */
         boolean isRetry = commandId != null && commandId.equals(command.commandId());
         boolean isEnclosingTransaction = BatchRequestContextHolder.isEnclosingTransaction();
