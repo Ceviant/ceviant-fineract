@@ -588,6 +588,9 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public SavingsAccountData postInterest(SavingsAccountData savingsAccountData, final boolean postInterestAs,
             final LocalDate transactionDate, final boolean backdatedTxnsAllowedTill) {
 
+        log.info("**************  >> postInterestAs {} transactionDate {} savings Account id :--> {}", postInterestAs, transactionDate,
+                savingsAccountData.getAccountNo());
+
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
         final Integer financialYearBeginningMonth = this.configurationDomainService.retrieveFinancialYearBeginningMonth();
@@ -627,9 +630,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                             savingsAccountData.getFdaMaturityDate(), today, savingsAccountData.getId());
                 }
             } else if ((savingsAccountData.depositAccountType().isFixedDeposit()
-                    || savingsAccountData.depositAccountType().isRecurringDeposit())
-                    && (savingsAccountData.getOnAccountClosure().getId() == 100
-                            || savingsAccountData.getOnAccountClosure().getId() == 200)) {
+                    || savingsAccountData.depositAccountType().isRecurringDeposit())) {
 
                 log.info(
                         "--*****************************************100 and 200*********************************************************--");
@@ -657,7 +658,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                  * //For Savings Account use default implementation or if it's FD/RD account with re-invest
                  *
                  */
-                log.info("ID ** {} Account Closure {} ", savingsAccountData.getId(), savingsAccountData.getOnAccountClosure().getId());
+                log.info("ID ** {} Account Closure ", savingsAccountData.getId());
 
                 if (postInterestAs) {
                     postInterestOnDate = transactionDate;
