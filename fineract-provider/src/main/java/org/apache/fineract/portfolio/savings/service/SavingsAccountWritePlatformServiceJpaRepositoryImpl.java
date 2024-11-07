@@ -132,6 +132,8 @@ import org.apache.fineract.useradministration.domain.AppUserRepositoryWrapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
@@ -274,7 +276,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return result;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     @Override
     public CommandProcessingResult deposit(final Long savingsId, final JsonCommand command) {
         this.context.authenticatedUser();
@@ -352,7 +354,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return transaction.getId();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     @Override
     public CommandProcessingResult withdrawal(final Long savingsId, final JsonCommand command) {
 

@@ -163,4 +163,8 @@ public class CommandProcessingResult implements Serializable {
     public void setRollbackTransaction(Boolean rollbackTransaction) {
         this.rollbackTransaction = rollbackTransaction;
     }
+
+    public Long resourceId() {
+        return this.resourceId;
+    }
 }

@@ -21,6 +21,7 @@ package org.apache.fineract.portfolio.account.starter;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
+import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
 import org.apache.fineract.infrastructure.core.service.PaginationHelper;
 import org.apache.fineract.infrastructure.core.service.database.DatabaseSpecificSQLGenerator;
@@ -41,6 +42,8 @@ import org.apache.fineract.portfolio.account.service.AccountTransfersReadPlatfor
 import org.apache.fineract.portfolio.account.service.AccountTransfersReadPlatformServiceImpl;
 import org.apache.fineract.portfolio.account.service.AccountTransfersWritePlatformService;
 import org.apache.fineract.portfolio.account.service.AccountTransfersWritePlatformServiceImpl;
+import org.apache.fineract.portfolio.account.service.MultiTenantTransferService;
+import org.apache.fineract.portfolio.account.service.MultiTenantTransferServiceImpl;
 import org.apache.fineract.portfolio.account.service.PortfolioAccountReadPlatformService;
 import org.apache.fineract.portfolio.account.service.PortfolioAccountReadPlatformServiceImpl;
 import org.apache.fineract.portfolio.account.service.StandingInstructionHistoryReadPlatformService;
@@ -135,5 +138,14 @@ public class AccountConfiguration {
             AccountTransferDetailRepository accountTransferDetailRepository, StandingInstructionRepository standingInstructionRepository) {
         return new StandingInstructionWritePlatformServiceImpl(standingInstructionDataValidator, standingInstructionAssembler,
                 accountTransferDetailRepository, standingInstructionRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MultiTenantTransferService.class)
+    public MultiTenantTransferService multiTenantTransferService(TenantDetailsService tenantDetailsService,
+            MultiTenantTransferRepository multiTenantTransferRepository,
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService, FromJsonHelper fromApiJsonHelper) {
+        return new MultiTenantTransferServiceImpl(tenantDetailsService, multiTenantTransferRepository, commandsSourceWritePlatformService,
+                fromApiJsonHelper);
     }
 }
