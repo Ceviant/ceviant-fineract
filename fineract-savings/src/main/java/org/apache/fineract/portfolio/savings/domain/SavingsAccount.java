@@ -3876,11 +3876,11 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         this.accountName = accountName;
     }
 
-    public void undoTransaction(final String transactionId, final BigDecimal amount, Boolean useRef) {
+    public void undoTransaction(final String transactionId, final BigDecimal amount, Boolean useRef,final Long txId) {
 
         SavingsAccountTransaction transactionToUndo = null;
         for (final SavingsAccountTransaction transaction : this.transactions) {
-            if ((useRef == null && transaction.isIdentifiedBy(Long.parseLong(transactionId)))
+            if ((useRef == null && transaction.isIdentifiedBy(txId))
                     || (useRef != null && transaction.hasReference(transactionId))) {
                 transactionToUndo = transaction;
             }

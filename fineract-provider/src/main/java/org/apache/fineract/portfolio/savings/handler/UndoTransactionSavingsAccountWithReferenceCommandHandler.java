@@ -43,7 +43,7 @@ public class UndoTransactionSavingsAccountWithReferenceCommandHandler implements
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
         final BigDecimal amount = command.getTransactionAmount() == null ? null : new BigDecimal(command.getTransactionAmount());
-        final Boolean useRef = command.isUseRef() == null ? null : Boolean.valueOf(command.isUseRef());
+        final Boolean useRef = command.getUseRef() == null ? null : Boolean.valueOf(command.getUseRef());
         return this.writePlatformService.undoTransactionWithReference(command.getSavingsId(), command.getTransactionId(), amount, false, useRef);
 
     }

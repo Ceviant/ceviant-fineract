@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableWithUTCDateTimeCustom;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -58,6 +60,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * All monetary transactions against a savings account are modelled through this entity.
  */
+@Slf4j
 @Entity
 @Table(name = "m_savings_account_transaction")
 public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDateTimeCustom<Long> {
@@ -921,6 +924,7 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     }
 
     public boolean hasReference(final String reference) {
+        log.info("getReference() - {}  -Reference:- {} ",getReference(), reference);
         return getReference().equals(reference);
     }
 

@@ -878,7 +878,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         if (account.isNotActive()) {
             throwValidationForActiveStatus(SavingsApiConstants.undoTransactionAction);
         }
-        account.undoTransaction(transactionId, amount, useRef);
+        account.undoTransaction(transactionId, amount, useRef,savingsAccountTransaction.getId());
 
         // undoing transaction is withdrawal then undo withdrawal fee
         // transaction if any
@@ -886,7 +886,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             final SavingsAccountTransaction nextSavingsAccountTransaction = this.savingsAccountTransactionRepository
                     .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId) + 1, savingsId);
             if (nextSavingsAccountTransaction != null && nextSavingsAccountTransaction.isWithdrawalFeeAndNotReversed()) {
-                account.undoTransaction(transactionId + 1, amount, useRef);
+                account.undoTransaction(transactionId + 1, amount, useRef,savingsAccountTransaction.getId());
             }
         }
         boolean isInterestTransfer = false;
