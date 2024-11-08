@@ -290,7 +290,8 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
                     false, isRegularTransaction);
             savingsTransactionId = withdrawal.getId();
 
-            if (onClosureType.isReinvestPrincipalAndInterest()) {
+            if (onClosureType.isReinvestPrincipalAndInterest()
+                    || (onClosureType.isReinvestPrincipal() && account.getAccountTermAndPreClosure().isTransferInterestToLinkedAccount())) {
                 account.updateClosedStatus();
                 account.updateOnAccountClosureStatus(onClosureType);
             }
