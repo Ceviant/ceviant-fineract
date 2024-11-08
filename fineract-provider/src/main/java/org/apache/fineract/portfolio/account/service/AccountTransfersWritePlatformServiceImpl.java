@@ -576,7 +576,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
                 .withUseReference(multiTenantTransferDetails.getReference() + "");
         final CommandWrapper commandRequest = undoWithdrawBuilder
-                .undoSavingsAccountTransaction(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true").build();
+                .undoSavingsAccountTransactionWithReference(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true").build();
         this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
                 .findByReference(multiTenantTransferDetails.getReference())

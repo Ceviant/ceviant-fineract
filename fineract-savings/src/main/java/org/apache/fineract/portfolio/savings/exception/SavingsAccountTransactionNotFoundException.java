@@ -37,4 +37,10 @@ public class SavingsAccountTransactionNotFoundException extends AbstractPlatform
         super("error.msg.saving.account.transfer.id.invalid", "Account Transfer with identifier " + transferId + " does not exist",
                 transferId);
     }
+
+    public SavingsAccountTransactionNotFoundException(final Long savingsId, final String transactionId) {
+        super("error.msg.saving.account.trasaction.id.invalid",
+                "Savings account with savings identifier " + savingsId + " and trasaction identifier " + transactionId + " does not exist",
+                savingsId, transactionId);
+    }
 }

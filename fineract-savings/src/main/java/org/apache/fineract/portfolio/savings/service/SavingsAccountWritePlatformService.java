@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.savings.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
@@ -45,6 +46,7 @@ public interface SavingsAccountWritePlatformService {
             JsonCommand command);
 
     CommandProcessingResult undoTransaction(Long savingsId, Long transactionId, boolean allowAccountTransferModification);
+    CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount, boolean allowAccountTransferModification,Boolean useRef);
 
     CommandProcessingResult adjustSavingsTransaction(Long savingsId, Long transactionId, JsonCommand command);
 

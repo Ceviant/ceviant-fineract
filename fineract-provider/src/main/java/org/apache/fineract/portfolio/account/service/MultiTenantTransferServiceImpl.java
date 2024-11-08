@@ -158,7 +158,7 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         final CommandWrapperBuilder undoBuilder = new CommandWrapperBuilder().withJson(composeUndoJson).withSavingsId(fromSavingsAccountId)
                 .withUseReference(depositResult.resourceId() + "");
         final CommandWrapper commandRequest = undoBuilder
-                .undoSavingsAccountTransaction(toSavingsAccountId, String.valueOf(jsonObject.get("reference")), null, "true").build();
+                .undoSavingsAccountTransactionWithReference(toSavingsAccountId, String.valueOf(jsonObject.get("reference")), null, "true").build();
         return this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
     }
 
@@ -241,7 +241,7 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
                 .withUseReference(multiTenantTransferDetails.getReference() + "");
         final CommandWrapper commandRequest = undoWithdrawBuilder
-                .undoSavingsAccountTransaction(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true").build();
+                .undoSavingsAccountTransactionWithReference(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true").build();
         this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
                 .findByReference(multiTenantTransferDetails.getReference())

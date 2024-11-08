@@ -144,6 +144,9 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     @Column(name = "tenant_id")
     private Integer tenantId;
 
+    @Column(name = "partial_reversed_amount", scale = 6, precision = 19)
+    private BigDecimal partialReversedAmount;
+
     SavingsAccountTransaction() {}
 
     private SavingsAccountTransaction(final SavingsAccount savingsAccount, final Office office, final PaymentDetail paymentDetail,
@@ -380,6 +383,19 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     public void reverse() {
         this.reversed = true;
     }
+
+    public void reverse(BigDecimal partialReversedAmount) {
+        this.reversed = true;
+        this.partialReversedAmount = this.partialReversedAmount == null || partialReversedAmount == null ? partialReversedAmount
+                : this.partialReversedAmount.add(partialReversedAmount);
+        if (partialReversedAmount != null && this.partialReversedAmount != null) {
+            if (this.getAmount().subtract(this.partialReversedAmount).doubleValue() == 0) {
+                this.partialReversedAmount = null;
+            }
+        }
+
+    }
+
 
     public BigDecimal getAmount() {
         return this.amount;
@@ -895,4 +911,17 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     public void setTenantId(Integer tenantId) {
         this.tenantId = tenantId;
     }
+
+    public BigDecimal getPartialReversedAmount() {
+        return partialReversedAmount;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public boolean hasReference(final String reference) {
+        return getReference().equals(reference);
+    }
+
 }
