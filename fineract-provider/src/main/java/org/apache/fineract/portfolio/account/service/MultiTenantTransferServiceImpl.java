@@ -217,46 +217,6 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         return String.valueOf(apiJson.get("toAccountId"));
     }
 
-    public String undoInterTenantTransfer(String reference) {
-
-        MultiTenantTransferDetails multiTenantTransferDetails = multiTenantTransferRepository.findByReference(reference)
-                .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, reference));
-
-        // Rollback Deposit
-        undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getToSavingsAccountId(),
-                multiTenantTransferDetails.getToTenantId());
-
-        // Rollback WithDrawl
-        undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getFromSavingsAccountId(),
-                multiTenantTransferDetails.getFromTenantId());
-
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("fromAccountId", multiTenantTransferDetails.getFromSavingsAccountId());
-        payload.put("toAccountId", multiTenantTransferDetails.getToSavingsAccountId());
-        payload.put("fromTenantId", multiTenantTransferDetails.getFromTenantId());
-        payload.put("toTenantId", multiTenantTransferDetails.getToTenantId());
-        payload.put("reference", reference);
-        payload.put("reversed", true);
-        payload.put("reversedAmount", multiTenantTransferDetails.getTransferAmount());
-        Gson gson = new Gson();
-        return gson.toJson(payload);
-    }
-
-    private void undoMultiTenantTransaction(MultiTenantTransferDetails multiTenantTransferDetails, Long savingsAccountId, String tenantId) {
-        changeTenantDataContext(tenantId);
-        final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
-                .withUseReference(multiTenantTransferDetails.getReference() + "");
-        final CommandWrapper commandRequest = undoWithdrawBuilder
-                .undoSavingsAccountTransactionWithReference(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true")
-                .build();
-        this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
-                .findByReference(multiTenantTransferDetails.getReference())
-                .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, multiTenantTransferDetails.getReference()));
-        newMultiTenantTransferDetails.setRolledBack(true);
-        multiTenantTransferRepository.save(newMultiTenantTransferDetails);
-    }
-
     private BigDecimal formatAmount(String amount) throws ParseException {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
         symbols.setGroupingSeparator(',');
