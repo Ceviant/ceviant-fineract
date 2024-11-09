@@ -27,7 +27,6 @@ import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConst
 import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants.transferDateParamName;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -48,12 +47,12 @@ import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.domain.ExternalId;
+import org.apache.fineract.infrastructure.core.domain.FineractContext;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.exception.GeneralPlatformDomainRuleException;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsService;
-import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentiferException;
 import org.apache.fineract.portfolio.account.PortfolioAccountType;
 import org.apache.fineract.portfolio.account.data.AccountTransferDTO;
 import org.apache.fineract.portfolio.account.data.AccountTransfersDataValidator;
@@ -68,7 +67,6 @@ import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepositor
 import org.apache.fineract.portfolio.account.exception.DifferentCurrenciesException;
 import org.apache.fineract.portfolio.account.exception.SavingsAccountTransactionExistsException;
 import org.apache.fineract.portfolio.account.exception.TransactionUndoNotAllowedException;
-import org.apache.fineract.portfolio.account.exception.TransferNotAllowedException;
 import org.apache.fineract.portfolio.loanaccount.data.HolidayDetailDTO;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanAccountDomainService;
@@ -545,17 +543,32 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
 
     @Override
     public CommandProcessingResult undoInterTenantTransfer(String reference) {
+        /*
+         *
+         * This should reverse a transaction basing from the source Tenant to the destination Tenant. If the receipt
+         * tries to reverse the transaction, it should be rejected. since in the Destination Tenant we don't record in
+         * multiTenantTransferDetails table.
+         *
+         * If the Destination Tenant wants to reverse the transaction, They need to make a Transfer back to the source
+         * Tenant. but they don't have the right to reverse the transaction.
+         *
+         */
 
         MultiTenantTransferDetails multiTenantTransferDetails = multiTenantTransferRepository.findByReference(reference)
                 .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, reference));
 
-        // Rollback Deposit
+        // Rollback Deposit Destination
+        changeTenantDataContext(multiTenantTransferDetails.getToTenantId());
         undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getToSavingsAccountId(),
-                multiTenantTransferDetails.getToTenantId());
+                multiTenantTransferDetails.getToTenantId(), false);
 
-        // Rollback WithDrawl
+        // Rollback WithDrawl Source
+        changeTenantDataContext(multiTenantTransferDetails.getFromTenantId());
         undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getFromSavingsAccountId(),
-                multiTenantTransferDetails.getFromTenantId());
+                multiTenantTransferDetails.getFromTenantId(), true);
+        // change back the default Tenant
+
+        changeTenantDataContext(multiTenantTransferDetails.getFromTenantId());
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("fromAccountId", multiTenantTransferDetails.getFromSavingsAccountId());
@@ -565,35 +578,38 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         payload.put("reference", reference);
         payload.put("reversed", true);
         payload.put("reversedAmount", multiTenantTransferDetails.getTransferAmount());
-        Gson gson = new Gson();
         final CommandProcessingResultBuilder builder = new CommandProcessingResultBuilder()
                 .withEntityId(multiTenantTransferDetails.getFromSavingsAccountId()).with(payload).withReference(reference);
         return builder.build();
     }
 
-    private void undoMultiTenantTransaction(MultiTenantTransferDetails multiTenantTransferDetails, Long savingsAccountId, String tenantId) {
-        ThreadLocalContextUtil.setTenant(getFineractPlatformTenant(tenantId));
+    @Transactional
+    private void undoMultiTenantTransaction(MultiTenantTransferDetails multiTenantTransferDetails, Long savingsAccountId, String tenantId,
+            Boolean isSourceTenant) {
+
         final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
                 .withUseReference(multiTenantTransferDetails.getReference() + "");
+
         final CommandWrapper commandRequest = undoWithdrawBuilder
                 .undoSavingsAccountTransactionWithReference(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true")
                 .build();
         this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
-        MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
-                .findByReference(multiTenantTransferDetails.getReference())
-                .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, multiTenantTransferDetails.getReference()));
-        newMultiTenantTransferDetails.setRolledBack(true);
-        multiTenantTransferRepository.save(newMultiTenantTransferDetails);
+
+        if (isSourceTenant) {
+
+            MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
+                    .findByReference(multiTenantTransferDetails.getReference())
+                    .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, multiTenantTransferDetails.getReference()));
+            newMultiTenantTransferDetails.setRolledBack(true);
+            multiTenantTransferRepository.save(newMultiTenantTransferDetails);
+        }
     }
 
-    private FineractPlatformTenant getFineractPlatformTenant(String toTenantId) {
-        FineractPlatformTenant fineractPlatformTenant = null;
-        try {
-            fineractPlatformTenant = tenantDetailsService.loadTenantById(toTenantId);
-        } catch (InvalidTenantIdentiferException ex) {
-            throw new TransferNotAllowedException(toTenantId);
-        }
-        return fineractPlatformTenant;
+    private void changeTenantDataContext(String tenantId) {
+        FineractPlatformTenant tenant = tenantDetailsService.loadTenantById(tenantId);
+        ThreadLocalContextUtil.setTenant(tenant);
+        FineractContext context = ThreadLocalContextUtil.getContext();
+        ThreadLocalContextUtil.init(context);
     }
 
     @Override

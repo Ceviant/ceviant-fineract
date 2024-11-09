@@ -36,17 +36,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +54,7 @@ import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityEx
 import org.apache.fineract.infrastructure.core.exception.PlatformServiceUnavailableException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.MathUtil;
+import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.dataqueries.data.EntityTables;
 import org.apache.fineract.infrastructure.dataqueries.data.StatusEnum;
 import org.apache.fineract.infrastructure.dataqueries.service.EntityDatatableChecksWritePlatformService;
@@ -820,6 +811,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
             boolean allowAccountTransferModification, Boolean useRef) {
 
+        log.info("Tenant in Reversal ---> {} ", ThreadLocalContextUtil.getTenant().getTenantIdentifier());
+
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
         final Integer financialYearBeginningMonth = this.configurationDomainService.retrieveFinancialYearBeginningMonth();
@@ -829,9 +822,16 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
         SavingsAccountTransaction savingsAccountTransaction = null;
         if (useRef != null) {
-            savingsAccountTransaction = this.savingsAccountTransactionRepository
-                    .findBySavingsAccountIdAndUniqueTransactionReference(savingsId, transactionId)
-                    .orElseThrow(() -> new SavingsAccountTransactionNotFoundException(transactionId));
+            savingsAccountTransaction = this.savingAccountRepositoryWrapper.findByUniqueTransactionReference(transactionId);
+
+            if (savingsAccountTransaction == null) {
+                throw new SavingsAccountTransactionNotFoundException(transactionId);
+            }
+            if (!Objects.equals(savingsAccountTransaction.getSavingsAccount().getId(), savingsId)) {
+                throw new SavingsAccountTransactionNotFoundException(transactionId, savingsAccountTransaction.getSavingsAccount().getId(),
+                        savingsId);
+            }
+
         } else {
             savingsAccountTransaction = this.savingsAccountTransactionRepository
                     .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId), savingsId);

@@ -43,4 +43,9 @@ public class SavingsAccountTransactionNotFoundException extends AbstractPlatform
                 "Savings account with savings identifier " + savingsId + " and trasaction identifier " + transactionId + " does not exist",
                 savingsId, transactionId);
     }
+
+    public SavingsAccountTransactionNotFoundException(String reference, Long foundSavingsId, Long savingsId) {
+        super("error.msg.saving.account.transaction.id.mis-match", "Savings account with savings reference " + reference + " and id "
+                + foundSavingsId + " does not match with the provided savings id " + savingsId);
+    }
 }

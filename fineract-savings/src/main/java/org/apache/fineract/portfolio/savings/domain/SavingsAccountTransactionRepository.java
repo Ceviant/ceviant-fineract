@@ -21,7 +21,6 @@ package org.apache.fineract.portfolio.savings.domain;
 import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -62,7 +61,4 @@ public interface SavingsAccountTransactionRepository
     List<SavingsAccountTransaction> findByUniqueTransactionReference(
             @Param("uniqueTransactionReference") String uniqueTransactionReference);
 
-    @Query("select sat from SavingsAccountTransaction sat where sat.savingsAccount.id = :savingsAccountId and sat.reference = :uniqueTransactionReference")
-    Optional<SavingsAccountTransaction> findBySavingsAccountIdAndUniqueTransactionReference(
-            @Param("savingsAccountId") Long savingsAccountId, @Param("uniqueTransactionReference") String uniqueTransactionReference);
 }
