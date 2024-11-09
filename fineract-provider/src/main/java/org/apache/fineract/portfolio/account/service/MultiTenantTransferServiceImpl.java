@@ -86,9 +86,19 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
 
             // WITHDRAW ON TENANT 1
             withdraw(jsonObject);
+            /*
+             * Recording Transactions in MultiTenantTransferDetails means that this tenant is the source. We won't
+             * record the same transaction in the destination tenant. to avoid duplicates. The reversals should happen
+             * from the source tenant. thus getting the destination tenant record. We shouldn't reverse from the
+             * destination Tenant.
+             *
+             * If the destination Tenant wants to reverse the transaction, they should call Do a Multi Tenant Transfer
+             * with the reference number.
+             */
             multiTenantTransferDetails = saveTransferMetadata(jsonObject, fromTenantId, transferDate);
 
-            depositMoneyToAnotherTenant(toTenantId, jsonObject, toSavingsAccountId, fromTenantId, multiTenantTransferDetails, transferDate);
+            // DEPOSIT ON TENANT 2
+            depositMoneyToAnotherTenant(toTenantId, jsonObject, toSavingsAccountId, fromTenantId);
 
             changeTenantDataContext(fromTenantId);
 
@@ -102,24 +112,19 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void depositMoneyToAnotherTenant(String toTenantId, Map jsonObject, Long toSavingsAccountId, String fromTenantId,
-            MultiTenantTransferDetails multiTenantTransferDetails, LocalDate transferDate) {
+    private void depositMoneyToAnotherTenant(String toTenantId, Map jsonObject, Long toSavingsAccountId, String fromTenantId) {
 
         CommandProcessingResult depositResult = null;
         try {
             changeTenantDataContext(toTenantId);
             deposit(jsonObject, toSavingsAccountId);
         } catch (Exception ex) {
-            // Rollback WithDrawl
+            // Rollback WithDraw from Tenant 1
             changeTenantDataContext(fromTenantId);
             Long fromSavingsAccountId = Long.parseLong(getFromSavingsAccountId(jsonObject));
             undoWithdraw(jsonObject, ThreadLocalContextUtil.getTenant(), fromSavingsAccountId, depositResult);
-            multiTenantTransferDetails.setRolledBack(true);
-            multiTenantTransferRepository.save(multiTenantTransferDetails);
             throw ex;
         }
-
-        saveTransferMetadata(jsonObject, fromTenantId, transferDate);
 
     }
 
@@ -146,7 +151,7 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
                 toOfficeId, toClientId, toAccountId, fromTenantId, toTenantId, transferDate, transferAmount, transferDescription,
                 reference);
 
-        return multiTenantTransferRepository.save(multiTenantTransferDetails);
+        return multiTenantTransferRepository.saveAndFlush(multiTenantTransferDetails);
 
     }
 
@@ -158,7 +163,8 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         final CommandWrapperBuilder undoBuilder = new CommandWrapperBuilder().withJson(composeUndoJson).withSavingsId(fromSavingsAccountId)
                 .withUseReference(depositResult.resourceId() + "");
         final CommandWrapper commandRequest = undoBuilder
-                .undoSavingsAccountTransactionWithReference(toSavingsAccountId, String.valueOf(jsonObject.get("reference")), null, "true").build();
+                .undoSavingsAccountTransactionWithReference(toSavingsAccountId, String.valueOf(jsonObject.get("reference")), null, "true")
+                .build();
         return this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
     }
 
@@ -241,7 +247,8 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
                 .withUseReference(multiTenantTransferDetails.getReference() + "");
         final CommandWrapper commandRequest = undoWithdrawBuilder
-                .undoSavingsAccountTransactionWithReference(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true").build();
+                .undoSavingsAccountTransactionWithReference(savingsAccountId, multiTenantTransferDetails.getReference(), null, "true")
+                .build();
         this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         MultiTenantTransferDetails newMultiTenantTransferDetails = multiTenantTransferRepository
                 .findByReference(multiTenantTransferDetails.getReference())

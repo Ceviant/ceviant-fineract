@@ -96,7 +96,8 @@ public class CommandWrapper {
     public CommandWrapper(final Long officeId, final Long groupId, final Long clientId, final Long loanId, final Long savingsId,
             final String actionName, final String entityName, final Long entityId, final Long subentityId, final String href,
             final String json, final String transactionId, final Long productId, final Long templateId, final Long creditBureauId,
-            final Long organisationCreditBureauId, final String jobName, final String idempotencyKey,final String transactionAmount, String useRef, final String reference) {
+            final Long organisationCreditBureauId, final String jobName, final String idempotencyKey, final String transactionAmount,
+            String useRef, final String reference) {
 
         this.commandId = null;
         this.officeId = officeId;

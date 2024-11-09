@@ -817,7 +817,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     }
 
     @Override
-    public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount, boolean allowAccountTransferModification,Boolean useRef) {
+    public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
+            boolean allowAccountTransferModification, Boolean useRef) {
 
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
@@ -842,7 +843,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         if (amount != null && savingsAccountTransaction.isReversed() && savingsAccountTransaction.getPartialReversedAmount() != null
                 && savingsAccountTransaction.getAmount().subtract(savingsAccountTransaction.getPartialReversedAmount().add(amount))
-                .doubleValue() < 0
+                        .doubleValue() < 0
 
         ) {
             throw new TransactionUndoNotAllowedException("Cannot partially reverse amount more than the original transaction amount",
@@ -878,7 +879,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         if (account.isNotActive()) {
             throwValidationForActiveStatus(SavingsApiConstants.undoTransactionAction);
         }
-        account.undoTransaction(transactionId, amount, useRef,savingsAccountTransaction.getId());
+        account.undoTransaction(transactionId, amount, useRef, savingsAccountTransaction.getId());
 
         // undoing transaction is withdrawal then undo withdrawal fee
         // transaction if any
@@ -886,7 +887,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             final SavingsAccountTransaction nextSavingsAccountTransaction = this.savingsAccountTransactionRepository
                     .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId) + 1, savingsId);
             if (nextSavingsAccountTransaction != null && nextSavingsAccountTransaction.isWithdrawalFeeAndNotReversed()) {
-                account.undoTransaction(transactionId + 1, amount, useRef,savingsAccountTransaction.getId());
+                account.undoTransaction(transactionId + 1, amount, useRef, savingsAccountTransaction.getId());
             }
         }
         boolean isInterestTransfer = false;
@@ -895,10 +896,10 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         if (savingsAccountTransaction.isPostInterestCalculationRequired()
                 && account.isBeforeLastPostingPeriod(savingsAccountTransaction.getTransactionDate(), false)) {
             account.postInterest(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth,
-                    postInterestOnDate, false,false);
+                    postInterestOnDate, false, false);
         } else {
             account.calculateInterestUsing(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
-                    financialYearBeginningMonth, postInterestOnDate, false,false);
+                    financialYearBeginningMonth, postInterestOnDate, false, false);
         }
         List<DepositAccountOnHoldTransaction> depositAccountOnHoldTransactions = null;
         if (account.getOnHoldFunds().compareTo(BigDecimal.ZERO) > 0) {

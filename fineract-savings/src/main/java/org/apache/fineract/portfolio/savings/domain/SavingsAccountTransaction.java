@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableWithUTCDateTimeCustom;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
@@ -398,7 +397,6 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
         }
 
     }
-
 
     public BigDecimal getAmount() {
         return this.amount;
@@ -924,7 +922,7 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     }
 
     public boolean hasReference(final String reference) {
-        log.info("getReference() - {}  -Reference:- {} ",getReference(), reference);
+        log.info("getReference() - {}  -Reference:- {} ", getReference(), reference);
         return getReference().equals(reference);
     }
 
