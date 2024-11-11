@@ -922,8 +922,8 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     }
 
     public boolean hasReference(final String reference) {
-        log.info("getReference() - {}  -Reference:- {} ", getReference(), reference);
-        return getReference().equals(reference);
+        String currentReference = getReference();
+        return currentReference != null && currentReference.equals(reference);
     }
 
 }

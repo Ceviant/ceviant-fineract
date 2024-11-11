@@ -20,14 +20,20 @@ package org.apache.fineract.portfolio.account.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_multi_tenant_transfer_details")
-public class MultiTenantTransferDetails extends AbstractPersistableCustom {
+public class MultiTenantTransferDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "from_office_id")
     private Long fromOfficeId;
@@ -122,6 +128,10 @@ public class MultiTenantTransferDetails extends AbstractPersistableCustom {
 
     public String getReference() {
         return reference;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public MultiTenantTransferDetails() {

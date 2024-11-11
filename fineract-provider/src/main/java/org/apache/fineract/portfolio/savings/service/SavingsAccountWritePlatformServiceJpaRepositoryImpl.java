@@ -807,6 +807,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .build();
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
             boolean allowAccountTransferModification, Boolean useRef) {

@@ -218,4 +218,44 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="fix_m_multi_tenant_transfer_details_column-is_rolled_back" author="bosco@fiter.io" context="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_name = 'm_multi_tenant_transfer_details'
+                AND column_name = 'is_rolled_back'
+                AND data_type = 'smallint'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details ADD COLUMN temp_is_rolled_back SMALLINT;
+        </sql>
+        <sql>
+            UPDATE m_multi_tenant_transfer_details
+            SET temp_is_rolled_back = is_rolled_back where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details ALTER COLUMN is_rolled_back DROP DEFAULT;
+        </sql>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details
+            ALTER COLUMN is_rolled_back TYPE BOOLEAN
+            USING CASE
+            WHEN is_rolled_back = 0 THEN false
+            WHEN is_rolled_back = 1 THEN true
+            END;
+        </sql>
+        <sql>
+            UPDATE m_multi_tenant_transfer_details
+            SET is_rolled_back = CASE
+            WHEN temp_is_rolled_back = 0 THEN false
+            WHEN temp_is_rolled_back = 1 THEN true
+            END  where id > 0;
+        </sql>
+        <sql>
+            ALTER TABLE m_multi_tenant_transfer_details DROP COLUMN temp_is_rolled_back;
+        </sql>
+
+    </changeSet>
 </databaseChangeLog>

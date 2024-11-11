@@ -541,6 +541,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         return accountTransferDetails;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public CommandProcessingResult undoInterTenantTransfer(String reference) {
         /*
@@ -559,11 +560,13 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
 
         // Rollback Deposit Destination
         changeTenantDataContext(multiTenantTransferDetails.getToTenantId());
+
         undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getToSavingsAccountId(),
                 multiTenantTransferDetails.getToTenantId(), false);
 
         // Rollback WithDrawl Source
         changeTenantDataContext(multiTenantTransferDetails.getFromTenantId());
+
         undoMultiTenantTransaction(multiTenantTransferDetails, multiTenantTransferDetails.getFromSavingsAccountId(),
                 multiTenantTransferDetails.getFromTenantId(), true);
         // change back the default Tenant
@@ -583,7 +586,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         return builder.build();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void undoMultiTenantTransaction(MultiTenantTransferDetails multiTenantTransferDetails, Long savingsAccountId, String tenantId,
             Boolean isSourceTenant) {
 
@@ -601,7 +604,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
                     .findByReference(multiTenantTransferDetails.getReference())
                     .orElseThrow(() -> new TransactionUndoNotAllowedException(0L, multiTenantTransferDetails.getReference()));
             newMultiTenantTransferDetails.setRolledBack(true);
-            multiTenantTransferRepository.save(newMultiTenantTransferDetails);
+            multiTenantTransferRepository.saveAndFlush(newMultiTenantTransferDetails);
         }
     }
 
