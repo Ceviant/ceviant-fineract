@@ -20,8 +20,13 @@ package org.apache.fineract.portfolio.account.domain;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MultiTenantTransferRepository extends JpaRepository<MultiTenantTransferDetails, Long> {
 
     Optional<MultiTenantTransferDetails> findByReference(String reference);
+
+    @Query("select sat from MultiTenantTransferDetails sat where sat.reference = :reference")
+    MultiTenantTransferDetails findByReferenceId(@Param("reference") String reference);
 }

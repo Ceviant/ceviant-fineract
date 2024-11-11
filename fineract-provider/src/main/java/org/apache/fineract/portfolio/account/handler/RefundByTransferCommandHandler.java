@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@CommandType(entity = "ACCOUNTTRANSFER", action = "REFUNDBYTRANSFER")
+@CommandType(entity = "ACCOUNTTRANSFER", action = "UNDOTRANSFER")
 public class RefundByTransferCommandHandler implements NewCommandSourceHandler {
 
     private final AccountTransfersWritePlatformService writePlatformService;
@@ -38,6 +38,6 @@ public class RefundByTransferCommandHandler implements NewCommandSourceHandler {
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
 
-        return this.writePlatformService.refundByTransfer(command);
+        return this.writePlatformService.undoInterTenantTransfer(command.getTransactionId());
     }
 }

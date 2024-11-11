@@ -3875,4 +3875,37 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     public void setAccountName(String accountName) {
         this.accountName = accountName;
     }
+
+    public void undoTransaction(final String transactionId, final BigDecimal amount, Boolean useRef, final Long txId) {
+
+        SavingsAccountTransaction transactionToUndo = null;
+        for (final SavingsAccountTransaction transaction : this.transactions) {
+            if ((useRef == null && transaction.isIdentifiedBy(txId)) || (useRef != null && transaction.hasReference(transactionId))) {
+                transactionToUndo = transaction;
+            }
+        }
+
+        if (transactionToUndo == null) {
+            throw new SavingsAccountTransactionNotFoundException(this.getId(), transactionId);
+        }
+
+        validateAttemptToUndoTransferRelatedTransactions(transactionToUndo);
+        validateActivityNotBeforeClientOrGroupTransferDate(SavingsEvent.SAVINGS_UNDO_TRANSACTION, transactionToUndo.getTransactionDate());
+        transactionToUndo.reverse(amount);
+        if (transactionToUndo.isChargeTransaction() || transactionToUndo.isWaiveCharge()) {
+            // undo charge
+            final Set<SavingsAccountChargePaidBy> chargesPaidBy = transactionToUndo.getSavingsAccountChargesPaid();
+            for (final SavingsAccountChargePaidBy savingsAccountChargePaidBy : chargesPaidBy) {
+                final SavingsAccountCharge chargeToUndo = savingsAccountChargePaidBy.getSavingsAccountCharge();
+                if (transactionToUndo.isChargeTransaction()) {
+                    chargeToUndo.undoPayment(this.getCurrency(),
+                            amount != null ? Money.of(this.getCurrency(), amount) : transactionToUndo.getAmount(this.getCurrency()));
+                } else if (transactionToUndo.isWaiveCharge()) {
+                    chargeToUndo.undoWaiver(this.getCurrency(),
+                            amount != null ? Money.of(this.getCurrency(), amount) : transactionToUndo.getAmount(this.getCurrency()));
+                }
+            }
+        }
+    }
+
 }

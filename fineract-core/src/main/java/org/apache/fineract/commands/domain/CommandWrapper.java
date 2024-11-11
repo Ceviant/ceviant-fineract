@@ -46,6 +46,10 @@ public class CommandWrapper {
 
     private final String idempotencyKey;
 
+    private String transactionAmount;
+    private String useRef;
+    private String reference;
+
     @SuppressWarnings("unused")
     private Long templateId;
 
@@ -92,7 +96,8 @@ public class CommandWrapper {
     public CommandWrapper(final Long officeId, final Long groupId, final Long clientId, final Long loanId, final Long savingsId,
             final String actionName, final String entityName, final Long entityId, final Long subentityId, final String href,
             final String json, final String transactionId, final Long productId, final Long templateId, final Long creditBureauId,
-            final Long organisationCreditBureauId, final String jobName, final String idempotencyKey) {
+            final Long organisationCreditBureauId, final String jobName, final String idempotencyKey, final String transactionAmount,
+            String useRef, final String reference) {
 
         this.commandId = null;
         this.officeId = officeId;
@@ -114,6 +119,9 @@ public class CommandWrapper {
         this.organisationCreditBureauId = organisationCreditBureauId;
         this.jobName = jobName;
         this.idempotencyKey = idempotencyKey;
+        this.transactionAmount = transactionAmount;
+        this.useRef = useRef;
+        this.reference = reference;
     }
 
     private CommandWrapper(final Long commandId, final String actionName, final String entityName, final Long resourceId,
@@ -292,5 +300,17 @@ public class CommandWrapper {
     public boolean addAndDeleteDisbursementDetails() {
         return this.actionName.equalsIgnoreCase("UPDATE") && this.entityName.equalsIgnoreCase("DISBURSEMENTDETAIL")
                 && this.entityId == null;
+    }
+
+    public String getTransactionAmount() {
+        return transactionAmount;
+    }
+
+    public String getUseRef() {
+        return useRef;
+    }
+
+    public String getReference() {
+        return reference;
     }
 }

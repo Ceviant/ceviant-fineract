@@ -30,12 +30,7 @@ import org.apache.fineract.infrastructure.security.utils.ColumnValidator;
 import org.apache.fineract.organisation.office.service.OfficeReadPlatformService;
 import org.apache.fineract.portfolio.account.data.AccountTransfersDataValidator;
 import org.apache.fineract.portfolio.account.data.StandingInstructionDataValidator;
-import org.apache.fineract.portfolio.account.domain.AccountTransferAssembler;
-import org.apache.fineract.portfolio.account.domain.AccountTransferDetailRepository;
-import org.apache.fineract.portfolio.account.domain.AccountTransferRepository;
-import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepository;
-import org.apache.fineract.portfolio.account.domain.StandingInstructionAssembler;
-import org.apache.fineract.portfolio.account.domain.StandingInstructionRepository;
+import org.apache.fineract.portfolio.account.domain.*;
 import org.apache.fineract.portfolio.account.service.AccountAssociationsReadPlatformService;
 import org.apache.fineract.portfolio.account.service.AccountAssociationsReadPlatformServiceImpl;
 import org.apache.fineract.portfolio.account.service.AccountTransfersReadPlatformService;
@@ -143,9 +138,9 @@ public class AccountConfiguration {
     @Bean
     @ConditionalOnMissingBean(MultiTenantTransferService.class)
     public MultiTenantTransferService multiTenantTransferService(TenantDetailsService tenantDetailsService,
-            MultiTenantTransferRepository multiTenantTransferRepository,
+            MultiTenantTransferRepositoryWrapper multiTenantTransferRepositoryWrapper,
             PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService, FromJsonHelper fromApiJsonHelper) {
-        return new MultiTenantTransferServiceImpl(tenantDetailsService, multiTenantTransferRepository, commandsSourceWritePlatformService,
-                fromApiJsonHelper);
+        return new MultiTenantTransferServiceImpl(tenantDetailsService, multiTenantTransferRepositoryWrapper,
+                commandsSourceWritePlatformService, fromApiJsonHelper);
     }
 }

@@ -73,7 +73,8 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
         JsonCommand command = JsonCommand.from(json, parsedCommand, this.fromApiJsonHelper, wrapper.getEntityName(), wrapper.getEntityId(),
                 wrapper.getSubentityId(), wrapper.getGroupId(), wrapper.getClientId(), wrapper.getLoanId(), wrapper.getSavingsId(),
                 wrapper.getTransactionId(), wrapper.getHref(), wrapper.getProductId(), wrapper.getCreditBureauId(),
-                wrapper.getOrganisationCreditBureauId(), wrapper.getJobName());
+                wrapper.getOrganisationCreditBureauId(), wrapper.getJobName(), wrapper.getTransactionAmount(), wrapper.getUseRef(),
+                wrapper.getReference());
 
         return this.processAndLogCommandService.executeCommand(wrapper, command, isApprovedByChecker);
     }
