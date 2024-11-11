@@ -834,8 +834,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             }
 
         } else {
-            savingsAccountTransaction = this.savingsAccountTransactionRepository
-                    .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId), savingsId);
+            savingsAccountTransaction = this.savingAccountRepositoryWrapper.findByUniqueTransactionReference(transactionId);
         }
 
         if (amount != null && savingsAccountTransaction.isReversed() && savingsAccountTransaction.getPartialReversedAmount() == null) {

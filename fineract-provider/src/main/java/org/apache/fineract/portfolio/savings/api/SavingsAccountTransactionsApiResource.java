@@ -269,4 +269,38 @@ public class SavingsAccountTransactionsApiResource {
                 .fetchSavingsAccountTransactions(savingsId, accountNumber, accountName, transactionReferenceNumber, startDate, endDate);
         return this.toApiJsonSerializer.serialize(savingsAccountTransactions);
     }
+
+    @POST
+    @Path("{reference}/undo")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String undoSavingsAccountTransactionWithReference(@PathParam("savingsId") final Long savingsId,
+            @PathParam("reference") final String reference, @QueryParam("command") final String commandParam,
+            @QueryParam("transactionAmount") final String transactionAmount, @QueryParam("useRef") final String useRef,
+            final String apiRequestBodyAsJson) {
+
+        String jsonApiRequest = apiRequestBodyAsJson;
+        if (StringUtils.isBlank(jsonApiRequest)) {
+            jsonApiRequest = "{}";
+        }
+
+        final CommandWrapperBuilder builder = new CommandWrapperBuilder().withJson(jsonApiRequest).withTransactionAmount(transactionAmount)
+                .withUseReference(useRef);
+
+        CommandProcessingResult result = null;
+        if (is(commandParam, SavingsApiConstants.COMMAND_UNDO_TRANSACTION_PARTIAL)) {
+            final CommandWrapper commandRequest = builder
+                    .undoSavingsAccountTransactionWithReference(savingsId, reference, transactionAmount, useRef).build();
+            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        }
+
+        if (result == null) {
+            //
+            throw new UnrecognizedQueryParamException("command", commandParam,
+                    new Object[] { SavingsApiConstants.COMMAND_UNDO_TRANSACTION });
+        }
+
+        return this.toApiJsonSerializer.serialize(result);
+    }
+
 }
