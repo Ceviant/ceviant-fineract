@@ -25,7 +25,6 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.portfolio.account.service.MultiTenantTransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @CommandType(entity = "ACCOUNTTRANSFER", action = "MULTI_TENANT_TRANSFER")
@@ -38,7 +37,6 @@ public class CreateMultiTenantTransferCommandHandler implements NewCommandSource
         this.multiTenantTransferService = multiTenantTransferService;
     }
 
-    @Transactional
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
 

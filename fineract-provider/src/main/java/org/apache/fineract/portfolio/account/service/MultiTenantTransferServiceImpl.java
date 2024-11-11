@@ -46,8 +46,9 @@ import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsServi
 import org.apache.fineract.portfolio.account.AccountDetailConstants;
 import org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants;
 import org.apache.fineract.portfolio.account.domain.MultiTenantTransferDetails;
-import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepository;
+import org.apache.fineract.portfolio.account.domain.MultiTenantTransferRepositoryWrapper;
 import org.apache.fineract.portfolio.account.exception.TransactionUndoNotAllowedException;
+import org.apache.fineract.portfolio.savings.exception.DuplicateSavingsAccountTransactionFoundException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,12 +58,12 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
 
     private final TenantDetailsService tenantDetailsService;
 
-    private final MultiTenantTransferRepository multiTenantTransferRepository;
+    private final MultiTenantTransferRepositoryWrapper multiTenantTransferRepositoryWrapper;
 
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final FromJsonHelper fromApiJsonHelper;
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     @Override
     public CommandProcessingResult transferToAnotherTenant(final JsonCommand command) {
 
@@ -98,7 +99,9 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
             multiTenantTransferDetails = saveTransferMetadata(jsonObject, fromTenantId, transferDate);
 
             // DEPOSIT ON TENANT 2
-            depositMoneyToAnotherTenant(toTenantId, jsonObject, toSavingsAccountId, fromTenantId);
+            changeTenantDataContext(toTenantId);
+
+            depositMoneyToAnotherTenant(transferDate, jsonObject, toSavingsAccountId, fromTenantId);
 
             changeTenantDataContext(fromTenantId);
 
@@ -112,12 +115,11 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void depositMoneyToAnotherTenant(String toTenantId, Map jsonObject, Long toSavingsAccountId, String fromTenantId) {
+    private void depositMoneyToAnotherTenant(LocalDate transferDate, Map jsonObject, Long toSavingsAccountId, String fromTenantId) {
 
         CommandProcessingResult depositResult = null;
         try {
-            changeTenantDataContext(toTenantId);
-            deposit(jsonObject, toSavingsAccountId);
+            depositResult = deposit(jsonObject, toSavingsAccountId);
         } catch (Exception ex) {
             // Rollback WithDraw from Tenant 1
             changeTenantDataContext(fromTenantId);
@@ -147,11 +149,16 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
         String transferDescription = String.valueOf(apiJson.get("transferDescription")).replace("\"", "");
         String reference = String.valueOf(apiJson.get("reference")).replace("\"", "");
 
+        MultiTenantTransferDetails ref = multiTenantTransferRepositoryWrapper.findByReferenceId(reference);
+        if (ref != null) {
+            throw new DuplicateSavingsAccountTransactionFoundException(reference);
+        }
+
         MultiTenantTransferDetails multiTenantTransferDetails = new MultiTenantTransferDetails(fromOfficeId, fromClientId, fromAccountId,
                 toOfficeId, toClientId, toAccountId, fromTenantId, toTenantId, transferDate, transferAmount, transferDescription,
                 reference);
 
-        return multiTenantTransferRepository.saveAndFlush(multiTenantTransferDetails);
+        return multiTenantTransferRepositoryWrapper.saveMultiTenantTransfer(multiTenantTransferDetails);
 
     }
 
