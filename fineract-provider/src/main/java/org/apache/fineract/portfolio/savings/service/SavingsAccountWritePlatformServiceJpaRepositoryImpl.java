@@ -36,17 +36,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +54,7 @@ import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityEx
 import org.apache.fineract.infrastructure.core.exception.PlatformServiceUnavailableException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.MathUtil;
+import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.dataqueries.data.EntityTables;
 import org.apache.fineract.infrastructure.dataqueries.data.StatusEnum;
 import org.apache.fineract.infrastructure.dataqueries.service.EntityDatatableChecksWritePlatformService;
@@ -117,15 +108,8 @@ import org.apache.fineract.portfolio.savings.domain.SavingsAccountRepositoryWrap
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountStatusType;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransactionRepository;
-import org.apache.fineract.portfolio.savings.exception.DuplicateSavingsAccountTransactionFoundException;
-import org.apache.fineract.portfolio.savings.exception.PostInterestAsOnDateException;
+import org.apache.fineract.portfolio.savings.exception.*;
 import org.apache.fineract.portfolio.savings.exception.PostInterestAsOnDateException.PostInterestAsOnExceptionType;
-import org.apache.fineract.portfolio.savings.exception.PostInterestClosingDateException;
-import org.apache.fineract.portfolio.savings.exception.SavingsAccountClosingNotAllowedException;
-import org.apache.fineract.portfolio.savings.exception.SavingsAccountTransactionNotFoundException;
-import org.apache.fineract.portfolio.savings.exception.SavingsOfficerAssignmentException;
-import org.apache.fineract.portfolio.savings.exception.SavingsOfficerUnassignmentException;
-import org.apache.fineract.portfolio.savings.exception.TransactionUpdateNotAllowedException;
 import org.apache.fineract.portfolio.transfer.api.TransferApiConstants;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.apache.fineract.useradministration.domain.AppUserRepositoryWrapper;
@@ -803,6 +787,120 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         } else {
             account.calculateInterestUsing(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
                     financialYearBeginningMonth, postInterestOnDate, false, postReversals);
+        }
+        List<DepositAccountOnHoldTransaction> depositAccountOnHoldTransactions = null;
+        if (account.getOnHoldFunds().compareTo(BigDecimal.ZERO) > 0) {
+            depositAccountOnHoldTransactions = this.depositAccountOnHoldTransactionRepository
+                    .findBySavingsAccountAndReversedFalseOrderByCreatedDateAsc(account);
+        }
+        account.validateAccountBalanceDoesNotBecomeNegative(SavingsApiConstants.undoTransactionAction, depositAccountOnHoldTransactions,
+                false);
+        account.activateAccountBasedOnBalance();
+        this.savingAccountRepositoryWrapper.saveAndFlush(account);
+        postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, false);
+        return new CommandProcessingResultBuilder() //
+                .withEntityId(savingsId) //
+                .withOfficeId(account.officeId()) //
+                .withClientId(account.clientId()) //
+                .withGroupId(account.groupId()) //
+                .withSavingsId(savingsId) //
+                .build();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
+            boolean allowAccountTransferModification, Boolean useRef) {
+
+        log.info("Tenant in Reversal ---> {} ", ThreadLocalContextUtil.getTenant().getTenantIdentifier());
+
+        final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
+                .isSavingsInterestPostingAtCurrentPeriodEnd();
+        final Integer financialYearBeginningMonth = this.configurationDomainService.retrieveFinancialYearBeginningMonth();
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
+        final Set<Long> existingTransactionIds = new HashSet<>();
+        final Set<Long> existingReversedTransactionIds = new HashSet<>();
+        updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
+        SavingsAccountTransaction savingsAccountTransaction = null;
+        if (useRef != null) {
+            savingsAccountTransaction = this.savingAccountRepositoryWrapper.findByUniqueTransactionReference(transactionId);
+
+            if (savingsAccountTransaction == null) {
+                throw new SavingsAccountTransactionNotFoundException(transactionId);
+            }
+            if (!Objects.equals(savingsAccountTransaction.getSavingsAccount().getId(), savingsId)) {
+                throw new SavingsAccountTransactionNotFoundException(transactionId, savingsAccountTransaction.getSavingsAccount().getId(),
+                        savingsId);
+            }
+
+        } else {
+            savingsAccountTransaction = this.savingsAccountTransactionRepository
+                    .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId), savingsId);
+        }
+
+        if (amount != null && savingsAccountTransaction.isReversed() && savingsAccountTransaction.getPartialReversedAmount() == null) {
+            throw new TransactionUndoNotAllowedException("This transaction has been completely reversed", transactionId);
+        }
+
+        if (amount != null && savingsAccountTransaction.isReversed() && savingsAccountTransaction.getPartialReversedAmount() != null
+                && savingsAccountTransaction.getAmount().subtract(savingsAccountTransaction.getPartialReversedAmount().add(amount))
+                        .doubleValue() < 0
+
+        ) {
+            throw new TransactionUndoNotAllowedException("Cannot partially reverse amount more than the original transaction amount",
+                    transactionId);
+        }
+        if (savingsAccountTransaction == null) {
+            throw new SavingsAccountTransactionNotFoundException(savingsId, transactionId);
+        }
+
+        this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(savingsAccountTransaction.getTransactionDate(),
+                account);
+
+        if (amount != null && amount.doubleValue() > savingsAccountTransaction.getAmount(account.getCurrency()).getAmount().doubleValue()) {
+            throw new PlatformServiceUnavailableException("error.msg.saving.account.transfer.transaction.update.not.allowed",
+                    "The provided amount is bigger than the transaction amount", amount);
+        }
+
+        if (!allowAccountTransferModification && !useRef && this.accountTransfersReadPlatformService
+                .isAccountTransfer(Long.parseLong(transactionId), PortfolioAccountType.SAVINGS)) {
+            throw new TransactionUndoNotAllowedException(
+                    "Savings account transaction:" + transactionId + " update not allowed as it involves in account transfer",
+                    transactionId);
+        }
+
+        if (!account.allowModify()) {
+            throw new TransactionUndoNotAllowedException(
+                    "Savings account transaction:" + transactionId + " update not allowed for this savings type", transactionId);
+        }
+
+        final LocalDate today = DateUtils.getLocalDateOfTenant();
+        final MathContext mc = new MathContext(15, MoneyHelper.getRoundingMode());
+
+        if (account.isNotActive()) {
+            throwValidationForActiveStatus(SavingsApiConstants.undoTransactionAction);
+        }
+        account.undoTransaction(transactionId, amount, useRef, savingsAccountTransaction.getId());
+
+        // undoing transaction is withdrawal then undo withdrawal fee
+        // transaction if any
+        if (savingsAccountTransaction.isWithdrawal() && !useRef) {
+            final SavingsAccountTransaction nextSavingsAccountTransaction = this.savingsAccountTransactionRepository
+                    .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId) + 1, savingsId);
+            if (nextSavingsAccountTransaction != null && nextSavingsAccountTransaction.isWithdrawalFeeAndNotReversed()) {
+                account.undoTransaction(transactionId + 1, amount, useRef, savingsAccountTransaction.getId());
+            }
+        }
+        boolean isInterestTransfer = false;
+        LocalDate postInterestOnDate = null;
+        checkClientOrGroupActive(account);
+        if (savingsAccountTransaction.isPostInterestCalculationRequired()
+                && account.isBeforeLastPostingPeriod(savingsAccountTransaction.getTransactionDate(), false)) {
+            account.postInterest(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth,
+                    postInterestOnDate, false, false);
+        } else {
+            account.calculateInterestUsing(mc, today, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
+                    financialYearBeginningMonth, postInterestOnDate, false, false);
         }
         List<DepositAccountOnHoldTransaction> depositAccountOnHoldTransactions = null;
         if (account.getOnHoldFunds().compareTo(BigDecimal.ZERO) > 0) {

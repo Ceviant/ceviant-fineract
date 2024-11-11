@@ -56,13 +56,15 @@ public class CommandWrapperBuilder {
     public CommandWrapper build() {
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
-                this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey);
+                this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey, this.transactionAmount,
+                this.useRef, this.reference);
     }
 
     public CommandWrapper build(String idempotencyKey) {
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
-                this.creditBureauId, this.organisationCreditBureauId, this.jobName, idempotencyKey);
+                this.creditBureauId, this.organisationCreditBureauId, this.jobName, idempotencyKey, this.transactionAmount, this.useRef,
+                this.reference);
     }
 
     public CommandWrapperBuilder updateCreditBureau() {
@@ -1578,9 +1580,9 @@ public class CommandWrapperBuilder {
         return this;
     }
 
-    public CommandWrapperBuilder undoSavingsAccountTransaction(final Long accountId, final String reference, final String transactionAmount,
-            String useRef) {
-        this.actionName = "UNDOTRANSACTION";
+    public CommandWrapperBuilder undoSavingsAccountTransactionWithReference(final Long accountId, final String reference,
+            final String transactionAmount, String useRef) {
+        this.actionName = "UNDOREFERENCETRANSACTION";
         this.entityName = "SAVINGSACCOUNT";
         this.savingsId = accountId;
         this.entityId = accountId;
@@ -3734,7 +3736,7 @@ public class CommandWrapperBuilder {
     }
 
     public CommandWrapperBuilder undoInterTenantTransfer(final String reference) {
-        this.actionName = "REFUNDBYTRANSFER";
+        this.actionName = "UNDOTRANSFER";
         this.entityName = "ACCOUNTTRANSFER";
         this.entityId = null;
         this.transactionId = reference;

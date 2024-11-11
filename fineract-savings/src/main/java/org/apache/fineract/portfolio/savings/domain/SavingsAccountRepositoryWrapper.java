@@ -179,4 +179,10 @@ public class SavingsAccountRepositoryWrapper {
     public Long findIdByExternalId(final ExternalId externalId) {
         return this.repository.findIdByExternalId(externalId);
     }
+
+    @Transactional
+    public SavingsAccountTransaction findByUniqueTransactionReference(
+            @Param("uniqueTransactionReference") String uniqueTransactionReference) {
+        return this.savingsAccountTransactionRepository.findUniqueTransactionReference(uniqueTransactionReference);
+    }
 }

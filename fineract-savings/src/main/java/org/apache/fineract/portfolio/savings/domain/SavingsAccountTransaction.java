@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableWithUTCDateTimeCustom;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -58,6 +59,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * All monetary transactions against a savings account are modelled through this entity.
  */
+@Slf4j
 @Entity
 @Table(name = "m_savings_account_transaction")
 public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDateTimeCustom<Long> {
@@ -143,6 +145,9 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
 
     @Column(name = "tenant_id")
     private Integer tenantId;
+
+    @Column(name = "partial_reversed_amount", scale = 6, precision = 19)
+    private BigDecimal partialReversedAmount;
 
     SavingsAccountTransaction() {}
 
@@ -379,6 +384,18 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
 
     public void reverse() {
         this.reversed = true;
+    }
+
+    public void reverse(BigDecimal partialReversedAmount) {
+        this.reversed = true;
+        this.partialReversedAmount = this.partialReversedAmount == null || partialReversedAmount == null ? partialReversedAmount
+                : this.partialReversedAmount.add(partialReversedAmount);
+        if (partialReversedAmount != null && this.partialReversedAmount != null) {
+            if (this.getAmount().subtract(this.partialReversedAmount).doubleValue() == 0) {
+                this.partialReversedAmount = null;
+            }
+        }
+
     }
 
     public BigDecimal getAmount() {
@@ -895,4 +912,18 @@ public final class SavingsAccountTransaction extends AbstractAuditableWithUTCDat
     public void setTenantId(Integer tenantId) {
         this.tenantId = tenantId;
     }
+
+    public BigDecimal getPartialReversedAmount() {
+        return partialReversedAmount;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public boolean hasReference(final String reference) {
+        String currentReference = getReference();
+        return currentReference != null && currentReference.equals(reference);
+    }
+
 }
