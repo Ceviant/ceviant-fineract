@@ -37,7 +37,7 @@ public class TransactionUndoNotAllowedException extends AbstractPlatformDomainRu
 
     public TransactionUndoNotAllowedException(final String message, final String reference) {
         super("error.msg.saving.account.trasaction.update.notallowed",
-                "Savings Account transaction undo not allowed with reference " + reference);
+                "Savings Account transaction undo not allowed with reference " + reference + ".   " + message);
     }
 
     public TransactionUndoNotAllowedException(final Long message, final String reference) {

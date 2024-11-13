@@ -29,6 +29,7 @@ import static org.apache.fineract.portfolio.savings.SavingsApiConstants.transact
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withHoldTaxParamName;
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withdrawBalanceParamName;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -41,6 +42,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.journalentry.service.JournalEntryWritePlatformService;
+import org.apache.fineract.commands.domain.CommandWrapper;
+import org.apache.fineract.commands.service.CommandWrapperBuilder;
+import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -54,7 +58,6 @@ import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityEx
 import org.apache.fineract.infrastructure.core.exception.PlatformServiceUnavailableException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.MathUtil;
-import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.dataqueries.data.EntityTables;
 import org.apache.fineract.infrastructure.dataqueries.data.StatusEnum;
 import org.apache.fineract.infrastructure.dataqueries.service.EntityDatatableChecksWritePlatformService;
@@ -152,6 +155,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     private final GSIMRepositoy gsimRepository;
     private final SavingsAccountInterestPostingService savingsAccountInterestPostingService;
     private final ErrorHandler errorHandler;
+    private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
     @Transactional
     @Override
@@ -260,9 +264,27 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return result;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    /*
+     * This deposit will run the now workflow without customisation
+     */
     @Override
     public CommandProcessingResult deposit(final Long savingsId, final JsonCommand command) {
+        return depositNeutral(savingsId, command);
+    }
+
+    /*
+     * Please Note Doing Multi Transfers for bewteen Tenant you new a propogation of REQUIRES_NEW to be able to create a
+     * Deposit or withdraww since it involvs switching context between tenants.
+     *
+     */
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Override
+    public CommandProcessingResult depositForMultiTenant(final Long savingsId, final JsonCommand command) {
+        return depositNeutral(savingsId, command);
+    }
+
+    public CommandProcessingResult depositNeutral(final Long savingsId, final JsonCommand command) {
         this.context.authenticatedUser();
 
         this.savingsAccountTransactionDataValidator.validate(command);
@@ -338,9 +360,27 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return transaction.getId();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    /*
+     * This deposit will run the now workflow without customisation
+     */
+
     @Override
     public CommandProcessingResult withdrawal(final Long savingsId, final JsonCommand command) {
+        return withdrawalNeutral(savingsId, command);
+    }
+
+    /*
+     * Please Note Doing Multi Transfers for bewteen Tenant you new a propogation of REQUIRES_NEW to be able to create a
+     * Deposit or withdraww since it involvs switching context between tenants.
+     *
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Override
+    public CommandProcessingResult withdrawalForMultiTenant(final Long savingsId, final JsonCommand command) {
+        return withdrawalNeutral(savingsId, command);
+    }
+
+    public CommandProcessingResult withdrawalNeutral(final Long savingsId, final JsonCommand command) {
 
         this.savingsAccountTransactionDataValidator.validate(command);
 
@@ -407,6 +447,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .withNarration(noteText) //
                 .with(changes)//
                 .build();
+
     }
 
     @Transactional
@@ -812,8 +853,6 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
             boolean allowAccountTransferModification, Boolean useRef) {
 
-        log.info("Tenant in Reversal ---> {} ", ThreadLocalContextUtil.getTenant().getTenantIdentifier());
-
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
         final Integer financialYearBeginningMonth = this.configurationDomainService.retrieveFinancialYearBeginningMonth();
@@ -834,12 +873,11 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             }
 
         } else {
-            savingsAccountTransaction = this.savingsAccountTransactionRepository
-                    .findOneByIdAndSavingsAccountId(Long.parseLong(transactionId), savingsId);
+            savingsAccountTransaction = this.savingAccountRepositoryWrapper.findByUniqueTransactionReference(transactionId);
         }
 
-        if (amount != null && savingsAccountTransaction.isReversed() && savingsAccountTransaction.getPartialReversedAmount() == null) {
-            throw new TransactionUndoNotAllowedException("This transaction has been completely reversed", transactionId);
+        if (savingsAccountTransaction.isReversed()) {
+            throw new TransactionUndoNotAllowedException("This transaction has been reversed Already", transactionId);
         }
 
         if (amount != null && savingsAccountTransaction.isReversed() && savingsAccountTransaction.getPartialReversedAmount() != null
@@ -912,6 +950,21 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         account.activateAccountBasedOnBalance();
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, false);
+
+        if (amount != null && savingsAccountTransaction.getPartialReversedAmount() != null && savingsAccountTransaction.isReversed()) {
+            BigDecimal txtAmount = savingsAccountTransaction.getAmount().subtract(amount);
+
+            if (txtAmount.compareTo(BigDecimal.ZERO) > 0 && savingsAccountTransaction.getTransactionType().isDeposit()) {
+
+                deposit(savingsId, savingsAccountTransaction.getTransactionDate(), txtAmount,
+                        "Partial Reversal for - " + savingsAccountTransaction.getId(),
+                        savingsAccountTransaction.getReference() + "-" + savingsAccountTransaction.getId());
+            } else if (txtAmount.compareTo(BigDecimal.ZERO) > 0 && savingsAccountTransaction.getTransactionType().isWithdrawal()) {
+                withdraw(savingsId, savingsAccountTransaction.getTransactionDate(), txtAmount,
+                        "Partial Reversal for - " + savingsAccountTransaction.getId(),
+                        savingsAccountTransaction.getReference() + "-" + savingsAccountTransaction.getId());
+            }
+        }
         return new CommandProcessingResultBuilder() //
                 .withEntityId(savingsId) //
                 .withOfficeId(account.officeId()) //
@@ -2094,4 +2147,35 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             throw new PlatformDataIntegrityException("Reason For Block is Mandatory", "error.msg.reason.for.block.mandatory");
         }
     }
+
+    private CommandProcessingResult withdraw(Long savingsAccountId, LocalDate transactionDate, BigDecimal transactionAmount,
+            String narration, String reference) {
+        String composeWithDrawJson = getDepositOrWithDrawlJson(transactionDate, transactionAmount, narration, reference);
+        final CommandWrapperBuilder withdrawBuilder = new CommandWrapperBuilder().withJson(composeWithDrawJson);
+        final CommandWrapper withDrawCommandRequest = withdrawBuilder.savingsAccountWithdrawal(savingsAccountId).build();
+        return this.commandsSourceWritePlatformService.logCommandSource(withDrawCommandRequest);
+
+    }
+
+    private CommandProcessingResult deposit(Long savingsAccountId, LocalDate transactionDate, BigDecimal transactionAmount,
+            String narration, String reference) {
+        String composeDepositJson = getDepositOrWithDrawlJson(transactionDate, transactionAmount, narration, reference);
+        final CommandWrapperBuilder depositBuilder = new CommandWrapperBuilder().withJson(composeDepositJson);
+        final CommandWrapper depositCommandRequest = depositBuilder.savingsAccountDeposit(savingsAccountId).build();
+        return this.commandsSourceWritePlatformService.logCommandSource(depositCommandRequest);
+    }
+
+    private String getDepositOrWithDrawlJson(LocalDate transactionDate, BigDecimal transactionAmount, String narration, String reference) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("transactionDate", DateUtils.format(transactionDate, "dd MMMM yyyy"));
+        payload.put("transactionAmount", transactionAmount);
+        payload.put("narration", narration);
+        payload.put("reference", reference);
+        payload.put("dateFormat", "dd MMMM yyyy");
+        payload.put("locale", "en");
+        Gson gson = new Gson();
+
+        return gson.toJson(payload);
+    }
+
 }

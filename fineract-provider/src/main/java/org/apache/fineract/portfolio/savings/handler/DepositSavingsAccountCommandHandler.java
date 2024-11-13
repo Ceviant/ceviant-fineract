@@ -41,6 +41,10 @@ public class DepositSavingsAccountCommandHandler implements NewCommandSourceHand
     @Transactional
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
-        return this.writePlatformService.deposit(command.getSavingsId(), command);
+        if (command.getJobName() != null && command.getJobName().equals("MULTI-TENANT-TRANSFER")) {
+            return this.writePlatformService.depositForMultiTenant(command.getSavingsId(), command);
+        } else {
+            return this.writePlatformService.deposit(command.getSavingsId(), command);
+        }
     }
 }

@@ -218,6 +218,16 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder withJobName(final String withJobName) {
+        this.jobName = withJobName;
+        return this;
+    }
+
+    public CommandWrapperBuilder withTransactionAmount(final String transactionAmount) {
+        this.transactionAmount = transactionAmount;
+        return this;
+    }
+
     public CommandWrapperBuilder withNoJsonBody() {
         this.json = null;
         return this;
