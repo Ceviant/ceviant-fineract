@@ -36,7 +36,11 @@ public interface SavingsAccountWritePlatformService {
 
     CommandProcessingResult deposit(Long savingsId, JsonCommand command);
 
+    CommandProcessingResult depositForMultiTenant(Long savingsId, JsonCommand command);
+
     CommandProcessingResult withdrawal(Long savingsId, JsonCommand command);
+
+    CommandProcessingResult withdrawalForMultiTenant(Long savingsId, JsonCommand command);
 
     CommandProcessingResult applyAnnualFee(Long savingsAccountChargeId, Long accountId);
 

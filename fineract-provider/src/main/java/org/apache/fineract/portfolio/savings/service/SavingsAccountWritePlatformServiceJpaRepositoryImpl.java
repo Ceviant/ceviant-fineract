@@ -58,7 +58,6 @@ import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityEx
 import org.apache.fineract.infrastructure.core.exception.PlatformServiceUnavailableException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.MathUtil;
-import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.dataqueries.data.EntityTables;
 import org.apache.fineract.infrastructure.dataqueries.data.StatusEnum;
 import org.apache.fineract.infrastructure.dataqueries.service.EntityDatatableChecksWritePlatformService;
@@ -265,9 +264,27 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return result;
     }
 
-    @Transactional
+    /*
+     * This deposit will run the now workflow without customisation
+     */
     @Override
     public CommandProcessingResult deposit(final Long savingsId, final JsonCommand command) {
+        return depositNeutral(savingsId, command);
+    }
+
+    /*
+     * Please Note Doing Multi Transfers for bewteen Tenant you new a propogation of REQUIRES_NEW to be able to create a
+     * Deposit or withdraww since it involvs switching context between tenants.
+     *
+     */
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Override
+    public CommandProcessingResult depositForMultiTenant(final Long savingsId, final JsonCommand command) {
+        return depositNeutral(savingsId, command);
+    }
+
+    public CommandProcessingResult depositNeutral(final Long savingsId, final JsonCommand command) {
         this.context.authenticatedUser();
 
         this.savingsAccountTransactionDataValidator.validate(command);
@@ -343,9 +360,27 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return transaction.getId();
     }
 
-    @Transactional
+    /*
+     * This deposit will run the now workflow without customisation
+     */
+
     @Override
     public CommandProcessingResult withdrawal(final Long savingsId, final JsonCommand command) {
+        return withdrawalNeutral(savingsId, command);
+    }
+
+    /*
+     * Please Note Doing Multi Transfers for bewteen Tenant you new a propogation of REQUIRES_NEW to be able to create a
+     * Deposit or withdraww since it involvs switching context between tenants.
+     *
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Override
+    public CommandProcessingResult withdrawalForMultiTenant(final Long savingsId, final JsonCommand command) {
+        return withdrawalNeutral(savingsId, command);
+    }
+
+    public CommandProcessingResult withdrawalNeutral(final Long savingsId, final JsonCommand command) {
 
         this.savingsAccountTransactionDataValidator.validate(command);
 
@@ -412,6 +447,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .withNarration(noteText) //
                 .with(changes)//
                 .build();
+
     }
 
     @Transactional
@@ -812,11 +848,10 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .build();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
             boolean allowAccountTransferModification, Boolean useRef) {
-
 
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
@@ -916,19 +951,18 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, false);
 
+        if (amount != null && savingsAccountTransaction.getPartialReversedAmount() != null && savingsAccountTransaction.isReversed()) {
+            BigDecimal txtAmount = savingsAccountTransaction.getAmount().subtract(amount);
 
-        BigDecimal txtAmount = savingsAccountTransaction.getAmount().subtract(amount);
-        if(txtAmount.compareTo(BigDecimal.ZERO) > 0 && amount != null && savingsAccountTransaction.getPartialReversedAmount() != null && savingsAccountTransaction.isReversed()){
+            if (txtAmount.compareTo(BigDecimal.ZERO) > 0 && savingsAccountTransaction.getTransactionType().isDeposit()) {
 
-            if(savingsAccountTransaction.getTransactionType().isDeposit()) {
-
-                deposit(savingsId, savingsAccountTransaction.getTransactionDate(),
-                        txtAmount, "Partial Reversal for - "+savingsAccountTransaction.getId(),
-                        savingsAccountTransaction.getReference()+"-"+savingsAccountTransaction.getId());
-            }else if(savingsAccountTransaction.getTransactionType().isWithdrawal()){
-                withdraw(savingsId, savingsAccountTransaction.getTransactionDate(),
-                        txtAmount, "Partial Reversal for - "+savingsAccountTransaction.getId(),
-                        savingsAccountTransaction.getReference()+"-"+savingsAccountTransaction.getId());
+                deposit(savingsId, savingsAccountTransaction.getTransactionDate(), txtAmount,
+                        "Partial Reversal for - " + savingsAccountTransaction.getId(),
+                        savingsAccountTransaction.getReference() + "-" + savingsAccountTransaction.getId());
+            } else if (txtAmount.compareTo(BigDecimal.ZERO) > 0 && savingsAccountTransaction.getTransactionType().isWithdrawal()) {
+                withdraw(savingsId, savingsAccountTransaction.getTransactionDate(), txtAmount,
+                        "Partial Reversal for - " + savingsAccountTransaction.getId(),
+                        savingsAccountTransaction.getReference() + "-" + savingsAccountTransaction.getId());
             }
         }
         return new CommandProcessingResultBuilder() //
@@ -2114,24 +2148,26 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         }
     }
 
-    private CommandProcessingResult withdraw(Long savingsAccountId,LocalDate transactionDate,BigDecimal transactionAmount,String narration,String reference) {
-        String composeWithDrawJson = getDepositOrWithDrawlJson(transactionDate,transactionAmount,narration,reference);
+    private CommandProcessingResult withdraw(Long savingsAccountId, LocalDate transactionDate, BigDecimal transactionAmount,
+            String narration, String reference) {
+        String composeWithDrawJson = getDepositOrWithDrawlJson(transactionDate, transactionAmount, narration, reference);
         final CommandWrapperBuilder withdrawBuilder = new CommandWrapperBuilder().withJson(composeWithDrawJson);
         final CommandWrapper withDrawCommandRequest = withdrawBuilder.savingsAccountWithdrawal(savingsAccountId).build();
         return this.commandsSourceWritePlatformService.logCommandSource(withDrawCommandRequest);
 
     }
 
-    private CommandProcessingResult deposit(Long savingsAccountId,LocalDate transactionDate,BigDecimal transactionAmount,String narration,String reference) {
-        String composeDepositJson = getDepositOrWithDrawlJson(transactionDate,transactionAmount,narration,reference);
+    private CommandProcessingResult deposit(Long savingsAccountId, LocalDate transactionDate, BigDecimal transactionAmount,
+            String narration, String reference) {
+        String composeDepositJson = getDepositOrWithDrawlJson(transactionDate, transactionAmount, narration, reference);
         final CommandWrapperBuilder depositBuilder = new CommandWrapperBuilder().withJson(composeDepositJson);
         final CommandWrapper depositCommandRequest = depositBuilder.savingsAccountDeposit(savingsAccountId).build();
         return this.commandsSourceWritePlatformService.logCommandSource(depositCommandRequest);
     }
 
-    private String getDepositOrWithDrawlJson(LocalDate transactionDate,BigDecimal transactionAmount,String narration,String reference) {
+    private String getDepositOrWithDrawlJson(LocalDate transactionDate, BigDecimal transactionAmount, String narration, String reference) {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("transactionDate",DateUtils.format(transactionDate,"dd MMMM yyyy") );
+        payload.put("transactionDate", DateUtils.format(transactionDate, "dd MMMM yyyy"));
         payload.put("transactionAmount", transactionAmount);
         payload.put("narration", narration);
         payload.put("reference", reference);
@@ -2141,6 +2177,5 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         return gson.toJson(payload);
     }
-
 
 }

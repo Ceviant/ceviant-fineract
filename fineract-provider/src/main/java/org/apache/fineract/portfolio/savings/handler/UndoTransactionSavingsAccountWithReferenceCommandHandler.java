@@ -39,7 +39,7 @@ public class UndoTransactionSavingsAccountWithReferenceCommandHandler implements
         this.writePlatformService = writePlatformService;
     }
 
-
+    @Transactional
     @Override
     public CommandProcessingResult processCommand(final JsonCommand command) {
         final BigDecimal amount = command.getTransactionAmount() == null ? null : new BigDecimal(command.getTransactionAmount());
