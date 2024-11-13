@@ -21,6 +21,7 @@ package org.apache.fineract.portfolio.savings.starter;
 import org.apache.fineract.accounting.journalentry.service.JournalEntryWritePlatformService;
 import org.apache.fineract.accounting.producttoaccountmapping.service.ProductToGLAccountMappingWritePlatformService;
 import org.apache.fineract.commands.service.CommandProcessingService;
+import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.apache.fineract.infrastructure.accountnumberformat.domain.AccountNumberFormatRepositoryWrapper;
 import org.apache.fineract.infrastructure.codes.service.CodeValueReadPlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
@@ -364,7 +365,7 @@ public class SavingsConfiguration {
             EntityDatatableChecksWritePlatformService entityDatatableChecksWritePlatformService, AppUserRepositoryWrapper appuserRepository,
             StandingInstructionRepository standingInstructionRepository, BusinessEventNotifierService businessEventNotifierService,
             GSIMRepositoy gsimRepository, SavingsAccountInterestPostingService savingsAccountInterestPostingService,
-            ErrorHandler errorHandler) {
+            ErrorHandler errorHandler, PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
         return new SavingsAccountWritePlatformServiceJpaRepositoryImpl(context, fromApiJsonDeserializer, savingAccountRepositoryWrapper,
                 staffRepository, savingsAccountTransactionRepository, savingAccountAssembler, savingsAccountTransactionDataValidator,
                 savingsAccountChargeDataValidator, paymentDetailWritePlatformService, journalEntryWritePlatformService,
@@ -372,7 +373,7 @@ public class SavingsConfiguration {
                 chargeRepository, savingsAccountChargeRepository, holidayRepository, workingDaysRepository, configurationDomainService,
                 depositAccountOnHoldTransactionRepository, entityDatatableChecksWritePlatformService, appuserRepository,
                 standingInstructionRepository, businessEventNotifierService, gsimRepository, savingsAccountInterestPostingService,
-                errorHandler);
+                errorHandler, commandsSourceWritePlatformService);
     }
 
     @Bean

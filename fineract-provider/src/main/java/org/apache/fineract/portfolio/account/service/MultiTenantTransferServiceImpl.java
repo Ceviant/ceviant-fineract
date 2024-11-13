@@ -177,7 +177,8 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
 
     private CommandProcessingResult deposit(Map jsonObject, Long toSavingsAccountId) {
         String composeDepositJson = getDepositOrWithDrawlJson(jsonObject);
-        final CommandWrapperBuilder depositBuilder = new CommandWrapperBuilder().withJson(composeDepositJson);
+        final CommandWrapperBuilder depositBuilder = new CommandWrapperBuilder().withJson(composeDepositJson)
+                .withJobName("MULTI-TENANT-TRANSFER");
         final CommandWrapper depositCommandRequest = depositBuilder.savingsAccountDeposit(toSavingsAccountId).build();
         return this.commandsSourceWritePlatformService.logCommandSource(depositCommandRequest);
     }
@@ -185,7 +186,8 @@ public class MultiTenantTransferServiceImpl implements MultiTenantTransferServic
     private CommandProcessingResult withdraw(Map jsonObject) {
         Long fromSavingsAccountId = Long.parseLong(getFromSavingsAccountId(jsonObject));
         String composeWithDrawJson = getDepositOrWithDrawlJson(jsonObject);
-        final CommandWrapperBuilder withdrawBuilder = new CommandWrapperBuilder().withJson(composeWithDrawJson);
+        final CommandWrapperBuilder withdrawBuilder = new CommandWrapperBuilder().withJson(composeWithDrawJson)
+                .withJobName("MULTI-TENANT-TRANSFER");
         final CommandWrapper withDrawCommandRequest = withdrawBuilder.savingsAccountWithdrawal(fromSavingsAccountId).build();
         return this.commandsSourceWritePlatformService.logCommandSource(withDrawCommandRequest);
 
