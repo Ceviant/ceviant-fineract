@@ -265,7 +265,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return result;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     @Override
     public CommandProcessingResult deposit(final Long savingsId, final JsonCommand command) {
         this.context.authenticatedUser();
@@ -343,7 +343,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return transaction.getId();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Transactional
     @Override
     public CommandProcessingResult withdrawal(final Long savingsId, final JsonCommand command) {
 
@@ -812,7 +812,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .build();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     @Override
     public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
             boolean allowAccountTransferModification, Boolean useRef) {
@@ -916,12 +916,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, false);
 
-        if(amount != null){
-            log.info("Transaction with id {} has been partially reversed with amount {} TYPE--> {}", transactionId, amount,savingsAccountTransaction.getTransactionType().getCode());
-        }
-        if(savingsAccountTransaction.getPartialReversedAmount() != null){
-            log.info("Transaction with id {}  Intial Amount {} has been partially reversed with amount {}", transactionId,savingsAccountTransaction.getAmount(), savingsAccountTransaction.getPartialReversedAmount());
-        }
+
         BigDecimal txtAmount = savingsAccountTransaction.getAmount().subtract(amount);
         if(txtAmount.compareTo(BigDecimal.ZERO) > 0 && amount != null && savingsAccountTransaction.getPartialReversedAmount() != null && savingsAccountTransaction.isReversed()){
 
