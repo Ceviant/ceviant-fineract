@@ -35,6 +35,7 @@ public class SavingsAccountSummaryData {
     private final Long id;
     private final String accountNo;
     private final String externalId;
+    private String accountName;
     private final Long productId;
     private final String productName;
     private final String shortProductName;
@@ -76,5 +77,13 @@ public class SavingsAccountSummaryData {
 
     public Long getId() {
         return id;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 }
