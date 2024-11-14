@@ -693,7 +693,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
         SavingAccountMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
-            sqlBuilder.append("sa.id as id, sa.account_no as accountNo, sa.external_id as externalId, ");
+            sqlBuilder.append("sa.id as id, sa.account_no as accountNo, sa.external_id as externalId, sa.account_name as accountName , ");
             sqlBuilder.append("sa.deposit_type_enum as depositType, ");
             sqlBuilder.append("c.id as clientId, c.display_name as clientName, ");
             sqlBuilder.append("g.id as groupId, g.display_name as groupName, ");
@@ -803,6 +803,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             final Long id = rs.getLong("id");
             final String accountNo = rs.getString("accountNo");
+            final String accountName = rs.getString("accountName");
             final String externalId = rs.getString("externalId");
             final Integer depositTypeId = rs.getInt("depositType");
             final EnumOptionData depositType = SavingsEnumerations.depositType(depositTypeId);
@@ -986,14 +987,17 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                 taxGroupData = TaxGroupData.lookup(taxGroupId, taxGroupName);
             }
 
-            return SavingsAccountData.instance(id, accountNo, depositType, externalId, groupId, groupName, clientId, clientName, productId,
-                    productName, fieldOfficerId, fieldOfficerName, status, subStatus, reasonForBlock, timeline, currency,
-                    nominalAnnualInterestRate, interestCompoundingPeriodType, interestPostingPeriodType, interestCalculationType,
-                    interestCalculationDaysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType,
-                    withdrawalFeeForTransfers, summary, allowOverdraft, overdraftLimit, minRequiredBalance, enforceMinRequiredBalance,
-                    maxAllowedLienLimit, lienAllowed, minBalanceForInterestCalculation, onHoldFunds, nominalAnnualInterestRateOverdraft,
-                    minOverdraftForInterestCalculation, withHoldTax, taxGroupData, lastActiveTransactionDate, isDormancyTrackingActive,
-                    daysToInactive, daysToDormancy, daysToEscheat, onHoldAmount);
+            SavingsAccountData accountData = SavingsAccountData.instance(id, accountNo, depositType, externalId, groupId, groupName,
+                    clientId, clientName, productId, productName, fieldOfficerId, fieldOfficerName, status, subStatus, reasonForBlock,
+                    timeline, currency, nominalAnnualInterestRate, interestCompoundingPeriodType, interestPostingPeriodType,
+                    interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency,
+                    lockinPeriodFrequencyType, withdrawalFeeForTransfers, summary, allowOverdraft, overdraftLimit, minRequiredBalance,
+                    enforceMinRequiredBalance, maxAllowedLienLimit, lienAllowed, minBalanceForInterestCalculation, onHoldFunds,
+                    nominalAnnualInterestRateOverdraft, minOverdraftForInterestCalculation, withHoldTax, taxGroupData,
+                    lastActiveTransactionDate, isDormancyTrackingActive, daysToInactive, daysToDormancy, daysToEscheat, onHoldAmount);
+            accountData.setAccountName(accountName);
+
+            return accountData;
         }
     }
 

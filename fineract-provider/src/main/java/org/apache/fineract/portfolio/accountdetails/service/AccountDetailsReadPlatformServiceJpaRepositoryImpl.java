@@ -308,7 +308,8 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
 
         SavingsAccountSummaryDataMapper() {
             final StringBuilder accountsSummary = new StringBuilder();
-            accountsSummary.append("sa.id as id, sa.account_no as accountNo, sa.external_id as externalId, sa.status_enum as statusEnum, ");
+            accountsSummary.append(
+                    "sa.id as id, sa.account_no as accountNo,sa.account_name as accountName, sa.external_id as externalId, sa.status_enum as statusEnum, ");
             accountsSummary.append("sa.account_type_enum as accountType, ");
             accountsSummary.append("sa.account_balance_derived as accountBalance, ");
 
@@ -371,6 +372,7 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
 
             final Long id = JdbcSupport.getLong(rs, "id");
             final String accountNo = rs.getString("accountNo");
+            final String accountName = rs.getString("accountName");
             final String externalId = rs.getString("externalId");
             final Long productId = JdbcSupport.getLong(rs, "productId");
             final String productName = rs.getString("productName");
@@ -432,8 +434,12 @@ public class AccountDetailsReadPlatformServiceJpaRepositoryImpl implements Accou
                     approvedByUsername, approvedByFirstname, approvedByLastname, activatedOnDate, activatedByUsername, activatedByFirstname,
                     activatedByLastname, closedOnDate, closedByUsername, closedByFirstname, closedByLastname);
 
-            return new SavingsAccountSummaryData(id, accountNo, externalId, productId, productName, shortProductName, status, currency,
-                    accountBalance, accountTypeData, timeline, depositTypeData, subStatus, lastActiveTransactionDate);
+            SavingsAccountSummaryData summaryData = new SavingsAccountSummaryData(id, accountNo, externalId, productId, productName,
+                    shortProductName, status, currency, accountBalance, accountTypeData, timeline, depositTypeData, subStatus,
+                    lastActiveTransactionDate);
+            summaryData.setAccountName(accountName);
+
+            return summaryData;
         }
     }
 
