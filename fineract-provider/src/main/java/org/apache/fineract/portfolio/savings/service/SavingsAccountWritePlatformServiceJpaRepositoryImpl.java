@@ -785,6 +785,10 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             throw new SavingsAccountTransactionNotFoundException(savingsId, transactionId);
         }
 
+        if (savingsAccountTransaction.isReversed()) {
+            throw new TransactionUndoNotAllowedException("This transaction has been reversed Already", transactionId);
+        }
+
         this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(savingsAccountTransaction.getTransactionDate(),
                 account);
 
