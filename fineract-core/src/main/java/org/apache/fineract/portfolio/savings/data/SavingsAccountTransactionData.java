@@ -665,7 +665,7 @@ public final class SavingsAccountTransactionData implements Serializable {
     }
 
     public void setReference(String reference) {
-        this.reference = this.reference;
+        this.reference = reference;
     }
 
     public void setTenantId(String tenantId) {
