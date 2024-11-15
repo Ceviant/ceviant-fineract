@@ -48,4 +48,9 @@ public class TransactionUndoNotAllowedException extends AbstractPlatformDomainRu
     public TransactionUndoNotAllowedException() {
         super("error.msg.saving.account.trasaction.update.notallowed", "You cannot do inter tenant transfer within the same tenant");
     }
+
+    public TransactionUndoNotAllowedException(final String message, final Long transactionId) {
+        super("error.msg.saving.account.trasaction.update.notallowed",
+                "Savings Account transaction undo not allowed with id " + transactionId + ".   " + message);
+    }
 }
