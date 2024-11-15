@@ -1762,7 +1762,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         List<Object> paramList = new ArrayList<>();
         paramList.add(savingsId);
         if (StringUtils.isNotBlank(accountNumber)) {
-            query.append(" AND pd.account_number = ? ");
+            query.append(" AND sa.account_no = ? ");
             paramList.add(accountNumber);
         }
 
