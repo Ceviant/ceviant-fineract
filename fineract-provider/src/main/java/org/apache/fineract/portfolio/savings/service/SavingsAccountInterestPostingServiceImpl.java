@@ -82,7 +82,7 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
             final LocalDate interestPostingTransactionDate = interestPostingPeriod.dateOfPostingTransaction();
             final Money interestEarnedToBePostedForPeriod = interestPostingPeriod.getInterestEarned();
 
-            if (!DateUtils.isAfter(interestPostingTransactionDate, interestPostingUpToDate)) {
+//            if (!DateUtils.isAfter(interestPostingTransactionDate, interestPostingUpToDate)) {
                 interestPostedToDate = interestPostedToDate.plus(interestEarnedToBePostedForPeriod);
                 final SavingsAccountTransactionData postingTransaction = findInterestPostingTransactionFor(interestPostingTransactionDate,
                         savingsAccountData);
@@ -143,7 +143,7 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
                         recalucateDailyBalanceDetails = true;
                     }
                 }
-            }
+//            }
         }
 
         if (recalucateDailyBalanceDetails) {
