@@ -111,6 +111,9 @@ dependencies {
 
             'org.springdoc:springdoc-openapi-starter-webmvc-ui',
             'org.mapstruct:mapstruct',
+            fileTree('thirdparty') {
+                include '*.jar'
+            },
 
             'io.github.resilience4j:resilience4j-spring-boot3',
             )

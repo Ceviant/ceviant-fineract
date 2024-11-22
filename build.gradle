@@ -144,6 +144,17 @@ gitVersioning.apply {
 ext['groovy.version'] = '4.0.17'
 ext['swaggerFile'] = "$rootDir/fineract-provider/build/classes/java/main/static/fineract.json".toString()
 
+
+def pentahoReportDir = System.properties['user.home'] + System.properties['file.separator'] + '.mifosx' + System.properties['file.separator'] + 'pentahoReports'
+def pentahoReportPostgrestDir = System.properties['user.home'] + System.properties['file.separator'] + '.mifosx' + System.properties['file.separator'] + 'pentahoReportsPostgres'
+copy {
+    from "fineract-provider/pentahoReports"
+    into pentahoReportDir
+}
+copy {
+    from "fineract-provider/pentahoReportsPostgres"
+    into pentahoReportPostgrestDir
+}
 allprojects  {
     group = 'org.apache.fineract'
 
@@ -157,6 +168,27 @@ allprojects  {
     apply plugin: 'org.nosphere.apache.rat'
     apply plugin: 'project-report'
     apply plugin: 'com.github.jk1.dependency-license-report'
+
+    dependencyManagement {
+        dependencies {
+            //Pentaho
+            dependency 'org.pentaho.reporting.engine:classic-core:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.engine:classic-extensions:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.engine:classic-extensions-scripting:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.engine:wizard-core:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.designer:wizard-xul:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libbase:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libdocbundle:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libfonts:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libformat:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libformula:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libloader:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:librepository:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libserializer:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libsparkline:9.4.0.0.343-SNAPSHOT'
+            dependency 'org.pentaho.reporting.library:libxml:9.4.0.0.343-SNAPSHOT'
+        }
+    }
 
     // Configuration for the sonarqube plugin is now in GitHub Actions
 

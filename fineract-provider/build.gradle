@@ -252,6 +252,20 @@ jib {
         }
     }
 
+    extraDirectories {
+        paths {
+
+            path {
+                from = 'pentahoReports'
+                into = '/root/.mifosx/pentahoReports'
+            }
+            path {
+                from = 'pentahoReportsPostgres'
+                into = '/root/.mifosx/pentahoReportsPostgres'
+            }
+        }
+    }
+
     to {
         image = 'fineract'
         tags = [
