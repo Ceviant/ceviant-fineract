@@ -68,7 +68,7 @@ public class PostInterestForSavingTasklet implements Tasklet {
         taskExecutor.setMaxPoolSize(threadPoolSize);
         final int batchSize = Integer.parseInt((String) chunkContext.getStepContext().getJobParameters().get("batch-size"));
         final int pageSize = batchSize * threadPoolSize;
-        Long maxSavingsIdInList = 800L;
+        Long maxSavingsIdInList = 832L;
         final boolean backdatedTxnsAllowedTill = this.configurationDomainService.retrievePivotDateConfig();
 
         long start = System.currentTimeMillis();

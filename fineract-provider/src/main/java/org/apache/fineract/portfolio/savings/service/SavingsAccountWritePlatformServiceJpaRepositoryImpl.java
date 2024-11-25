@@ -612,8 +612,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     @Retry(name = "postInterest", fallbackMethod = "fallbackPostInterest")
     public SavingsAccountData postInterest(SavingsAccountData savingsAccountData, final boolean postInterestAs,
             final LocalDate transactionDate, final boolean backdatedTxnsAllowedTill) {
-        log.info("postInterestAs {} transactionDate {} ID --:> {}", postInterestAs, transactionDate,
-                savingsAccountData.getId());
+        log.info("postInterestAs {} transactionDate {} ID --:> {}", postInterestAs, transactionDate, savingsAccountData.getId());
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
         final Integer financialYearBeginningMonth = this.configurationDomainService.retrieveFinancialYearBeginningMonth();
