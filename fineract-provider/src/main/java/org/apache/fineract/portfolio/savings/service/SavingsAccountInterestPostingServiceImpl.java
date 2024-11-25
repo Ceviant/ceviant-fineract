@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.savings.DepositAccountType;
@@ -261,21 +262,27 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
         final MonetaryCurrency monetaryCurrency = MonetaryCurrency.fromCurrencyData(savingsAccountData.getCurrency());
 
         for (final LocalDateInterval periodInterval : postingPeriodIntervals) {
+            /*
+             * Don't generate more interest if the current period end date is after the current date
+             */
+            if (DateUtils.getBusinessLocalDate().isAfter(periodInterval.endDate())
+                    || DateUtils.getBusinessLocalDate().isEqual(periodInterval.endDate())) {
 
-            boolean isUserPosting = false;
-            if (postedAsOnDates.contains(periodInterval.endDate().plusDays(1))) {
-                isUserPosting = true;
+                boolean isUserPosting = false;
+                if (postedAsOnDates.contains(periodInterval.endDate().plusDays(1))) {
+                    isUserPosting = true;
+                }
+                final PostingPeriod postingPeriod = PostingPeriod.createFromDTO(periodInterval, periodStartingBalance,
+                        retreiveOrderedNonInterestPostingTransactions(savingsAccountData), monetaryCurrency, compoundingPeriodType,
+                        interestCalculationType, interestRateAsFraction, daysInYearType.getValue(), upToInterestCalculationDate,
+                        interestPostTransactions, isInterestTransfer, minBalanceForInterestCalculation,
+                        isSavingsInterestPostingAtCurrentPeriodEnd, overdraftInterestRateAsFraction, minOverdraftForInterestCalculation,
+                        isUserPosting, financialYearBeginningMonth, savingsAccountData.isAllowOverdraft());
+
+                periodStartingBalance = postingPeriod.closingBalance();
+
+                allPostingPeriods.add(postingPeriod);
             }
-            final PostingPeriod postingPeriod = PostingPeriod.createFromDTO(periodInterval, periodStartingBalance,
-                    retreiveOrderedNonInterestPostingTransactions(savingsAccountData), monetaryCurrency, compoundingPeriodType,
-                    interestCalculationType, interestRateAsFraction, daysInYearType.getValue(), upToInterestCalculationDate,
-                    interestPostTransactions, isInterestTransfer, minBalanceForInterestCalculation,
-                    isSavingsInterestPostingAtCurrentPeriodEnd, overdraftInterestRateAsFraction, minOverdraftForInterestCalculation,
-                    isUserPosting, financialYearBeginningMonth, savingsAccountData.isAllowOverdraft());
-
-            periodStartingBalance = postingPeriod.closingBalance();
-
-            allPostingPeriods.add(postingPeriod);
         }
 
         this.savingsHelper.calculateInterestForAllPostingPeriods(monetaryCurrency, allPostingPeriods,
