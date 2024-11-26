@@ -265,8 +265,8 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
             /*
              * Don't generate more interest if the current period end date is after the current date
              */
-            if (DateUtils.getBusinessLocalDate().isAfter(periodInterval.endDate())
-                    || DateUtils.getBusinessLocalDate().isEqual(periodInterval.endDate())) {
+//            if (DateUtils.getBusinessLocalDate().isAfter(periodInterval.endDate())
+//                    || DateUtils.getBusinessLocalDate().isEqual(periodInterval.endDate())) {
 
                 boolean isUserPosting = false;
                 if (postedAsOnDates.contains(periodInterval.endDate().plusDays(1))) {
@@ -282,7 +282,7 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
                 periodStartingBalance = postingPeriod.closingBalance();
 
                 allPostingPeriods.add(postingPeriod);
-            }
+//            }
         }
 
         this.savingsHelper.calculateInterestForAllPostingPeriods(monetaryCurrency, allPostingPeriods,
