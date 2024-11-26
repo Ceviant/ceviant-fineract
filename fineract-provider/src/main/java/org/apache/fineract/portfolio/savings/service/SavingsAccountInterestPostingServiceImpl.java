@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
-import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.savings.DepositAccountType;
@@ -82,12 +81,47 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
             final LocalDate interestPostingTransactionDate = interestPostingPeriod.dateOfPostingTransaction();
             final Money interestEarnedToBePostedForPeriod = interestPostingPeriod.getInterestEarned();
 
-            if (!DateUtils.isAfter(interestPostingTransactionDate, interestPostingUpToDate)) {
-                interestPostedToDate = interestPostedToDate.plus(interestEarnedToBePostedForPeriod);
-                final SavingsAccountTransactionData postingTransaction = findInterestPostingTransactionFor(interestPostingTransactionDate,
-                        savingsAccountData);
+            // if (!DateUtils.isAfter(interestPostingTransactionDate, interestPostingUpToDate)) {
+            interestPostedToDate = interestPostedToDate.plus(interestEarnedToBePostedForPeriod);
+            final SavingsAccountTransactionData postingTransaction = findInterestPostingTransactionFor(interestPostingTransactionDate,
+                    savingsAccountData);
 
-                if (postingTransaction == null) {
+            if (postingTransaction == null) {
+                SavingsAccountTransactionData newPostingTransaction;
+                if (interestEarnedToBePostedForPeriod.isGreaterThanOrEqualTo(Money.zero(savingsAccountData.getCurrency()))) {
+                    newPostingTransaction = SavingsAccountTransactionData.interestPosting(savingsAccountData,
+                            interestPostingTransactionDate, interestEarnedToBePostedForPeriod, interestPostingPeriod.isUserPosting());
+                } else {
+                    newPostingTransaction = SavingsAccountTransactionData.overdraftInterest(savingsAccountData,
+                            interestPostingTransactionDate, interestEarnedToBePostedForPeriod.negated(),
+                            interestPostingPeriod.isUserPosting());
+                }
+
+                savingsAccountData.updateTransactions(newPostingTransaction);
+
+                if (applyWithHoldTax) {
+                    createWithHoldTransaction(interestEarnedToBePostedForPeriod.getAmount(), interestPostingTransactionDate,
+                            savingsAccountData);
+                }
+                recalucateDailyBalanceDetails = true;
+            } else {
+                boolean correctionRequired = false;
+                if (postingTransaction.isInterestPostingAndNotReversed()) {
+                    correctionRequired = postingTransaction.hasNotAmount(interestEarnedToBePostedForPeriod);
+                } else {
+                    correctionRequired = postingTransaction.hasNotAmount(interestEarnedToBePostedForPeriod.negated());
+                }
+                if (correctionRequired) {
+                    boolean applyWithHoldTaxForOldTransaction = false;
+                    postingTransaction.reverse();
+
+                    final SavingsAccountTransactionData withholdTransaction = findTransactionFor(interestPostingTransactionDate,
+                            withholdTransactions);
+
+                    if (withholdTransaction != null) {
+                        withholdTransaction.reverse();
+                        applyWithHoldTaxForOldTransaction = true;
+                    }
                     SavingsAccountTransactionData newPostingTransaction;
                     if (interestEarnedToBePostedForPeriod.isGreaterThanOrEqualTo(Money.zero(savingsAccountData.getCurrency()))) {
                         newPostingTransaction = SavingsAccountTransactionData.interestPosting(savingsAccountData,
@@ -100,50 +134,14 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
 
                     savingsAccountData.updateTransactions(newPostingTransaction);
 
-                    if (applyWithHoldTax) {
+                    if (applyWithHoldTaxForOldTransaction) {
                         createWithHoldTransaction(interestEarnedToBePostedForPeriod.getAmount(), interestPostingTransactionDate,
                                 savingsAccountData);
                     }
                     recalucateDailyBalanceDetails = true;
-                } else {
-                    boolean correctionRequired = false;
-                    if (postingTransaction.isInterestPostingAndNotReversed()) {
-                        correctionRequired = postingTransaction.hasNotAmount(interestEarnedToBePostedForPeriod);
-                    } else {
-                        correctionRequired = postingTransaction.hasNotAmount(interestEarnedToBePostedForPeriod.negated());
-                    }
-                    if (correctionRequired) {
-                        boolean applyWithHoldTaxForOldTransaction = false;
-                        postingTransaction.reverse();
-
-                        final SavingsAccountTransactionData withholdTransaction = findTransactionFor(interestPostingTransactionDate,
-                                withholdTransactions);
-
-                        if (withholdTransaction != null) {
-                            withholdTransaction.reverse();
-                            applyWithHoldTaxForOldTransaction = true;
-                        }
-                        SavingsAccountTransactionData newPostingTransaction;
-                        if (interestEarnedToBePostedForPeriod.isGreaterThanOrEqualTo(Money.zero(savingsAccountData.getCurrency()))) {
-                            newPostingTransaction = SavingsAccountTransactionData.interestPosting(savingsAccountData,
-                                    interestPostingTransactionDate, interestEarnedToBePostedForPeriod,
-                                    interestPostingPeriod.isUserPosting());
-                        } else {
-                            newPostingTransaction = SavingsAccountTransactionData.overdraftInterest(savingsAccountData,
-                                    interestPostingTransactionDate, interestEarnedToBePostedForPeriod.negated(),
-                                    interestPostingPeriod.isUserPosting());
-                        }
-
-                        savingsAccountData.updateTransactions(newPostingTransaction);
-
-                        if (applyWithHoldTaxForOldTransaction) {
-                            createWithHoldTransaction(interestEarnedToBePostedForPeriod.getAmount(), interestPostingTransactionDate,
-                                    savingsAccountData);
-                        }
-                        recalucateDailyBalanceDetails = true;
-                    }
                 }
             }
+            // }
         }
 
         if (recalucateDailyBalanceDetails) {
@@ -263,6 +261,11 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
         final MonetaryCurrency monetaryCurrency = MonetaryCurrency.fromCurrencyData(savingsAccountData.getCurrency());
 
         for (final LocalDateInterval periodInterval : postingPeriodIntervals) {
+            /*
+             * Don't generate more interest if the current period end date is after the current date
+             */
+            // if (DateUtils.getBusinessLocalDate().isAfter(periodInterval.endDate())
+            // || DateUtils.getBusinessLocalDate().isEqual(periodInterval.endDate())) {
 
             boolean isUserPosting = false;
             if (postedAsOnDates.contains(periodInterval.endDate().plusDays(1))) {
@@ -278,6 +281,7 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
             periodStartingBalance = postingPeriod.closingBalance();
 
             allPostingPeriods.add(postingPeriod);
+            // }
         }
 
         this.savingsHelper.calculateInterestForAllPostingPeriods(monetaryCurrency, allPostingPeriods,
