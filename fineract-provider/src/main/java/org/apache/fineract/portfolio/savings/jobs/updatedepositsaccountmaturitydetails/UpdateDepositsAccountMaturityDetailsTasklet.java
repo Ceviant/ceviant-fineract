@@ -47,11 +47,11 @@ public class UpdateDepositsAccountMaturityDetailsTasklet implements Tasklet {
 
         for (final DepositAccountData depositAccount : depositAccounts) {
             try {
-//                if(depositAccount.getId() == 895) {
-                    final DepositAccountType depositAccountType = DepositAccountType
-                            .fromInt(depositAccount.getDepositType().getId().intValue());
-                    depositAccountWritePlatformService.updateMaturityDetails(depositAccount.getId(), depositAccountType);
-//                }
+                // if(depositAccount.getId() == 895) {
+                final DepositAccountType depositAccountType = DepositAccountType
+                        .fromInt(depositAccount.getDepositType().getId().intValue());
+                depositAccountWritePlatformService.updateMaturityDetails(depositAccount.getId(), depositAccountType);
+                // }
             } catch (final PlatformApiDataValidationException e) {
                 final List<ApiParameterError> errors = e.getErrors();
                 for (final ApiParameterError error : errors) {
