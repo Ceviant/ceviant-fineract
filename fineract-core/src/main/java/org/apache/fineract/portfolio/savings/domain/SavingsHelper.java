@@ -71,8 +71,12 @@ public final class SavingsHelper {
                     }
                 }
             }
-
-            postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
+            /*
+             * https://fiterio.atlassian.net/browse/CEV-156 Don't Generate Interest for future dates exceeding today.
+             */
+            if (DateUtils.isBeforeBusinessDate(periodEndDate)) {
+                postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
+            }
 
             if (DateUtils.isEqual(actualPeriodStartDate, periodEndDate)) {
                 periodEndDate = actualPeriodStartDate.plusDays(1);
