@@ -275,9 +275,17 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         if (onClosureType.isReinvest()) {
             BigDecimal reInvestAmount;
             if (onClosureType.isReinvestPrincipal()) {
-                reInvestAmount = account.getDepositAmount();
+                /*
+                 * This fixes an issue with issuffient balance on an account due to decimal point/ precision issues eg.
+                 * let's say principal was 700,000 and now the actual balance is 699,999.72 ideally it's the right
+                 * value. so as we re-invest, let's re-invest the actual balance and not the principal amount since the
+                 * other value was taken as interest at a certain point
+                 */
+                reInvestAmount = account.getSummary().getAccountBalance() != null ? account.getSummary().getAccountBalance()
+                        : account.getDepositAmount();
             } else {
-                reInvestAmount = account.getAccountBalance();
+                reInvestAmount = account.getSummary().getAccountBalance() != null ? account.getSummary().getAccountBalance()
+                        : account.getAccountBalance();
             }
             FixedDepositAccount reinvestedDeposit = account.reInvest(reInvestAmount);
             this.depositAccountAssembler.assignSavingAccountHelpers(reinvestedDeposit);
