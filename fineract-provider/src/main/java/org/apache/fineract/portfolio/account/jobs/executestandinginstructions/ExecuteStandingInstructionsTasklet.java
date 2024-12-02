@@ -132,7 +132,7 @@ public class ExecuteStandingInstructionsTasklet implements Tasklet {
                 "INSERT INTO m_account_transfer_standing_instructions_history (standing_instruction_id, " + sqlGenerator.escape("status")
                         + ", amount,execution_time, error_log) VALUES (");
         try {
-            accountTransfersWritePlatformService.transferFunds(accountTransferDTO);
+            accountTransfersWritePlatformService.transferFundsWithTransactions(accountTransferDTO);
         } catch (final PlatformApiDataValidationException e) {
             errors.add(new Exception("Validation exception while transfering funds for standing Instruction id" + instructionId + " from "
                     + accountTransferDTO.getFromAccountId() + " to " + accountTransferDTO.getToAccountId(), e));
