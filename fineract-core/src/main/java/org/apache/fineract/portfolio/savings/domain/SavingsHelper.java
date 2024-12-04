@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
@@ -34,7 +36,7 @@ import org.apache.fineract.portfolio.savings.domain.interest.CompoundInterestHel
 import org.apache.fineract.portfolio.savings.domain.interest.PostingPeriod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+@Slf4j
 @Service
 public final class SavingsHelper {
 
@@ -60,7 +62,15 @@ public final class SavingsHelper {
             final LocalDate interestPostingLocalDate = determineInterestPostingPeriodEndDateFrom(periodStartDate, postingPeriodType,
                     interestPostingUpToDate, financialYearBeginningMonth);
 
-            periodEndDate = interestPostingLocalDate.minusDays(1);
+            if(postingPeriodType.equals(SavingsPostingInterestPeriodType.ANNUAL.getCode())){
+                /*
+                * if postingPeriodType is ANNUAL then we need to set periodEndDate to interestPostingLocalDate - 2 days
+                * We subtract it from here because in determineInterestPostingPeriodEndDateFrom i get an infinite loop.
+                * */
+                periodEndDate = interestPostingLocalDate.minusDays(2);
+            }else{
+                periodEndDate = interestPostingLocalDate.minusDays(1);
+            }
 
             if (!postInterestAsOn.isEmpty()) {
                 for (LocalDate transactiondate : postInterestAsOn) {
@@ -74,9 +84,9 @@ public final class SavingsHelper {
             /*
              * https://fiterio.atlassian.net/browse/CEV-156 Don't Generate Interest for future dates exceeding today.
              */
-            if (DateUtils.isBeforeBusinessDate(periodEndDate) && DateUtils.isBefore(periodEndDate, interestPostingUpToDate)) {
+//            if (DateUtils.isBeforeBusinessDate(periodEndDate) && DateUtils.isBefore(periodEndDate, interestPostingUpToDate)) {
                 postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
-            }
+//            }
 
             if (DateUtils.isEqual(actualPeriodStartDate, periodEndDate)) {
                 periodEndDate = actualPeriodStartDate.plusDays(1);
@@ -162,7 +172,17 @@ public final class SavingsHelper {
                 } else {
                     periodEndDate = periodStartDate.withMonth(financialYearBeginningMonth);
                 }
-                periodEndDate = periodEndDate.with(TemporalAdjusters.lastDayOfMonth());
+                /*
+                 * if periodEndDate is greater than interestPostingUpToDate then assign interestPostingUpToDate to periodEndDate so that we don't post in future
+                 * */
+                if(periodEndDate.isAfter(interestPostingUpToDate)){
+                    log.info(":::-- periodEndDate --- > {}  ----->interestPostingUpToDate {}",periodEndDate,interestPostingUpToDate);
+                    periodEndDate = interestPostingUpToDate;
+                    log.info(":::-- periodEndDate --- > {}",periodEndDate);
+                }else{
+                    periodEndDate = periodEndDate.with(TemporalAdjusters.lastDayOfMonth());
+                }
+
             break;
         }
         // interest posting always occurs on next day after the period end date.
