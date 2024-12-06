@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
@@ -35,6 +36,7 @@ import org.apache.fineract.portfolio.savings.domain.interest.PostingPeriod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public final class SavingsHelper {
 
@@ -49,18 +51,39 @@ public final class SavingsHelper {
 
     public List<LocalDateInterval> determineInterestPostingPeriods(final LocalDate startInterestCalculationLocalDate,
             final LocalDate interestPostingUpToDate, final SavingsPostingInterestPeriodType postingPeriodType,
-            final Integer financialYearBeginningMonth, List<LocalDate> postInterestAsOn) {
+            final Integer financialYearBeginningMonth, List<LocalDate> postInterestAsOn, boolean isPostingInterestJob) {
 
         final List<LocalDateInterval> postingPeriods = new ArrayList<>();
         LocalDate periodStartDate = startInterestCalculationLocalDate;
         LocalDate periodEndDate = periodStartDate;
         LocalDate actualPeriodStartDate = periodStartDate;
+        final Integer monthOfYear = periodStartDate.getMonthValue();
 
         while (!DateUtils.isAfter(periodStartDate, interestPostingUpToDate) && !DateUtils.isAfter(periodEndDate, interestPostingUpToDate)) {
             final LocalDate interestPostingLocalDate = determineInterestPostingPeriodEndDateFrom(periodStartDate, postingPeriodType,
                     interestPostingUpToDate, financialYearBeginningMonth);
 
-            periodEndDate = interestPostingLocalDate.minusDays(1);
+            /*
+             * https://fiterio.atlassian.net/browse/CEV-165 if postingPeriodType is ANNUAL then we need to set
+             * periodEndDate = interestPostingLocalDate reason being we want to post interest not only every 1 /Jan
+             * every year befor maturity date but if investment didn't start on 1st/Jan then we assign
+             * interestPostingLocalDate to periodEndDate it should only run if investment month is not in Jan and the
+             * postInterest Job has been trigger. If other Jobs like Transfer Interest to Savings is run, we should not
+             * execute this logic because it will cause wrong results
+             */
+
+            if (postingPeriodType.getCode().equals(SavingsPostingInterestPeriodType.ANNUAL.getCode())
+                    && interestPostingLocalDate.isAfter(interestPostingUpToDate) && isPostingInterestJob && monthOfYear > 1) {
+                periodEndDate = interestPostingUpToDate;
+                periodEndDate = periodEndDate.minusDays(1);
+                postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
+                log.info(
+                        " --startInterestCalculationLocalDate-- {} -- Period Date is Huge here --interestPostingUpToDate-> {} ---interestPostingLocalDate->{}",
+                        startInterestCalculationLocalDate, interestPostingUpToDate, interestPostingLocalDate);
+                break;
+            } else {
+                periodEndDate = interestPostingLocalDate.minusDays(1);
+            }
 
             if (!postInterestAsOn.isEmpty()) {
                 for (LocalDate transactiondate : postInterestAsOn) {
@@ -162,7 +185,10 @@ public final class SavingsHelper {
                 } else {
                     periodEndDate = periodStartDate.withMonth(financialYearBeginningMonth);
                 }
+
                 periodEndDate = periodEndDate.with(TemporalAdjusters.lastDayOfMonth());
+                log.info(":INFO->>::-- periodEndDate --- > {}  ----->interestPostingUpToDate {}", periodEndDate, interestPostingUpToDate);
+
             break;
         }
         // interest posting always occurs on next day after the period end date.

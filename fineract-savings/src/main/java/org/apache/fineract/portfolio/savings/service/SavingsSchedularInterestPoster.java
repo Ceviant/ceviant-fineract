@@ -71,8 +71,9 @@ public class SavingsSchedularInterestPoster {
                 LocalDate transactionDate = null;
                 try {
                     SavingsAccountData savingsAccountDataRet = savingsAccountWritePlatformService.postInterest(savingsAccountData,
-                            postInterestAsOn, transactionDate, backdatedTxnsAllowedTill);
+                            postInterestAsOn, transactionDate, backdatedTxnsAllowedTill, true);
                     savingsAccountDataList.add(savingsAccountDataRet);
+
                 } catch (Exception e) {
                     errors.add(e);
                 }
