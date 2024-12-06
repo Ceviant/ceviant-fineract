@@ -103,7 +103,7 @@ public interface SavingsAccountWritePlatformService {
     // boolean backdatedTxnsAllowedTill);
 
     SavingsAccountData postInterest(SavingsAccountData account, boolean postInterestAs, LocalDate transactionDate,
-            boolean backdatedTxnsAllowedTill);
+            boolean backdatedTxnsAllowedTill, boolean isPostingInterestJob);
 
     CommandProcessingResult blockAccount(Long savingsId, JsonCommand command);
 

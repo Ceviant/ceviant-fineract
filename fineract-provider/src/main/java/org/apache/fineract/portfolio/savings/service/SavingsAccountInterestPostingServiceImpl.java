@@ -56,7 +56,8 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
     @Override
     public SavingsAccountData postInterest(final MathContext mc, final LocalDate interestPostingUpToDate, final boolean isInterestTransfer,
             final boolean isSavingsInterestPostingAtCurrentPeriodEnd, final Integer financialYearBeginningMonth,
-            final LocalDate postInterestOnDate, final boolean backdatedTxnsAllowedTill, final SavingsAccountData savingsAccountData) {
+            final LocalDate postInterestOnDate, final boolean backdatedTxnsAllowedTill, final SavingsAccountData savingsAccountData,
+            final boolean isPostingInterestJob) {
         Money interestPostedToDate = Money.zero(savingsAccountData.getCurrency());
         LocalDate startInterestDate = getStartInterestCalculationDate(savingsAccountData);
 
@@ -69,7 +70,7 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
 
         final List<PostingPeriod> postingPeriods = calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer,
                 isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth, postInterestOnDate, backdatedTxnsAllowedTill,
-                savingsAccountData);
+                savingsAccountData, isPostingInterestJob);
 
         boolean recalucateDailyBalanceDetails = false;
         boolean applyWithHoldTax = isWithHoldTaxApplicableForInterestPosting(savingsAccountData);
@@ -190,7 +191,8 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
 
     public List<PostingPeriod> calculateInterestUsing(final MathContext mc, final LocalDate upToInterestCalculationDate,
             boolean isInterestTransfer, final boolean isSavingsInterestPostingAtCurrentPeriodEnd, final Integer financialYearBeginningMonth,
-            final LocalDate postInterestOnDate, final boolean backdatedTxnsAllowedTill, final SavingsAccountData savingsAccountData) {
+            final LocalDate postInterestOnDate, final boolean backdatedTxnsAllowedTill, final SavingsAccountData savingsAccountData,
+            final boolean isPostingInterestJob) {
 
         // no openingBalance concept supported yet but probably will to allow
         // for migrations.
@@ -229,7 +231,7 @@ public class SavingsAccountInterestPostingServiceImpl implements SavingsAccountI
         }
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(
                 savingsAccountData.getStartInterestCalculationDate(), upToInterestCalculationDate, postingPeriodType,
-                financialYearBeginningMonth, postedAsOnDates);
+                financialYearBeginningMonth, postedAsOnDates, isPostingInterestJob);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 
