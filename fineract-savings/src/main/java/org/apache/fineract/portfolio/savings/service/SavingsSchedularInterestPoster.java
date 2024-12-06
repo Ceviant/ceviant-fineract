@@ -70,9 +70,11 @@ public class SavingsSchedularInterestPoster {
                 boolean postInterestAsOn = false;
                 LocalDate transactionDate = null;
                 try {
-                    SavingsAccountData savingsAccountDataRet = savingsAccountWritePlatformService.postInterest(savingsAccountData,
-                            postInterestAsOn, transactionDate, backdatedTxnsAllowedTill);
-                    savingsAccountDataList.add(savingsAccountDataRet);
+                    if(savingsAccountData.getId() > 1270) {
+                        SavingsAccountData savingsAccountDataRet = savingsAccountWritePlatformService.postInterest(savingsAccountData,
+                                postInterestAsOn, transactionDate, backdatedTxnsAllowedTill);
+                        savingsAccountDataList.add(savingsAccountDataRet);
+                    }
                 } catch (Exception e) {
                     errors.add(e);
                 }
