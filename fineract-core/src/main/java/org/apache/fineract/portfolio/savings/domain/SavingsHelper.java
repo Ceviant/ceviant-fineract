@@ -185,19 +185,9 @@ public final class SavingsHelper {
                 } else {
                     periodEndDate = periodStartDate.withMonth(financialYearBeginningMonth);
                 }
-                /*
-                 * if periodEndDate is greater than interestPostingUpToDate then assign interestPostingUpToDate to
-                 * periodEndDate so that we don't post in future
-                 */
-                // if (periodEndDate.isAfter(interestPostingUpToDate)) {
-                // log.info(":::-- periodEndDate --- > {} ----->interestPostingUpToDate {}", periodEndDate,
-                // interestPostingUpToDate);
-                // periodEndDate = interestPostingUpToDate;
-                // log.info(":::-- periodEndDate --- > {}", periodEndDate);
-                // } else {
+
                 periodEndDate = periodEndDate.with(TemporalAdjusters.lastDayOfMonth());
                 log.info(":INFO->>::-- periodEndDate --- > {}  ----->interestPostingUpToDate {}", periodEndDate, interestPostingUpToDate);
-            // }
 
             break;
         }
