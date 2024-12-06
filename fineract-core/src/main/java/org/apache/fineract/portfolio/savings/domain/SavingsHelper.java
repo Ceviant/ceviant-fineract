@@ -51,35 +51,37 @@ public final class SavingsHelper {
 
     public List<LocalDateInterval> determineInterestPostingPeriods(final LocalDate startInterestCalculationLocalDate,
             final LocalDate interestPostingUpToDate, final SavingsPostingInterestPeriodType postingPeriodType,
-            final Integer financialYearBeginningMonth, List<LocalDate> postInterestAsOn) {
+            final Integer financialYearBeginningMonth, List<LocalDate> postInterestAsOn, boolean isPostingInterestJob) {
 
         final List<LocalDateInterval> postingPeriods = new ArrayList<>();
         LocalDate periodStartDate = startInterestCalculationLocalDate;
         LocalDate periodEndDate = periodStartDate;
         LocalDate actualPeriodStartDate = periodStartDate;
+        final Integer monthOfYear = periodStartDate.getMonthValue();
 
         while (!DateUtils.isAfter(periodStartDate, interestPostingUpToDate) && !DateUtils.isAfter(periodEndDate, interestPostingUpToDate)) {
             final LocalDate interestPostingLocalDate = determineInterestPostingPeriodEndDateFrom(periodStartDate, postingPeriodType,
                     interestPostingUpToDate, financialYearBeginningMonth);
 
-//            if (postingPeriodType.getCode().equals(SavingsPostingInterestPeriodType.ANNUAL.getCode())) {
-//                /*
-//                 * https://fiterio.atlassian.net/browse/CEV-165 if postingPeriodType is ANNUAL then we need to set
-//                 * periodEndDate to interestPostingLocalDate - 2 days We subtract it from here because in
-//                 * determineInterestPostingPeriodEndDateFrom i get an infinite loop.
-//                 */
-////                periodEndDate = interestPostingLocalDate.minusDays(2);
-//                periodEndDate = interestPostingLocalDate.minusDays(1);
-//            } else {
-//                periodEndDate = interestPostingLocalDate.minusDays(1);
-//            }
-            if (postingPeriodType.getCode().equals(SavingsPostingInterestPeriodType.ANNUAL.getCode()) && interestPostingLocalDate.isAfter(interestPostingUpToDate)) {
+            /*
+             * https://fiterio.atlassian.net/browse/CEV-165 if postingPeriodType is ANNUAL then we need to set
+             * periodEndDate = interestPostingLocalDate reason being we want to post interest not only every 1 /Jan
+             * every year befor maturity date but if investment didn't start on 1st/Jan then we assign
+             * interestPostingLocalDate to periodEndDate it should only run if investment month is not in Jan and the
+             * postInterest Job has been trigger. If other Jobs like Transfer Interest to Savings is run, we should not
+             * execute this logic because it will cause wrong results
+             */
+
+            if (postingPeriodType.getCode().equals(SavingsPostingInterestPeriodType.ANNUAL.getCode())
+                    && interestPostingLocalDate.isAfter(interestPostingUpToDate) && isPostingInterestJob && monthOfYear > 1) {
                 periodEndDate = interestPostingUpToDate;
                 periodEndDate = periodEndDate.minusDays(1);
                 postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
-                log.info("Period Date is Huge here --->");
+                log.info(
+                        " --startInterestCalculationLocalDate-- {} -- Period Date is Huge here --interestPostingUpToDate-> {} ---interestPostingLocalDate->{}",
+                        startInterestCalculationLocalDate, interestPostingUpToDate, interestPostingLocalDate);
                 break;
-            }else{
+            } else {
                 periodEndDate = interestPostingLocalDate.minusDays(1);
             }
 
@@ -187,14 +189,15 @@ public final class SavingsHelper {
                  * if periodEndDate is greater than interestPostingUpToDate then assign interestPostingUpToDate to
                  * periodEndDate so that we don't post in future
                  */
-//                if (periodEndDate.isAfter(interestPostingUpToDate)) {
-//                    log.info(":::-- periodEndDate --- > {}  ----->interestPostingUpToDate {}", periodEndDate, interestPostingUpToDate);
-//                    periodEndDate = interestPostingUpToDate;
-//                    log.info(":::-- periodEndDate --- > {}", periodEndDate);
-//                } else {
-                    periodEndDate = periodEndDate.with(TemporalAdjusters.lastDayOfMonth());
+                // if (periodEndDate.isAfter(interestPostingUpToDate)) {
+                // log.info(":::-- periodEndDate --- > {} ----->interestPostingUpToDate {}", periodEndDate,
+                // interestPostingUpToDate);
+                // periodEndDate = interestPostingUpToDate;
+                // log.info(":::-- periodEndDate --- > {}", periodEndDate);
+                // } else {
+                periodEndDate = periodEndDate.with(TemporalAdjusters.lastDayOfMonth());
                 log.info(":INFO->>::-- periodEndDate --- > {}  ----->interestPostingUpToDate {}", periodEndDate, interestPostingUpToDate);
-//                }
+            // }
 
             break;
         }

@@ -297,7 +297,7 @@ public class FixedDepositAccount extends SavingsAccount {
 
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(
                 accountSubmittedOrActivationDate(), maturityDate, postingPeriodType, financialYearBeginningMonth,
-                postedAsOnTransactionDates);
+                postedAsOnTransactionDates, false);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 
