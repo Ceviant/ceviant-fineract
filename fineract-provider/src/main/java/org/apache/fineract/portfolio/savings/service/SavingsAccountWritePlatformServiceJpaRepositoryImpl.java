@@ -611,7 +611,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     @Override
     @Retry(name = "postInterest", fallbackMethod = "fallbackPostInterest")
     public SavingsAccountData postInterest(SavingsAccountData savingsAccountData, final boolean postInterestAs,
-            final LocalDate transactionDate, final boolean backdatedTxnsAllowedTill) {
+            final LocalDate transactionDate, final boolean backdatedTxnsAllowedTill, final boolean isPostingInterestJob) {
 
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
                 .isSavingsInterestPostingAtCurrentPeriodEnd();
@@ -689,7 +689,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
             savingsAccountData = this.savingsAccountInterestPostingService.postInterest(mc, today, isInterestTransfer,
                     isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth, postInterestOnDate, backdatedTxnsAllowedTill,
-                    savingsAccountData);
+                    savingsAccountData, isPostingInterestJob);
 
             if (!backdatedTxnsAllowedTill) {
                 List<SavingsAccountTransactionData> transactions = savingsAccountData.getSavingsAccountTransactionData();
