@@ -61,9 +61,6 @@ dependencies {
             'org.springframework.integration:spring-integration-jms',
             'org.springframework.integration:spring-integration-kafka',
             'org.springframework.kafka:spring-kafka',
-            fileTree('thirdparty') {
-                include '*.jar'
-            },
             'io.micrometer:micrometer-registry-prometheus',
             'io.micrometer:micrometer-registry-otlp',
             'io.micrometer:micrometer-registry-cloudwatch2',
@@ -113,7 +110,7 @@ dependencies {
 
             'org.springdoc:springdoc-openapi-starter-webmvc-ui',
             'org.mapstruct:mapstruct',
-            'io.github.resilience4j:resilience4j-spring-boot3'
+            'io.github.resilience4j:resilience4j-spring-boot3',
             )
 
     implementation 'software.amazon.msk:aws-msk-iam-auth'

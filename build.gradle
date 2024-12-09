@@ -145,7 +145,7 @@ ext['swaggerFile'] = "$rootDir/fineract-provider/build/classes/java/main/static/
 def pentahoReportDir = System.properties['user.home'] + System.properties['file.separator'] + '.mifosx' + System.properties['file.separator'] + 'pentahoReports'
 
 copy {
-    from "fineract-provider/pentahoReports"
+    from "fineract-report/pentahoReports"
     into pentahoReportDir
 }
 

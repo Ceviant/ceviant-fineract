@@ -118,7 +118,7 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
             final var tenantConnection = tenant.getConnection();
             tenant.getConnection().getSchemaServer();
             connectionProvider.setUrl(tenantUrl);
-            connectionProvider.setDriver("org.mariadb.jdbc.Driver");
+            connectionProvider.setDriver("org.postgresql.Driver");
             connectionProvider.setProperty("password", password);
             connectionProvider.setProperty("user", username);
             connectionProvider.setProperty("::pentaho-reporting::hostname", tenantConnection.getSchemaServer());
@@ -217,7 +217,7 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
             final var tenant = ThreadLocalContextUtil.getTenant();
             final var tenantConnection = tenant.getConnection();
             final String schemaParameters = tenantConnection.getSchemaConnectionParameters();
-            var tenantUrl = "jdbc:mariadb://" + tenantConnection.getSchemaServer() + ":" + tenantConnection.getSchemaServerPort() + "/"
+            var tenantUrl = "jdbc:postgresql://" + tenantConnection.getSchemaServer() + ":" + tenantConnection.getSchemaServerPort() + "/"
                     + tenantConnection.getSchemaName() + "?useSSL=false&allowPublicKeyRetrieval=true&" + schemaParameters;
             final var userHierarchy = currentUser.getOffice().getHierarchy();
             var outPutInfo4 = "db URL:" + tenantUrl + "      userhierarchy:" + userHierarchy;
