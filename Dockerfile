@@ -41,7 +41,7 @@ WORKDIR /app/libs
 
 FROM azul/zulu-openjdk:17 as fineract
 COPY --from=builder /fineract/fineract-provider/build/libs/ /app
-COPY --from=builder /.mifosx/pentahoReports /.mifosx/pentahoReports
+COPY --from=builder /.mifosx/pentahoReports /root/.mifosx/pentahoReports
 
 RUN apt-get update && apt-get install telnet -y
 
