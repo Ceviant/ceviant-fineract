@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.serialization.JsonParserHelper;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 
 public final class ApiParameterHelper {
 
@@ -144,5 +145,13 @@ public final class ApiParameterHelper {
 
     public static boolean genericResultSetPassed(final MultivaluedMap<String, String> queryParams) {
         return queryParams.getFirst("genericResultSet") != null;
+    }
+
+    public static String extractDateFormat(final MultivaluedMap<String, String> queryParams) {
+        String datFormat = DateUtils.DEFAULT_DATE_FORMAT;
+        if (queryParams.getFirst("dateFormat") != null) {
+            datFormat = queryParams.getFirst("dateFormat");
+        }
+        return datFormat;
     }
 }
