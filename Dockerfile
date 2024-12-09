@@ -27,13 +27,13 @@ RUN ./gradlew --no-daemon -q -x rat -x compileTestJava -x test -x spotlessJavaCh
 RUN mv /fineract/fineract-provider/build/libs/*.jar /fineract/fineract-provider/build/libs/fineract-provider.jar
 
 # Move pentaho files
-# RUN mkdir -p /.mifosx/pentahoReports
+RUN mkdir -p /.mifosx/pentahoReports
 
-# RUN echo "Before copy : " && ls -al /fineract/fineract-provider || true
+RUN echo "Before copy : " && ls -al /fineract/fineract-report || true
 
-# COPY fineract-provider/pentahoReports /.mifosx/pentahoReports
+COPY fineract-report/pentahoReports /.mifosx/pentahoReports
 
-# RUN echo "After COPY:" && ls -al /.mifosx/ || true
+RUN echo "After COPY:" && ls -al /.mifosx/ || true
 
 # =========================================
 
