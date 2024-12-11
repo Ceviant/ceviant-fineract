@@ -297,7 +297,7 @@ public class FixedDepositAccount extends SavingsAccount {
 
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(
                 accountSubmittedOrActivationDate(), maturityDate, postingPeriodType, financialYearBeginningMonth,
-                postedAsOnTransactionDates, false);
+                postedAsOnTransactionDates, true);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 
@@ -327,8 +327,7 @@ public class FixedDepositAccount extends SavingsAccount {
         }
 
         this.summary.updateFromInterestPeriodSummaries(this.currency, allPostingPeriods);
-        this.savingsHelper.calculateInterestForAllPostingPeriods(this.currency, allPostingPeriods, getLockedInUntilDate(),
-                isTransferInterestToOtherAccount());
+        this.savingsHelper.calculateInterestForAllPostingPeriods(this.currency, allPostingPeriods, getLockedInUntilDate(), false);
         return allPostingPeriods;
     }
 
