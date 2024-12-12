@@ -29,6 +29,7 @@ import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1327,11 +1328,7 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
 
                     Long reinvestedDepositId = (Long) changes.get("reinvestedDepositId");
 
-                    Money amountForDeposit = account.activateWithBalance();
-                    if (((FixedDepositAccount) account).getAccountTermAndPreClosure().getOnAccountClosureType() == 300) {
-                        amountForDeposit = Money.of(account.getCurrency(),
-                                ((FixedDepositAccount) account).getAccountTermAndPreClosure().maturityAmount());
-                    }
+                    Money amountForDeposit = calculateBalance((FixedDepositAccount) account);
 
                     final FixedDepositAccount reinvestAccount = (FixedDepositAccount) this.depositAccountAssembler
                             .assembleFrom(reinvestedDepositId, DepositAccountType.FIXED_DEPOSIT);
@@ -1350,6 +1347,18 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
         }
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds);
+    }
+
+    private Money calculateBalance(FixedDepositAccount account) {
+        List<SavingsAccountTransaction> transactions = account.getTransactions();
+
+        // Sort transactions by ID in descending order to get the latest transaction first
+        transactions.sort(Comparator.comparing(SavingsAccountTransaction::getId).reversed());
+
+        // Get the amount of the latest transaction
+        BigDecimal latestTransactionAmount = transactions.get(0).getAmount();
+
+        return Money.of(account.getCurrency(), latestTransactionAmount);
     }
 
     private void updateExistingTransactionsDetails(SavingsAccount account, Set<Long> existingTransactionIds,
