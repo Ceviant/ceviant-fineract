@@ -817,10 +817,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
      *            TODO
      */
 
-    public List<PostingPeriod> calculateInterestUsing(final MathContext mc, final LocalDate upToInterestCalculationDate,
+    public List<PostingPeriod> calculateInterestUsing(final MathContext mc, LocalDate upToInterestCalculationDate,
             boolean isInterestTransfer, final boolean isSavingsInterestPostingAtCurrentPeriodEnd, final Integer financialYearBeginningMonth,
             final LocalDate postInterestOnDate, final boolean backdatedTxnsAllowedTill, final boolean postReversals) {
-
+        upToInterestCalculationDate = upToInterestCalculationDate.plusDays(1);
         // no openingBalance concept supported yet but probably will to allow for migrations.
         // Check global configurations and 'pivot' date is null
         Money openingAccountBalance = backdatedTxnsAllowedTill ? Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate())
