@@ -215,7 +215,7 @@ public class FixedDepositAccount extends SavingsAccount {
             final boolean isPreMatureClosure, final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
             final Integer financialYearBeginningMonth) {
         final LocalDate maturityDate = calculateMaturityDate();
-        final LocalDate interestCalculationUpto = maturityDate.minusDays(1);
+        final LocalDate interestCalculationUpto = maturityDate;
 
         // set end of day balance to maturity date for maturity interest
         // calculation
