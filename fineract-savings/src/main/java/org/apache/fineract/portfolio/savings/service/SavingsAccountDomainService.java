@@ -34,7 +34,15 @@ public interface SavingsAccountDomainService {
             BigDecimal transactionAmount, PaymentDetail paymentDetail, SavingsTransactionBooleanValues transactionBooleanValues,
             boolean backdatedTxnsAllowedTill);
 
+    SavingsAccountTransaction handleWithdrawalWithMaturityDetailsJob(SavingsAccount account, DateTimeFormatter fmt,
+            LocalDate transactionDate, BigDecimal transactionAmount, PaymentDetail paymentDetail,
+            SavingsTransactionBooleanValues transactionBooleanValues, boolean backdatedTxnsAllowedTill);
+
     SavingsAccountTransaction handleDeposit(SavingsAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
+            BigDecimal transactionAmount, PaymentDetail paymentDetail, boolean isAccountTransfer, boolean isRegularTransaction,
+            boolean backdatedTxnsAllowedTill);
+
+    SavingsAccountTransaction handleDepositWithMaturityDetailsJob(SavingsAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
             BigDecimal transactionAmount, PaymentDetail paymentDetail, boolean isAccountTransfer, boolean isRegularTransaction,
             boolean backdatedTxnsAllowedTill);
 
