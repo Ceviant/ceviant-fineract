@@ -119,8 +119,8 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         boolean isAccountTransfer = false;
         boolean isRegularTransaction = false;
         final boolean backdatedTxnsAllowedTill = false;
-        return this.savingsAccountDomainService.handleDeposit(account, fmt, transactionDate, transactionAmount, paymentDetail,
-                isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
+        return this.savingsAccountDomainService.handleDepositWithMaturityDetailsJob(account, fmt, transactionDate, transactionAmount,
+                paymentDetail, isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
     }
 
     @Transactional

@@ -148,12 +148,115 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
 
     @Transactional
     @Override
+    public SavingsAccountTransaction handleWithdrawalWithMaturityDetailsJob(final SavingsAccount account, final DateTimeFormatter fmt,
+            final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
+            final SavingsTransactionBooleanValues transactionBooleanValues, final boolean backdatedTxnsAllowedTill) {
+        context.authenticatedUser();
+        account.validateForAccountBlock();
+        account.validateForDebitBlock();
+        final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
+                .isSavingsInterestPostingAtCurrentPeriodEnd();
+        final Long relaxingDaysConfigForPivotDate = this.configurationDomainService.retrieveRelaxingDaysConfigForPivotDate();
+        final boolean postReversals = this.configurationDomainService.isReversalTransactionAllowed();
+        final Integer financialYearBeginningMonth = this.configurationDomainService.retrieveFinancialYearBeginningMonth();
+        if (transactionBooleanValues.isRegularTransaction() && !account.allowWithdrawal()) {
+            throw new DepositAccountTransactionNotAllowedException(account.getId(), "withdraw", account.depositAccountType());
+        }
+        final Set<Long> existingTransactionIds = new HashSet<>();
+        final LocalDate postInterestOnDate = null;
+        final Set<Long> existingReversedTransactionIds = new HashSet<>();
+
+        if (backdatedTxnsAllowedTill) {
+            updateTransactionDetailsWithPivotConfig(account, existingTransactionIds, existingReversedTransactionIds);
+        } else {
+            updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
+        }
+
+        Integer accountType = null;
+        final SavingsAccountTransactionDTO transactionDTO = new SavingsAccountTransactionDTO(fmt, transactionDate, transactionAmount,
+                paymentDetail, null, accountType);
+        UUID refNo = UUID.randomUUID();
+        final SavingsAccountTransaction withdrawal = account.withdraw(transactionDTO, transactionBooleanValues.isApplyWithdrawFee(),
+                backdatedTxnsAllowedTill, relaxingDaysConfigForPivotDate, refNo.toString());
+        final MathContext mc = MathContext.DECIMAL64;
+
+        List<DepositAccountOnHoldTransaction> depositAccountOnHoldTransactions = null;
+        if (account.getOnHoldFunds().compareTo(BigDecimal.ZERO) > 0) {
+            depositAccountOnHoldTransactions = this.depositAccountOnHoldTransactionRepository
+                    .findBySavingsAccountAndReversedFalseOrderByCreatedDateAsc(account);
+        }
+
+        account.validateAccountBalanceDoesNotBecomeNegative(transactionAmount, transactionBooleanValues.isExceptionForBalanceCheck(),
+                depositAccountOnHoldTransactions, backdatedTxnsAllowedTill);
+
+        saveTransactionToGenerateTransactionId(withdrawal);
+        if (backdatedTxnsAllowedTill) {
+            // Update transactions separately
+            saveUpdatedTransactionsOfSavingsAccount(account.getSavingsAccountTransactionsWithPivotConfig());
+        }
+        this.savingsAccountRepository.save(account);
+
+        postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, transactionBooleanValues.isAccountTransfer(),
+                backdatedTxnsAllowedTill);
+
+        businessEventNotifierService.notifyPostBusinessEvent(new SavingsWithdrawalBusinessEvent(withdrawal));
+        return withdrawal;
+    }
+
+    @Transactional
+    @Override
     public SavingsAccountTransaction handleDeposit(final SavingsAccount account, final DateTimeFormatter fmt,
             final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
             final boolean isAccountTransfer, final boolean isRegularTransaction, final boolean backdatedTxnsAllowedTill) {
         final SavingsAccountTransactionType savingsAccountTransactionType = SavingsAccountTransactionType.DEPOSIT;
         return handleDeposit(account, fmt, transactionDate, transactionAmount, paymentDetail, isAccountTransfer, isRegularTransaction,
                 savingsAccountTransactionType, backdatedTxnsAllowedTill);
+    }
+
+    @Transactional
+    @Override
+    public SavingsAccountTransaction handleDepositWithMaturityDetailsJob(final SavingsAccount account, final DateTimeFormatter fmt,
+            final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
+            final boolean isAccountTransfer, final boolean isRegularTransaction, final boolean backdatedTxnsAllowedTill) {
+        final SavingsAccountTransactionType savingsAccountTransactionType = SavingsAccountTransactionType.DEPOSIT;
+        context.authenticatedUser();
+        account.validateForAccountBlock();
+        account.validateForCreditBlock();
+
+        // Global configurations
+
+        final Long relaxingDaysConfigForPivotDate = this.configurationDomainService.retrieveRelaxingDaysConfigForPivotDate();
+        if (isRegularTransaction && !account.allowDeposit()) {
+            throw new DepositAccountTransactionNotAllowedException(account.getId(), "deposit", account.depositAccountType());
+        }
+        final Set<Long> existingTransactionIds = new HashSet<>();
+        final Set<Long> existingReversedTransactionIds = new HashSet<>();
+
+        if (backdatedTxnsAllowedTill) {
+            updateTransactionDetailsWithPivotConfig(account, existingTransactionIds, existingReversedTransactionIds);
+        } else {
+            updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
+        }
+
+        Integer accountType = null;
+        final SavingsAccountTransactionDTO transactionDTO = new SavingsAccountTransactionDTO(fmt, transactionDate, transactionAmount,
+                paymentDetail, null, accountType);
+        UUID refNo = UUID.randomUUID();
+        final SavingsAccountTransaction deposit = account.deposit(transactionDTO, savingsAccountTransactionType, backdatedTxnsAllowedTill,
+                relaxingDaysConfigForPivotDate, refNo.toString());
+
+        saveTransactionToGenerateTransactionId(deposit);
+
+        if (backdatedTxnsAllowedTill) {
+            // Update transactions separately
+            saveUpdatedTransactionsOfSavingsAccount(account.getSavingsAccountTransactionsWithPivotConfig());
+        }
+
+        this.savingsAccountRepository.saveAndFlush(account);
+
+        postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer, backdatedTxnsAllowedTill);
+        businessEventNotifierService.notifyPostBusinessEvent(new SavingsDepositBusinessEvent(deposit));
+        return deposit;
     }
 
     private SavingsAccountTransaction handleDeposit(final SavingsAccount account, final DateTimeFormatter fmt,
