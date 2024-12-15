@@ -163,7 +163,7 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
             throw new DepositAccountTransactionNotAllowedException(account.getId(), "withdraw", account.depositAccountType());
         }
         final Set<Long> existingTransactionIds = new HashSet<>();
-        final LocalDate postInterestOnDate = null;
+        final LocalDate today = DateUtils.getBusinessLocalDate();
         final Set<Long> existingReversedTransactionIds = new HashSet<>();
 
         if (backdatedTxnsAllowedTill) {
@@ -178,7 +178,8 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
         UUID refNo = UUID.randomUUID();
         final SavingsAccountTransaction withdrawal = account.withdraw(transactionDTO, transactionBooleanValues.isApplyWithdrawFee(),
                 backdatedTxnsAllowedTill, relaxingDaysConfigForPivotDate, refNo.toString());
-        final MathContext mc = MathContext.DECIMAL64;
+
+        account.calculateRunningBalances(today, backdatedTxnsAllowedTill, postReversals);
 
         List<DepositAccountOnHoldTransaction> depositAccountOnHoldTransactions = null;
         if (account.getOnHoldFunds().compareTo(BigDecimal.ZERO) > 0) {

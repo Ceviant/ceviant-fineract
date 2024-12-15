@@ -253,7 +253,7 @@ public class FixedDepositAccount extends SavingsAccount {
         if (!DateUtils.isDateInTheFuture(maturityDate())) {
             // update account status
             this.status = SavingsAccountStatusType.MATURED.getValue();
-            postMaturityInterest(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+            postMaturityInterestForJobs(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
         }
     }
 
@@ -554,6 +554,25 @@ public class FixedDepositAccount extends SavingsAccount {
                 }
             }
         }
+        recalucateDailyBalanceDetails = applyWithholdTaxForDepositAccounts(interestPostingUpToDate, recalucateDailyBalanceDetails,
+                backdatedTxnsAllowedTill);
+        if (recalucateDailyBalanceDetails) {
+            // update existing transactions so derived balance fields are
+            // correct.
+            recalculateDailyBalances(Money.zero(this.currency), interestPostingUpToDate, backdatedTxnsAllowedTill, postReversals);
+        }
+
+        this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+    }
+
+    public void postMaturityInterestForJobs(final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
+            final Integer financialYearBeginningMonth) {
+        final LocalDate interestPostingUpToDate = maturityDate();
+        final boolean backdatedTxnsAllowedTill = false;
+        boolean postReversals = false;
+
+        boolean recalucateDailyBalanceDetails = true;
+
         recalucateDailyBalanceDetails = applyWithholdTaxForDepositAccounts(interestPostingUpToDate, recalucateDailyBalanceDetails,
                 backdatedTxnsAllowedTill);
         if (recalucateDailyBalanceDetails) {

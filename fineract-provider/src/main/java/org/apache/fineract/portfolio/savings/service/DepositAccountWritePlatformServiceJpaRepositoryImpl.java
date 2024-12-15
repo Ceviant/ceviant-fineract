@@ -49,6 +49,7 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.domain.ExternalId;
+import org.apache.fineract.infrastructure.core.exception.GeneralPlatformDomainRuleException;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.exception.PlatformServiceUnavailableException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -1315,6 +1316,14 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
             ((FixedDepositAccount) account).updateMaturityStatus(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
             FixedDepositAccount fdAccount = ((FixedDepositAccount) account);
             // handle maturity instructions
+
+            // check if account has transation of type interest posting. Elese throw an exception
+            if (fdAccount.getTransactions().size() == 1) {
+                final String defaultUserMessage = "No Interest Posting transactions available for this account . Please Interest Posting Job First";
+                throw new GeneralPlatformDomainRuleException(
+                        "error.msg.fixed.deposit.account.run.maturity.details.because.account.does.not.have.interest.posting.transaction",
+                        defaultUserMessage, account.clientId());
+            }
 
             if (fdAccount.isMatured() && (fdAccount.isReinvestOnClosure() || fdAccount.isTransferToSavingsOnClosure())) {
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");

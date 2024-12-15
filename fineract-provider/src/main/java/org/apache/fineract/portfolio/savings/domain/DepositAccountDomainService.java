@@ -31,6 +31,9 @@ public interface DepositAccountDomainService {
     SavingsAccountTransaction handleWithdrawal(SavingsAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
             BigDecimal transactionAmount, PaymentDetail paymentDetail, boolean applyWithdrawFee, boolean isRegularTransaction);
 
+    SavingsAccountTransaction handleWithdrawalForMaturityDetails(SavingsAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
+            BigDecimal transactionAmount, PaymentDetail paymentDetail, boolean applyWithdrawFee, boolean isRegularTransaction);
+
     SavingsAccountTransaction handleFDDeposit(FixedDepositAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
             BigDecimal transactionAmount, PaymentDetail paymentDetail);
 
