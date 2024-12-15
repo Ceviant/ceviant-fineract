@@ -1319,7 +1319,7 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
 
             // check if account has transation of type interest posting. Elese throw an exception
             if (fdAccount.getTransactions().size() == 1) {
-                final String defaultUserMessage = "No Interest Posting transactions available for this account . Please Interest Posting Job First";
+                final String defaultUserMessage = "No Interest Posting transactions available for this account . Please Run Interest Posting Job First";
                 throw new GeneralPlatformDomainRuleException(
                         "error.msg.fixed.deposit.account.run.maturity.details.because.account.does.not.have.interest.posting.transaction",
                         defaultUserMessage, account.clientId());
