@@ -648,6 +648,37 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         }
     }
 
+    public void calculateRunningBalances(final LocalDate interestPostingUpToDate, final boolean backdatedTxnsAllowedTill,
+            final boolean postReversals) {
+        boolean recalucateDailyBalanceDetails = true;
+
+        if (recalucateDailyBalanceDetails) {
+            // no openingBalance concept supported yet but probably will to
+            // allow
+            // for migrations.
+            Money openingAccountBalance = Money.zero(this.currency);
+
+            if (backdatedTxnsAllowedTill) {
+                if (this.summary.getLastInterestCalculationDate() == null) {
+                    openingAccountBalance = Money.zero(this.currency);
+                } else {
+                    openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
+                }
+            }
+
+            // update existing transactions so derived balance fields are
+            // correct.
+            recalculateDailyBalances(openingAccountBalance, interestPostingUpToDate, backdatedTxnsAllowedTill, postReversals);
+        }
+
+        if (!backdatedTxnsAllowedTill) {
+            this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+        } else {
+            this.summary.updateSummaryWithPivotConfig(this.currency, this.savingsAccountTransactionSummaryWrapper, null,
+                    this.savingsAccountTransactions);
+        }
+    }
+
     protected List<SavingsAccountTransaction> findWithHoldTransactions() {
         final List<SavingsAccountTransaction> withholdTransactions = new ArrayList<>();
         List<SavingsAccountTransaction> trans = getTransactions();

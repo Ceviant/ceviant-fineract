@@ -114,6 +114,21 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
     @Transactional
     @Override
+    public SavingsAccountTransaction handleWithdrawalForMaturityDetails(final SavingsAccount account, final DateTimeFormatter fmt,
+            final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
+            final boolean applyWithdrawFee, final boolean isRegularTransaction) {
+        boolean isAccountTransfer = false;
+        boolean isInterestTransfer = false;
+        boolean isWithdrawBalance = false;
+        final boolean backdatedTxnsAllowedTill = false;
+        SavingsTransactionBooleanValues transactionBooleanValues = new SavingsTransactionBooleanValues(isAccountTransfer,
+                isRegularTransaction, applyWithdrawFee, isInterestTransfer, isWithdrawBalance);
+        return this.savingsAccountDomainService.handleWithdrawalWithMaturityDetailsJob(account, fmt, transactionDate, transactionAmount,
+                paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
+    }
+
+    @Transactional
+    @Override
     public SavingsAccountTransaction handleFDDeposit(final FixedDepositAccount account, final DateTimeFormatter fmt,
             final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail) {
         boolean isAccountTransfer = false;
@@ -270,7 +285,7 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
         final MathContext mc = MathContext.DECIMAL64;
         Long savingsTransactionId = null;
-        account.postMaturityInterest(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+        account.postMaturityInterestForJobs(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
         final DepositAccountOnClosureType onClosureType = DepositAccountOnClosureType.fromInt(onAccountClosureId);
         if (onClosureType.isReinvest()) {
             BigDecimal reInvestAmount;
@@ -294,8 +309,8 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
             this.savingsAccountRepository.save(reinvestedDeposit);
             autoGenerateAccountNumber(reinvestedDeposit);
-            final SavingsAccountTransaction withdrawal = this.handleWithdrawal(account, fmt, closedDate, reInvestAmount, paymentDetail,
-                    false, isRegularTransaction);
+            final SavingsAccountTransaction withdrawal = this.handleWithdrawalForMaturityDetails(account, fmt, closedDate, reInvestAmount,
+                    paymentDetail, false, isRegularTransaction);
             savingsTransactionId = withdrawal.getId();
 
             if (onClosureType.isReinvestPrincipalAndInterest()
