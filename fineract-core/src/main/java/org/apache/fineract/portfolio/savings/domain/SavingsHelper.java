@@ -74,13 +74,17 @@ public final class SavingsHelper {
 
             if (postingPeriodType.getCode().equals(SavingsPostingInterestPeriodType.ANNUAL.getCode())
                     && interestPostingLocalDate.isAfter(interestPostingUpToDate) && isPostingInterestJob && monthOfYear > 1) {
-                periodEndDate = interestPostingUpToDate;
-                periodEndDate = periodEndDate.minusDays(1);
-                postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
-                log.info(
-                        " --startInterestCalculationLocalDate-- {} -- Period Date is Huge here --interestPostingUpToDate-> {} ---interestPostingLocalDate->{}",
-                        startInterestCalculationLocalDate, interestPostingUpToDate, interestPostingLocalDate);
-                break;
+                if (interestPostingLocalDate.getMonthValue() == 1 && interestPostingLocalDate.getDayOfMonth() == 1
+                        && !interestPostingUpToDate.isBefore(DateUtils.getLocalDateOfTenant())) {
+                    periodEndDate = interestPostingLocalDate.minusDays(1);
+                } else {
+                    periodEndDate = interestPostingUpToDate;
+                    periodEndDate = periodEndDate.minusDays(1);
+                    postingPeriods.add(LocalDateInterval.create(periodStartDate, periodEndDate));
+                    log.info(
+                            " --startInterestCalculationLocalDate-- {} -- Period Date is Huge here --interestPostingUpToDate-> {} ---interestPostingLocalDate->{}",
+                            startInterestCalculationLocalDate, interestPostingUpToDate, interestPostingLocalDate);
+                }
             } else {
                 periodEndDate = interestPostingLocalDate.minusDays(1);
             }
