@@ -84,6 +84,7 @@ public final class SavingsHelper {
                     log.info(
                             " --startInterestCalculationLocalDate-- {} -- Period Date is Huge here --interestPostingUpToDate-> {} ---interestPostingLocalDate->{}",
                             startInterestCalculationLocalDate, interestPostingUpToDate, interestPostingLocalDate);
+                    break;
                 }
             } else {
                 periodEndDate = interestPostingLocalDate.minusDays(1);
