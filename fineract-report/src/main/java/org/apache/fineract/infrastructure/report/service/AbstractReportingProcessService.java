@@ -20,7 +20,6 @@ package org.apache.fineract.infrastructure.report.service;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.apache.fineract.infrastructure.security.service.SqlValidator;
 
@@ -35,14 +34,14 @@ public abstract class AbstractReportingProcessService implements ReportingProces
     @Override
     public Map<String, String> getReportParams(final MultivaluedMap<String, String> queryParams) {
         final Map<String, String> reportParams = new HashMap<>();
-        for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
-            if (entry.getKey().startsWith("R_")) {
-                String pKey = "${" + entry.getKey().substring(2) + "}";
-                String pValue = entry.getValue().get(0);
-                sqlValidator.validate(pValue);
-                reportParams.put(pKey, pValue);
-            }
-        }
+
+        queryParams.entrySet().stream().filter(entry -> entry.getKey().startsWith("R_")).forEach(entry -> {
+            String pKey = "${" + entry.getKey().substring(2) + "}";
+            String pValue = entry.getValue().isEmpty() ? "" : entry.getValue().get(0); // Handle empty values
+            sqlValidator.validate(pValue); // Validate only non-empty values
+            reportParams.put(pKey, pValue);
+        });
+
         return reportParams;
     }
 }
