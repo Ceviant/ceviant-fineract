@@ -22,7 +22,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.List;
 import javax.sql.DataSource;
-
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentifierException;
@@ -42,14 +41,16 @@ public class JdbcTenantDetailsService implements TenantDetailsService {
 
     private final JdbcTemplate jdbcTemplate;
     private final Boolean isReadOnlyInstance;
-    private final Boolean readOnlyHostDependentOnNodeId;
     private final String nodeId;
+    private ReadOnlyDatabaseConfig readOnlyDatabaseConfig;
 
     @Autowired
-    public JdbcTenantDetailsService(@Qualifier("hikariTenantDataSource") final DataSource dataSource,FineractProperties fineractProperties) {
+    public JdbcTenantDetailsService(@Qualifier("hikariTenantDataSource") final DataSource dataSource,
+            FineractProperties fineractProperties) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         isReadOnlyInstance = fineractProperties.getMode().isReadOnlyMode();
-        readOnlyHostDependentOnNodeId = fineractProperties.getTenant().getReadOnlyHostDependentOnNodeId();
+        readOnlyDatabaseConfig = new ReadOnlyDatabaseConfig(fineractProperties.getTenant().getReadOnlyHostDependentOnNodeId(),
+                fineractProperties.getTenant().getReadOnlySchemeNameDependentOnNodeId(), isReadOnlyInstance);
         nodeId = fineractProperties.getNodeId();
     }
 
@@ -61,7 +62,7 @@ public class JdbcTenantDetailsService implements TenantDetailsService {
         }
         try {
 
-            final TenantMapper rm = new TenantMapper(false,isReadOnlyInstance && readOnlyHostDependentOnNodeId,nodeId);
+            final TenantMapper rm = new TenantMapper(false, readOnlyDatabaseConfig, nodeId);
             final String sql = "select " + rm.schema() + " where t.identifier = ?";
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { tenantIdentifier }); // NOSONAR
@@ -72,9 +73,9 @@ public class JdbcTenantDetailsService implements TenantDetailsService {
 
     @Override
     public List<FineractPlatformTenant> findAllTenants() {
-        final TenantMapper rm =  new TenantMapper(false,isReadOnlyInstance && readOnlyHostDependentOnNodeId,nodeId);
+        final TenantMapper rm = new TenantMapper(false, readOnlyDatabaseConfig, nodeId);
         final String sql = "select  " + rm.schema();
 
-       return this.jdbcTemplate.query(sql, rm); // NOSONAR
+        return this.jdbcTemplate.query(sql, rm); // NOSONAR
     }
 }
