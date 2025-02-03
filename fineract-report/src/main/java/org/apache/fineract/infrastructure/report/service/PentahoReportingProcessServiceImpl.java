@@ -24,18 +24,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.ApiParameterHelper;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
+import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
+import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection;
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
+import org.apache.fineract.infrastructure.core.service.database.DatabasePasswordEncryptor;
 import org.apache.fineract.infrastructure.dataqueries.data.ReportExportType;
 import org.apache.fineract.infrastructure.report.annotation.ReportService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
@@ -59,26 +63,47 @@ import org.pentaho.reporting.libraries.resourceloader.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+
+import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection.toJdbcUrl;
+import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection.toProtocol;
 
 @Service
 @ReportService(type = "Pentaho")
 public class PentahoReportingProcessServiceImpl implements ReportingProcessService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PentahoReportingProcessServiceImpl.class);
-    private static final String MIFOS_BASE_DIR = System.getProperty("user.home") + File.separator + ".mifosx";
+    private static final Logger logger = LoggerFactory.getLogger(PentahoReportingProcessServiceImpl.class);
+    private final String mifosBaseDir = System.getProperty("user.home") + File.separator + ".mifosx";
+    private final DatabasePasswordEncryptor databasePasswordEncryptor;
+
+    @Value("${FINERACT_PENTAHO_REPORTS_PATH:/root/.mifosx/pentahoReports}")
+    private String fineractPentahoBaseDir;
 
     private final PlatformSecurityContext context;
-    private final FineractProperties fineractProperties;
-    @Value("${fineract.configuration.pentahoFolderName}")
-    private String pentahoFolderName;
+    private final DataSource tenantDataSource;
 
     @Autowired
-    public PentahoReportingProcessServiceImpl(final PlatformSecurityContext context, final FineractProperties fineractProperties) {
+    FineractProperties fineractProperties;
+
+    @Autowired
+    ApplicationContext applicationContext;
+
+    @Autowired
+    ApplicationContext contextVar;
+
+    @Autowired
+    public PentahoReportingProcessServiceImpl(final PlatformSecurityContext context,
+                                              final @Qualifier("hikariTenantDataSource") DataSource tenantDataSource, DatabasePasswordEncryptor databasePasswordEncryptor) {
         ClassicEngineBoot.getInstance().start();
+        this.tenantDataSource = tenantDataSource;
         this.context = context;
-        this.fineractProperties = fineractProperties;
+        this.databasePasswordEncryptor = databasePasswordEncryptor;
     }
 
     @Override
@@ -86,61 +111,51 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
         final var outputTypeParam = queryParams.getFirst("output-type");
         final var reportParams = getReportParams(queryParams);
         final var locale = ApiParameterHelper.extractLocale(queryParams);
-        final var dateFormat = ApiParameterHelper.extractDateFormat(queryParams);
+        final var language = "en";
+
         var outputType = "HTML";
         if (StringUtils.isNotBlank(outputTypeParam)) {
             outputType = outputTypeParam;
         }
+
         if ((!outputType.equalsIgnoreCase("HTML") && !outputType.equalsIgnoreCase("PDF") && !outputType.equalsIgnoreCase("XLS")
                 && !outputType.equalsIgnoreCase("XLSX") && !outputType.equalsIgnoreCase("CSV"))) {
             throw new PlatformDataIntegrityException("error.msg.invalid.outputType", "No matching Output Type: " + outputType);
         }
-        final var reportPath = MIFOS_BASE_DIR + File.separator + pentahoFolderName + File.separator + reportName + ".prpt";
-        var outPutInfo = "Report path: " + reportPath;
-        LOGGER.info("Report path: {}", outPutInfo);
 
+        // final var reportPath = mifosBaseDir + File.separator + "pentahoReports" + File.separator + reportName +
+        // ".prpt";
+        String reportPath;
+        if (!"en".equals(locale.toString().toLowerCase()) && locale != null) {
+            reportPath = getReportPath() + reportName + "_" + locale.toString().toLowerCase() + ".prpt";
+        } else {
+            reportPath = getReportPath() + reportName + ".prpt";
+        }
+        var outPutInfo = "Report path: " + reportPath;
+        logger.debug("Report path: {}", outPutInfo);
+
+        // load report definition
         final var manager = new ResourceManager();
         manager.registerDefaults();
         Resource res;
+
         try {
             res = manager.createDirectly(reportPath, MasterReport.class);
             final var masterReport = (MasterReport) res.getResource();
-            final ReportParameterValues parameterValues = masterReport.getParameterValues();
-            addParametersToReport(masterReport, reportParams, dateFormat);
-            String tenantUrl = (String) parameterValues.get("tenantUrl");
-            String username = fineractProperties.getTenant().getUsername();
-            String password = fineractProperties.getTenant().getPassword();
-            DataFactory dataFactory = masterReport.getDataFactory();
-            CompoundDataFactory compoundDataFactory = (CompoundDataFactory) dataFactory;
-            SQLReportDataFactory sqlReportDataFactory = (SQLReportDataFactory) compoundDataFactory.get(0);
-            DriverConnectionProvider connectionProvider = (DriverConnectionProvider) sqlReportDataFactory.getConnectionProvider();
-            final var tenant = ThreadLocalContextUtil.getTenant();
-            final var tenantConnection = tenant.getConnection();
-            tenant.getConnection().getSchemaServer();
-            connectionProvider.setUrl(tenantUrl);
-            connectionProvider.setDriver("org.postgresql.Driver");
-            connectionProvider.setProperty("password", password);
-            connectionProvider.setProperty("user", username);
-            connectionProvider.setProperty("::pentaho-reporting::hostname", tenantConnection.getSchemaServer());
-            connectionProvider.setProperty("::pentaho-reporting::database-type", "MariaDb");
-            connectionProvider.setProperty("::pentaho-reporting::name", "fineract");
-            connectionProvider.setProperty("::pentaho-reporting::database-name", tenantConnection.getReadOnlySchemaName());
-            connectionProvider.setProperty("defaultFetchSize", "500");
-            connectionProvider.setProperty("::pentaho-reporting-other-attribute::STREAM_RESULTS", "Y");
-            connectionProvider.setProperty("::pentaho-reporting-other-attribute::PORT_NUMBER", tenantConnection.getSchemaServerPort());
-            connectionProvider.setProperty("::pentaho-reporting::port", tenantConnection.getSchemaServerPort());
-            connectionProvider.setProperty("socketFactory", null);
-            connectionProvider.setProperty("cloudSqlInstance", null);
+
+            // Override Data Connection Factory with the driver and url
+            CompoundDataFactory compoundDataFactory = (CompoundDataFactory) masterReport.getDataFactory();
+            setConnectionDetail(compoundDataFactory.get(0));
+
             final var reportEnvironment = (DefaultReportEnvironment) masterReport.getReportEnvironment();
             if (locale != null) {
                 reportEnvironment.setLocale(locale);
             }
-            TimeZone timeZone = TimeZone.getDefault();
-            if (Arrays.asList(TimeZone.getAvailableIDs()).contains(tenant.getTimezoneId())) {
-                timeZone = TimeZone.getTimeZone(tenant.getTimezoneId());
-            }
-            reportEnvironment.setTimeZone(timeZone);
+
+            addParametersToReport(masterReport, reportParams);
+
             final var baos = new ByteArrayOutputStream();
+
             if ("PDF".equalsIgnoreCase(outputType)) {
                 PdfReportUtil.createPDF(masterReport, baos);
                 return Response.ok().entity(baos.toByteArray()).type("application/pdf").build();
@@ -168,10 +183,74 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
                 throw new PlatformDataIntegrityException("error.msg.invalid.outputType", "No matching Output Type: " + outputType);
 
             }
-        } catch (final ResourceException | ReportProcessingException | IOException e) {
-            LOGGER.error("Pentaho failed", e);
-            throw new PlatformDataIntegrityException("error.msg.reporting.error", "Pentaho failed: " + e.getMessage());
+        } catch (Throwable t) {
+            logger.error("Pentaho failed", t);
+            throw new PlatformDataIntegrityException("error.msg.reporting.error", "Pentaho failed: " + t.getMessage());
         }
+    }
+    private String getReportPath() {
+        if (StringUtils.isNotBlank(fineractPentahoBaseDir)) {
+            return this.fineractPentahoBaseDir + File.separator;
+        }
+        return this.mifosBaseDir + File.separator + "pentahoReports" + File.separator;
+    }
+    private void setConnectionDetail(DataFactory dataFactory) throws SQLException {
+        final FineractPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
+        final FineractPlatformTenantConnection tenantConnection = tenant.getConnection();
+
+        if (dataFactory instanceof SQLReportDataFactory) {
+            SQLReportDataFactory sqlReportDataFactory = (SQLReportDataFactory) dataFactory;
+            final DriverConnectionProvider connectionProvider = (DriverConnectionProvider) sqlReportDataFactory.getConnectionProvider();
+
+            Driver e = DriverManager.getDriver(getTenantUrl());
+            // Printing the driver
+            logger.info("Driver: {} ", e.getClass().getName().toString());
+            connectionProvider.setDriver(e.getClass().getName().toString());
+            connectionProvider.setUrl(getTenantUrl());
+            connectionProvider.setProperty("user", tenantConnection.getSchemaUsername());
+            logger.info("Schema Username: {}", tenantConnection.getSchemaUsername());
+            connectionProvider.setProperty("password", databasePasswordEncryptor.decrypt(tenantConnection.getSchemaPassword()).trim());
+            sqlReportDataFactory.setConnectionProvider(connectionProvider);
+        }
+    }
+
+    private String getTenantUrl() {
+        final FineractPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
+        final FineractPlatformTenantConnection tenantConnection = tenant.getConnection();
+        String protocol = toProtocol(tenantDataSource);
+        // Default properties for Writing
+        String schemaServer = tenantConnection.getSchemaServer();
+        String schemaPort = tenantConnection.getSchemaServerPort();
+        String schemaName = tenantConnection.getSchemaName();
+
+        String schemaConnectionParameters = tenantConnection.getSchemaConnectionParameters();
+        // Properties to ReadOnly case
+        if (fineractProperties.getMode().isReadOnlyMode()) {
+            schemaServer = getPropertyValue(tenantConnection.getReadOnlySchemaServer(), "FINERACT_RO_SCHEMA_SERVER_NAME",
+                    schemaServer);
+            schemaPort = getPropertyValue(tenantConnection.getReadOnlySchemaServerPort(), "FINERACT_RO_SCHEMA_SERVER_PORT",
+                    schemaPort);
+            schemaName = getPropertyValue(tenantConnection.getReadOnlySchemaName(), "FINERACT_RO_SCHEMA_SCHEMA_NAME",
+                    schemaName);
+
+            schemaConnectionParameters = getPropertyValue(tenantConnection.getReadOnlySchemaConnectionParameters(),
+                    "FINERACT_RO_SCHEMA_CONNECTION_PARAMETERS", schemaConnectionParameters);
+        }
+        String jdbcUrl = toJdbcUrl(protocol, schemaServer, schemaPort, schemaName, schemaConnectionParameters);
+        logger.info("JDBC Url: {}", jdbcUrl);
+
+        return jdbcUrl;
+    }
+
+    private String getPropertyValue(final String baseValue, final String propertyName, final String defaultValue) {
+        // If the property already has set, return It
+        if (null != baseValue) {
+            return baseValue;
+        }
+        if (applicationContext == null) {
+            return defaultValue;
+        }
+        return applicationContext.getEnvironment().getProperty(propertyName, defaultValue);
     }
 
     @Override
@@ -179,60 +258,93 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
         return null;
     }
 
-    private void addParametersToReport(final MasterReport report, final Map<String, String> queryParams, String dateFormat) {
+    private void addParametersToReport(final MasterReport report, final Map<String, String> queryParams) {
         final var currentUser = this.context.authenticatedUser();
         try {
             final var rptParamValues = report.getParameterValues();
             final var paramsDefinition = report.getParameterDefinition();
+
+            // only allow integer, long, date and string parameter types and assume all mandatory - could go more
+            // detailed like Pawel did in Mifos later and could match incoming and Pentaho parameters better...
+            // currently assuming they come in ok... and if not an error
             for (final ParameterDefinitionEntry paramDefEntry : paramsDefinition.getParameterDefinitions()) {
-                final String paramName = paramDefEntry.getName();
-                final String pValue = queryParams.get(paramName);
-                if (!(paramName.equals("tenantUrl")
-                        || (paramName.equals("userhierarchy") || paramName.equals("username")
-                                || (paramName.equals("password") || paramName.equals("userid")))
-                        || (StringUtils.isBlank(pValue) && (paramName.equals("startDate") || paramName.equals("endDate"))))) {
-                    LOGGER.info("paramName:" + paramName);
+                final var paramName = paramDefEntry.getName();
+                if ((!paramName.equals("tenantUrl") && (!paramName.equals("userhierarchy") && !paramName.equals("username")
+                        && (!paramName.equals("password") && !paramName.equals("userid"))))) {
+
+                    var outPutInfo2 = "paramName:" + paramName;
+                    logger.debug("paramName: {}", outPutInfo2);
+
+                    final var pValue = queryParams.get(paramName);
                     if (StringUtils.isBlank(pValue)) {
                         throw new PlatformDataIntegrityException("error.msg.reporting.error",
                                 "Pentaho Parameter: " + paramName + " - not Provided");
                     }
 
                     final Class<?> clazz = paramDefEntry.getValueType();
-                    LOGGER.info("addParametersToReport(" + paramName + " : " + pValue + " : " + clazz.getCanonicalName() + ")");
+                    var outPutInfo3 = "addParametersToReport(" + paramName + " : " + pValue + " : " + clazz.getCanonicalName() + ")";
+                    logger.debug("outputInfo: {}", outPutInfo3);
+
                     if (clazz.getCanonicalName().equalsIgnoreCase("java.lang.Integer")) {
                         rptParamValues.put(paramName, Integer.parseInt(pValue));
                     } else if (clazz.getCanonicalName().equalsIgnoreCase("java.lang.Long")) {
                         rptParamValues.put(paramName, Long.parseLong(pValue));
                     } else if (clazz.getCanonicalName().equalsIgnoreCase("java.sql.Date")) {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
-                        LocalDate localDate = LocalDate.parse(pValue, formatter);
-                        Date sqlDate = Date.valueOf(localDate);
-                        rptParamValues.put(paramName, sqlDate);
+                        logger.debug("ParamName: {}", paramName);
+                        logger.debug("ParamValue: {}", pValue.toString());
+                        String myDate = pValue.toString();
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
+                        java.util.Date date = sdf.parse(myDate);
+                        long millis = date.getTime();
+                        java.sql.Date mySQLDate = new java.sql.Date(millis);
+                        rptParamValues.put(paramName, mySQLDate);
                     } else {
+                        logger.debug("ParamName Unknown: {}", paramName);
+                        logger.debug("ParamValue Unknown: {}", pValue.toString());
                         rptParamValues.put(paramName, pValue);
                     }
                 }
             }
 
+            // Tenant database name and current user's office hierarchy
+            // passed as parameters to allow multitenant Pentaho reporting
+            // and data scoping
             final var tenant = ThreadLocalContextUtil.getTenant();
             final var tenantConnection = tenant.getConnection();
-            final String schemaParameters = tenantConnection.getSchemaConnectionParameters();
-            var tenantUrl = "jdbc:postgresql://" + tenantConnection.getSchemaServer() + ":" + tenantConnection.getSchemaServerPort() + "/"
-                    + tenantConnection.getSchemaName() + "?useSSL=false&allowPublicKeyRetrieval=true&" + schemaParameters;
-            final var userHierarchy = currentUser.getOffice().getHierarchy();
-            var outPutInfo4 = "db URL:" + tenantUrl + "      userhierarchy:" + userHierarchy;
-            LOGGER.info(outPutInfo4);
-            rptParamValues.put("userhierarchy", userHierarchy);
+            String protocol = toProtocol(this.tenantDataSource);
+            Environment environment = contextVar.getEnvironment();
+            String tenantUrl = toJdbcUrl(protocol, tenantConnection.getSchemaServer(), tenantConnection.getSchemaServerPort(),
+                    tenantConnection.getSchemaName(), tenantConnection.getSchemaConnectionParameters());
+
+            final var userhierarchy = currentUser.getOffice().getHierarchy();
+            logger.debug("userHierarchy: {} ", userhierarchy);
+            logger.debug("db URL: {} userhierarchy {}", tenantUrl, userhierarchy);
+
+            rptParamValues.put("userhierarchy", userhierarchy);
+
             final var userid = currentUser.getId();
             var outPutInfo5 = "db URL:" + tenantUrl + "      userid:" + userid;
-            LOGGER.info(outPutInfo5);
+            logger.debug(outPutInfo5);
+
             rptParamValues.put("userid", userid);
-            rptParamValues.put("tenantUrl", tenantUrl);
-            rptParamValues.put("username", tenantConnection.getSchemaUsername());
-            rptParamValues.put("password", tenantConnection.getSchemaPassword());
-        } catch (final Exception e) {
-            LOGGER.error("error.msg.reporting.error:", e);
-            throw new PlatformDataIntegrityException("error.msg.reporting.error", e.getMessage());
+
+            rptParamValues.put("tenantUrl", tenantUrl.trim());
+
+            if (tenantConnection.getSchemaUsername().equalsIgnoreCase("") || tenantConnection.getSchemaUsername() == null) {
+                rptParamValues.put("username", environment.getProperty("FINERACT_DEFAULT_TENANTDB_UID"));
+            } else {
+                rptParamValues.put("username", tenantConnection.getSchemaUsername().trim());
+            }
+
+            if (tenantConnection.getSchemaPassword().equalsIgnoreCase("") || tenantConnection.getSchemaPassword() == null) {
+                rptParamValues.put("password", environment.getProperty("FINERACT_DEFAULT_TENANTDB_PWD"));
+            } else {
+                rptParamValues.put("password", databasePasswordEncryptor.decrypt(tenantConnection.getSchemaPassword()).trim());
+            }
+
+        } catch (Throwable t) {
+            logger.error("error.msg.reporting.error:", t);
+            throw new PlatformDataIntegrityException("error.msg.reporting.error", t.getMessage());
         }
     }
 
