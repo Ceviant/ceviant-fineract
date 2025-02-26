@@ -72,12 +72,18 @@ public final class JsonCommand {
     private final Long organisationCreditBureauId;
     private final String jobName;
 
+    private final String transactionAmount;
+    private final String useRef;
+    private final String reference;
+
     public static JsonCommand from(final String jsonCommand, final JsonElement parsedCommand, final FromJsonHelper fromApiJsonHelper,
             final String entityName, final Long resourceId, final Long subresourceId, final Long groupId, final Long clientId,
             final Long loanId, final Long savingsId, final String transactionId, final String url, final Long productId,
-            final Long creditBureauId, final Long organisationCreditBureauId, final String jobName) {
+            final Long creditBureauId, final Long organisationCreditBureauId, final String jobName, final String transactionAmount,
+            final String useRef, final String reference) {
         return new JsonCommand(null, jsonCommand, parsedCommand, fromApiJsonHelper, entityName, resourceId, subresourceId, groupId,
-                clientId, loanId, savingsId, transactionId, url, productId, creditBureauId, organisationCreditBureauId, jobName);
+                clientId, loanId, savingsId, transactionId, url, productId, creditBureauId, organisationCreditBureauId, jobName,
+                transactionAmount, useRef, reference);
 
     }
 
@@ -86,7 +92,7 @@ public final class JsonCommand {
             final String url, final Long productId, final Long creditBureauId, final Long organisationCreditBureauId,
             final String jobName) {
         return new JsonCommand(commandId, jsonCommand, parsedCommand, fromApiJsonHelper, entityName, resourceId, subresourceId, null, null,
-                null, null, null, url, productId, creditBureauId, organisationCreditBureauId, jobName);
+                null, null, null, url, productId, creditBureauId, organisationCreditBureauId, jobName, null, null, null);
     }
 
     public static JsonCommand fromExistingCommand(final Long commandId, final String jsonCommand, final JsonElement parsedCommand,
@@ -94,7 +100,8 @@ public final class JsonCommand {
             final Long groupId, final Long clientId, final Long loanId, final Long savingsId, final String transactionId, final String url,
             final Long productId, Long creditBureauId, final Long organisationCreditBureauId, final String jobName) {
         return new JsonCommand(commandId, jsonCommand, parsedCommand, fromApiJsonHelper, entityName, resourceId, subresourceId, groupId,
-                clientId, loanId, savingsId, transactionId, url, productId, creditBureauId, organisationCreditBureauId, jobName);
+                clientId, loanId, savingsId, transactionId, url, productId, creditBureauId, organisationCreditBureauId, jobName, null, null,
+                null);
 
     }
 
@@ -103,7 +110,7 @@ public final class JsonCommand {
         return new JsonCommand(command.commandId, jsonCommand, parsedCommand, command.fromApiJsonHelper, command.entityName,
                 command.resourceId, command.subresourceId, command.groupId, command.clientId, command.loanId, command.savingsId,
                 command.transactionId, command.url, command.productId, command.creditBureauId, command.organisationCreditBureauId,
-                command.jobName);
+                command.jobName, null, null, null);
     }
 
     public static JsonCommand fromExistingCommand(JsonCommand command, final JsonElement parsedCommand, final Long clientId) {
@@ -111,13 +118,14 @@ public final class JsonCommand {
         return new JsonCommand(command.commandId, jsonCommand, parsedCommand, command.fromApiJsonHelper, command.entityName,
                 command.resourceId, command.subresourceId, command.groupId, clientId, command.loanId, command.savingsId,
                 command.transactionId, command.url, command.productId, command.creditBureauId, command.organisationCreditBureauId,
-                command.jobName);
+                command.jobName, null, null, null);
     }
 
     public JsonCommand(final Long commandId, final String jsonCommand, final JsonElement parsedCommand,
             final FromJsonHelper fromApiJsonHelper, final String entityName, final Long resourceId, final Long subresourceId,
             final Long groupId, final Long clientId, final Long loanId, final Long savingsId, final String transactionId, final String url,
-            final Long productId, final Long creditBureauId, final Long organisationCreditBureauId, final String jobName) {
+            final Long productId, final Long creditBureauId, final Long organisationCreditBureauId, final String jobName,
+            final String transactionAmount, final String useRef, final String reference) {
 
         this.commandId = commandId;
         this.jsonCommand = jsonCommand;
@@ -136,6 +144,9 @@ public final class JsonCommand {
         this.creditBureauId = creditBureauId;
         this.organisationCreditBureauId = organisationCreditBureauId;
         this.jobName = jobName;
+        this.transactionAmount = transactionAmount;
+        this.useRef = useRef;
+        this.reference = reference;
     }
 
     public static JsonCommand fromJsonElement(final Long resourceId, final JsonElement parsedCommand) {
@@ -165,6 +176,9 @@ public final class JsonCommand {
         this.creditBureauId = null;
         this.organisationCreditBureauId = null;
         this.jobName = null;
+        this.transactionAmount = null;
+        this.useRef = null;
+        this.reference = null;
     }
 
     public JsonCommand(final Long resourceId, final JsonElement parsedCommand, final FromJsonHelper fromApiJsonHelper) {
@@ -185,10 +199,14 @@ public final class JsonCommand {
         this.creditBureauId = null;
         this.organisationCreditBureauId = null;
         this.jobName = null;
+        this.transactionAmount = null;
+        this.useRef = null;
+        this.reference = null;
     }
 
     public static JsonCommand from(final String jsonCommand) {
-        return new JsonCommand(null, jsonCommand, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new JsonCommand(null, jsonCommand, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null);
 
     }
 
@@ -226,6 +244,18 @@ public final class JsonCommand {
 
     public Long subentityId() {
         return this.subresourceId;
+    }
+
+    public String getTransactionAmount() {
+        return transactionAmount;
+    }
+
+    public String getUseRef() {
+        return useRef;
+    }
+
+    public String getReference() {
+        return reference;
     }
 
     private boolean differenceExists(final TemporalAccessor baseValue, final TemporalAccessor workingCopyValue) {

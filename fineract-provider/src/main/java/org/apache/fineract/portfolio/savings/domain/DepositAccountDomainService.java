@@ -25,11 +25,13 @@ import java.util.Map;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface DepositAccountDomainService {
 
     SavingsAccountTransaction handleWithdrawal(SavingsAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
+            BigDecimal transactionAmount, PaymentDetail paymentDetail, boolean applyWithdrawFee, boolean isRegularTransaction);
+
+    SavingsAccountTransaction handleWithdrawalForMaturityDetails(SavingsAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
             BigDecimal transactionAmount, PaymentDetail paymentDetail, boolean applyWithdrawFee, boolean isRegularTransaction);
 
     SavingsAccountTransaction handleFDDeposit(FixedDepositAccount account, DateTimeFormatter fmt, LocalDate transactionDate,
@@ -44,7 +46,6 @@ public interface DepositAccountDomainService {
     Long handleFDAccountClosure(FixedDepositAccount account, PaymentDetail paymentDetail, AppUser user, JsonCommand command,
             Map<String, Object> changes);
 
-    @Transactional
     Long handleFDAccountMaturityClosure(FixedDepositAccount account, PaymentDetail paymentDetail, AppUser user, DateTimeFormatter fmt,
             LocalDate closedDate, Integer onAccountClosureId, Long toSavingsId, String transferDescription, Map<String, Object> changes);
 

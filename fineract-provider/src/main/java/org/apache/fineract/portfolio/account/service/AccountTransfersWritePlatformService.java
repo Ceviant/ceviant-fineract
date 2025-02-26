@@ -34,6 +34,10 @@ public interface AccountTransfersWritePlatformService {
 
     Long transferFunds(AccountTransferDTO accountTransferDTO);
 
+    Long transferFundsWithTransactions(AccountTransferDTO accountTransferDTO);
+
+    Long transferFundsWithTransactionsMaturityDetailsJob(AccountTransferDTO accountTransferDTO);
+
     void reverseAllTransactions(Long accountId, PortfolioAccountType accountTypeId);
 
     void updateLoanTransaction(Long loanTransactionId, LoanTransaction newLoanTransaction);
@@ -43,4 +47,6 @@ public interface AccountTransfersWritePlatformService {
     void reverseTransfersWithFromAccountTransactions(Collection<Long> fromTransactionIds, PortfolioAccountType accountTypeId);
 
     AccountTransferDetails repayLoanWithTopup(AccountTransferDTO accountTransferDTO);
+
+    CommandProcessingResult undoInterTenantTransfer(String reference);
 }

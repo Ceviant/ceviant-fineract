@@ -103,7 +103,7 @@ public final class SavingsAccountTransactionData implements Serializable {
     private BigDecimal overdraftAmount;
     private transient Long modifiedId;
     private transient String refNo;
-    private String uniqueTransactionReference;
+    private String reference;
     private String tenantId;
     private String accountName;
     private String transactionReferenceNumber;
@@ -664,8 +664,8 @@ public final class SavingsAccountTransactionData implements Serializable {
         return entryType;
     }
 
-    public void setUniqueTransactionReference(String uniqueTransactionReference) {
-        this.uniqueTransactionReference = uniqueTransactionReference;
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
     public void setTenantId(String tenantId) {

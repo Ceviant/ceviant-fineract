@@ -215,7 +215,7 @@ public class FixedDepositAccount extends SavingsAccount {
             final boolean isPreMatureClosure, final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
             final Integer financialYearBeginningMonth) {
         final LocalDate maturityDate = calculateMaturityDate();
-        final LocalDate interestCalculationUpto = maturityDate.minusDays(1);
+        final LocalDate interestCalculationUpto = maturityDate;
 
         // set end of day balance to maturity date for maturity interest
         // calculation
@@ -253,7 +253,7 @@ public class FixedDepositAccount extends SavingsAccount {
         if (!DateUtils.isDateInTheFuture(maturityDate())) {
             // update account status
             this.status = SavingsAccountStatusType.MATURED.getValue();
-            postMaturityInterest(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+            postMaturityInterestForJobs(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
         }
     }
 
@@ -297,7 +297,7 @@ public class FixedDepositAccount extends SavingsAccount {
 
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(
                 accountSubmittedOrActivationDate(), maturityDate, postingPeriodType, financialYearBeginningMonth,
-                postedAsOnTransactionDates);
+                postedAsOnTransactionDates, true);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 
@@ -327,8 +327,7 @@ public class FixedDepositAccount extends SavingsAccount {
         }
 
         this.summary.updateFromInterestPeriodSummaries(this.currency, allPostingPeriods);
-        this.savingsHelper.calculateInterestForAllPostingPeriods(this.currency, allPostingPeriods, getLockedInUntilDate(),
-                isTransferInterestToOtherAccount());
+        this.savingsHelper.calculateInterestForAllPostingPeriods(this.currency, allPostingPeriods, getLockedInUntilDate(), false);
         return allPostingPeriods;
     }
 
@@ -555,6 +554,25 @@ public class FixedDepositAccount extends SavingsAccount {
                 }
             }
         }
+        recalucateDailyBalanceDetails = applyWithholdTaxForDepositAccounts(interestPostingUpToDate, recalucateDailyBalanceDetails,
+                backdatedTxnsAllowedTill);
+        if (recalucateDailyBalanceDetails) {
+            // update existing transactions so derived balance fields are
+            // correct.
+            recalculateDailyBalances(Money.zero(this.currency), interestPostingUpToDate, backdatedTxnsAllowedTill, postReversals);
+        }
+
+        this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+    }
+
+    public void postMaturityInterestForJobs(final boolean isSavingsInterestPostingAtCurrentPeriodEnd,
+            final Integer financialYearBeginningMonth) {
+        final LocalDate interestPostingUpToDate = maturityDate();
+        final boolean backdatedTxnsAllowedTill = false;
+        boolean postReversals = false;
+
+        boolean recalucateDailyBalanceDetails = true;
+
         recalucateDailyBalanceDetails = applyWithholdTaxForDepositAccounts(interestPostingUpToDate, recalucateDailyBalanceDetails,
                 backdatedTxnsAllowedTill);
         if (recalucateDailyBalanceDetails) {
@@ -797,8 +815,9 @@ public class FixedDepositAccount extends SavingsAccount {
     public FixedDepositAccount reInvest(BigDecimal depositAmount) {
 
         final DepositAccountTermAndPreClosure newAccountTermAndPreClosure = this.accountTermAndPreClosure.copy(depositAmount);
-        final SavingsProduct product = this.product;
-        final InterestRateChart productChart = product.applicableChart(getClosedOnDate());
+        final FixedDepositProduct product = (FixedDepositProduct) this.product;
+        LocalDate dateClosed = (getClosedOnDate() != null) ? getClosedOnDate() : this.maturityDate();
+        final InterestRateChart productChart = product.applicableChart(dateClosed);
         final DepositAccountInterestRateChart newChart = DepositAccountInterestRateChart.from(productChart);
 
         final AccountType accountType = AccountType.fromInt(this.accountType);
@@ -817,11 +836,11 @@ public class FixedDepositAccount extends SavingsAccount {
         final String accountNumber = null;
         final boolean withHoldTax = this.withHoldTax;
         final FixedDepositAccount reInvestedAccount = FixedDepositAccount.createNewApplicationForSubmittal(client, group, product,
-                savingsOfficer, accountNumber, externalId, accountType, getClosedOnDate(), closedBy, interestRate, compoundingPeriodType,
+                savingsOfficer, accountNumber, externalId, accountType, dateClosed, closedBy, interestRate, compoundingPeriodType,
                 postingPeriodType, interestCalculationType, daysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency,
                 lockinPeriodFrequencyType, withdrawalFeeApplicableForTransfer, savingsAccountCharges, newAccountTermAndPreClosure, newChart,
                 withHoldTax);
-
+        reInvestedAccount.setExternalId(new ExternalId(this.accountNumber));
         newAccountTermAndPreClosure.updateAccountReference(reInvestedAccount);
         newChart.updateDepositAccountReference(reInvestedAccount);
 
@@ -882,4 +901,7 @@ public class FixedDepositAccount extends SavingsAccount {
         return SavingsAccountStatusType.MATURED.getValue().equals(this.status);
     }
 
+    public DepositAccountTermAndPreClosure getAccountTermAndPreClosure() {
+        return accountTermAndPreClosure;
+    }
 }

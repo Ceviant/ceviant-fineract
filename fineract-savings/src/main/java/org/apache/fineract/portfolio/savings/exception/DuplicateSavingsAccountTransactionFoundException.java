@@ -22,11 +22,9 @@ import org.apache.fineract.infrastructure.core.exception.AbstractPlatformResourc
 
 public class DuplicateSavingsAccountTransactionFoundException extends AbstractPlatformResourceNotFoundException {
 
-    public DuplicateSavingsAccountTransactionFoundException(final String uniqueTransactionReference) {
+    public DuplicateSavingsAccountTransactionFoundException(final String reference) {
         super("error.msg.duplicate.saving.account.transaction.found",
-                "Duplicate Savings account Transaction with transaction unique reference already exists " + uniqueTransactionReference
-                        + " ",
-                uniqueTransactionReference);
+                "Duplicate Savings account Transaction with transaction reference already exists " + reference + " ", reference);
     }
 
 }

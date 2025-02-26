@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.savings.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
@@ -35,7 +36,11 @@ public interface SavingsAccountWritePlatformService {
 
     CommandProcessingResult deposit(Long savingsId, JsonCommand command);
 
+    CommandProcessingResult depositForMultiTenant(Long savingsId, JsonCommand command);
+
     CommandProcessingResult withdrawal(Long savingsId, JsonCommand command);
+
+    CommandProcessingResult withdrawalForMultiTenant(Long savingsId, JsonCommand command);
 
     CommandProcessingResult applyAnnualFee(Long savingsAccountChargeId, Long accountId);
 
@@ -45,6 +50,9 @@ public interface SavingsAccountWritePlatformService {
             JsonCommand command);
 
     CommandProcessingResult undoTransaction(Long savingsId, Long transactionId, boolean allowAccountTransferModification);
+
+    CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
+            boolean allowAccountTransferModification, Boolean useRef);
 
     CommandProcessingResult adjustSavingsTransaction(Long savingsId, Long transactionId, JsonCommand command);
 
@@ -95,7 +103,7 @@ public interface SavingsAccountWritePlatformService {
     // boolean backdatedTxnsAllowedTill);
 
     SavingsAccountData postInterest(SavingsAccountData account, boolean postInterestAs, LocalDate transactionDate,
-            boolean backdatedTxnsAllowedTill);
+            boolean backdatedTxnsAllowedTill, boolean isPostingInterestJob);
 
     CommandProcessingResult blockAccount(Long savingsId, JsonCommand command);
 

@@ -114,13 +114,28 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
     @Transactional
     @Override
+    public SavingsAccountTransaction handleWithdrawalForMaturityDetails(final SavingsAccount account, final DateTimeFormatter fmt,
+            final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail,
+            final boolean applyWithdrawFee, final boolean isRegularTransaction) {
+        boolean isAccountTransfer = false;
+        boolean isInterestTransfer = false;
+        boolean isWithdrawBalance = false;
+        final boolean backdatedTxnsAllowedTill = false;
+        SavingsTransactionBooleanValues transactionBooleanValues = new SavingsTransactionBooleanValues(isAccountTransfer,
+                isRegularTransaction, applyWithdrawFee, isInterestTransfer, isWithdrawBalance);
+        return this.savingsAccountDomainService.handleWithdrawalWithMaturityDetailsJob(account, fmt, transactionDate, transactionAmount,
+                paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
+    }
+
+    @Transactional
+    @Override
     public SavingsAccountTransaction handleFDDeposit(final FixedDepositAccount account, final DateTimeFormatter fmt,
             final LocalDate transactionDate, final BigDecimal transactionAmount, final PaymentDetail paymentDetail) {
         boolean isAccountTransfer = false;
         boolean isRegularTransaction = false;
         final boolean backdatedTxnsAllowedTill = false;
-        return this.savingsAccountDomainService.handleDeposit(account, fmt, transactionDate, transactionAmount, paymentDetail,
-                isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
+        return this.savingsAccountDomainService.handleDepositWithMaturityDetailsJob(account, fmt, transactionDate, transactionAmount,
+                paymentDetail, isAccountTransfer, isRegularTransaction, backdatedTxnsAllowedTill);
     }
 
     @Transactional
@@ -249,7 +264,6 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         return savingsTransactionId;
     }
 
-    @Transactional
     @Override
     public Long handleFDAccountMaturityClosure(final FixedDepositAccount account, final PaymentDetail paymentDetail, final AppUser user,
             final DateTimeFormatter fmt, final LocalDate closedDate, final Integer onAccountClosureId, final Long toSavingsId,
@@ -271,14 +285,22 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
         final MathContext mc = MathContext.DECIMAL64;
         Long savingsTransactionId = null;
-        account.postMaturityInterest(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
+        account.postMaturityInterestForJobs(isSavingsInterestPostingAtCurrentPeriodEnd, financialYearBeginningMonth);
         final DepositAccountOnClosureType onClosureType = DepositAccountOnClosureType.fromInt(onAccountClosureId);
         if (onClosureType.isReinvest()) {
             BigDecimal reInvestAmount;
             if (onClosureType.isReinvestPrincipal()) {
-                reInvestAmount = account.getDepositAmount();
+                /*
+                 * This fixes an issue with issuffient balance on an account due to decimal point/ precision issues eg.
+                 * let's say principal was 700,000 and now the actual balance is 699,999.72 ideally it's the right
+                 * value. so as we re-invest, let's re-invest the actual balance and not the principal amount since the
+                 * other value was taken as interest at a certain point
+                 */
+                reInvestAmount = account.getSummary().getAccountBalance() != null ? account.getSummary().getAccountBalance()
+                        : account.getDepositAmount();
             } else {
-                reInvestAmount = account.getAccountBalance();
+                reInvestAmount = account.getSummary().getAccountBalance() != null ? account.getSummary().getAccountBalance()
+                        : account.getAccountBalance();
             }
             FixedDepositAccount reinvestedDeposit = account.reInvest(reInvestAmount);
             this.depositAccountAssembler.assignSavingAccountHelpers(reinvestedDeposit);
@@ -287,11 +309,12 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
             this.savingsAccountRepository.save(reinvestedDeposit);
             autoGenerateAccountNumber(reinvestedDeposit);
-            final SavingsAccountTransaction withdrawal = this.handleWithdrawal(account, fmt, closedDate, reInvestAmount, paymentDetail,
-                    false, isRegularTransaction);
+            final SavingsAccountTransaction withdrawal = this.handleWithdrawalForMaturityDetails(account, fmt, closedDate, reInvestAmount,
+                    paymentDetail, false, isRegularTransaction);
             savingsTransactionId = withdrawal.getId();
 
-            if (onClosureType.isReinvestPrincipalAndInterest()) {
+            if (onClosureType.isReinvestPrincipalAndInterest()
+                    || (onClosureType.isReinvestPrincipal() && account.getAccountTermAndPreClosure().isTransferInterestToLinkedAccount())) {
                 account.updateClosedStatus();
                 account.updateOnAccountClosureStatus(onClosureType);
             }

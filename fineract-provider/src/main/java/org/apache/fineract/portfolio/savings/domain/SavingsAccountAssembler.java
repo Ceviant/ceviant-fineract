@@ -19,6 +19,8 @@
 package org.apache.fineract.portfolio.savings.domain;
 
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.SAVINGS_ACCOUNT_RESOURCE_NAME;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.accountDBAParamName;
+import static org.apache.fineract.portfolio.savings.SavingsApiConstants.accountNameParamName;
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.accountNoParamName;
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.allowOverdraftParamName;
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.clientIdParamName;
@@ -137,6 +139,8 @@ public class SavingsAccountAssembler {
         final String accountNo = this.fromApiJsonHelper.extractStringNamed(accountNoParamName, element);
         final String externalId = this.fromApiJsonHelper.extractStringNamed(externalIdParamName, element);
         final Long productId = this.fromApiJsonHelper.extractLongNamed(productIdParamName, element);
+        final String accountName = this.fromApiJsonHelper.extractStringNamed(accountNameParamName, element);
+        final String dbaAliasName = this.fromApiJsonHelper.extractStringNamed(accountDBAParamName, element);
 
         final SavingsProduct product = this.savingProductRepository.findById(productId)
                 .orElseThrow(() -> new SavingsProductNotFoundException(productId));
@@ -330,6 +334,10 @@ public class SavingsAccountAssembler {
                 minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType, iswithdrawalFeeApplicableForTransfer, charges,
                 allowOverdraft, overdraftLimit, enforceMinRequiredBalance, minRequiredBalance, maxAllowedLienLimit, lienAllowed,
                 nominalAnnualInterestRateOverdraft, minOverdraftForInterestCalculation, withHoldTax);
+
+        account.setAccountName(accountName);
+        account.setDbaAliasName(dbaAliasName);
+
         account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);
 
         account.validateNewApplicationState(SAVINGS_ACCOUNT_RESOURCE_NAME);

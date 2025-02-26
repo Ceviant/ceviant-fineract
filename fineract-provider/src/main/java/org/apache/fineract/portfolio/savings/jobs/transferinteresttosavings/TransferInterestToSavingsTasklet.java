@@ -47,7 +47,7 @@ public class TransferInterestToSavingsTasklet implements Tasklet {
         Collection<AccountTransferDTO> accountTransferData = depositAccountReadPlatformService.retrieveDataForInterestTransfer();
         for (AccountTransferDTO accountTransferDTO : accountTransferData) {
             try {
-                accountTransfersWritePlatformService.transferFunds(accountTransferDTO);
+                accountTransfersWritePlatformService.transferFundsWithTransactionsMaturityDetailsJob(accountTransferDTO);
             } catch (final PlatformApiDataValidationException e) {
                 log.error("Validation exception while trasfering Interest from {} to {}", accountTransferDTO.getFromAccountId(),
                         accountTransferDTO.getToAccountId(), e);
@@ -55,6 +55,10 @@ public class TransferInterestToSavingsTasklet implements Tasklet {
             } catch (final InsufficientAccountBalanceException e) {
                 log.warn("InsufficientAccountBalanceException while trasfering Interest from {} to {} ",
                         accountTransferDTO.getFromAccountId(), accountTransferDTO.getToAccountId(), e);
+                errors.add(e);
+            } catch (final Exception e) {
+                log.error("Exception while trasfering Interest from {} to {}", accountTransferDTO.getFromAccountId(),
+                        accountTransferDTO.getToAccountId(), e);
                 errors.add(e);
             }
         }

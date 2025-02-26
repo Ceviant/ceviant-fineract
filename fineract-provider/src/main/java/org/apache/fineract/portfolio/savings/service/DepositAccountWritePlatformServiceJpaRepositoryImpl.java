@@ -29,6 +29,7 @@ import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -48,6 +49,7 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.domain.ExternalId;
+import org.apache.fineract.infrastructure.core.exception.GeneralPlatformDomainRuleException;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.exception.PlatformServiceUnavailableException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -109,6 +111,7 @@ import org.apache.fineract.portfolio.savings.exception.DepositAccountTransaction
 import org.apache.fineract.portfolio.savings.exception.SavingsAccountTransactionNotFoundException;
 import org.apache.fineract.portfolio.savings.exception.TransactionUpdateNotAllowedException;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -1297,7 +1300,7 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void updateMaturityDetails(Long depositAccountId, DepositAccountType depositAccountType) {
         final boolean isSavingsInterestPostingAtCurrentPeriodEnd = this.configurationDomainService
@@ -1314,6 +1317,14 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
             FixedDepositAccount fdAccount = ((FixedDepositAccount) account);
             // handle maturity instructions
 
+            // check if account has transation of type interest posting. Elese throw an exception
+            if (fdAccount.getTransactions().size() == 1) {
+                final String defaultUserMessage = "No Interest Posting transactions available for this account . Please Run Interest Posting Job First";
+                throw new GeneralPlatformDomainRuleException(
+                        "error.msg.fixed.deposit.account.run.maturity.details.because.account.does.not.have.interest.posting.transaction",
+                        defaultUserMessage, account.clientId());
+            }
+
             if (fdAccount.isMatured() && (fdAccount.isReinvestOnClosure() || fdAccount.isTransferToSavingsOnClosure())) {
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 Map<String, Object> changes = new HashMap<>();
@@ -1323,8 +1334,11 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
                         fdAccount.getOnAccountClosureId(), toSavingsId, "Apply maturity instructions", changes);
 
                 if (changes.get("reinvestedDepositId") != null) {
+
                     Long reinvestedDepositId = (Long) changes.get("reinvestedDepositId");
-                    Money amountForDeposit = account.activateWithBalance();
+
+                    Money amountForDeposit = calculateBalance((FixedDepositAccount) account);
+
                     final FixedDepositAccount reinvestAccount = (FixedDepositAccount) this.depositAccountAssembler
                             .assembleFrom(reinvestedDepositId, DepositAccountType.FIXED_DEPOSIT);
                     Money activationChargeAmount = getActivationCharge(reinvestAccount);
@@ -1342,6 +1356,18 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
         }
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds);
+    }
+
+    private Money calculateBalance(FixedDepositAccount account) {
+        List<SavingsAccountTransaction> transactions = account.getTransactions();
+
+        // Sort transactions by ID in descending order to get the latest transaction first
+        transactions.sort(Comparator.comparing(SavingsAccountTransaction::getId).reversed());
+
+        // Get the amount of the latest transaction
+        BigDecimal latestTransactionAmount = transactions.get(0).getAmount();
+
+        return Money.of(account.getCurrency(), latestTransactionAmount);
     }
 
     private void updateExistingTransactionsDetails(SavingsAccount account, Set<Long> existingTransactionIds,

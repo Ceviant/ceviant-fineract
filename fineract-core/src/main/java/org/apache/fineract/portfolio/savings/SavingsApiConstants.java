@@ -52,6 +52,7 @@ public class SavingsApiConstants {
 
     // command
     public static final String COMMAND_UNDO_TRANSACTION = "undo";
+    public static final String COMMAND_UNDO_TRANSACTION_PARTIAL = "undoPartial";
     public static final String COMMAND_REVERSE_TRANSACTION = "reverse";
     public static final String COMMAND_ADJUST_TRANSACTION = "modify";
     public static final String COMMAND_WAIVE_CHARGE = "waive";
@@ -174,8 +175,8 @@ public class SavingsApiConstants {
     public static final String chargeOptionsParamName = "chargeOptions";
     public static final String chargePaymentModeParamName = "chargePaymentMode";
 
-    public static final String noteParamName = "note";
-    public static final String UNIQUE_TRANSACTION_REFERENCE_PARAM_NAME = "uniqueTransactionReference";
+    public static final String narrationParamName = "narration";
+    public static final String reference = "reference";
 
     // Savings account associations
     public static final String transactions = "transactions";
@@ -200,4 +201,6 @@ public class SavingsApiConstants {
     public static final String ERROR_MSG_SAVINGS_ACCOUNT_NOT_ACTIVE = "not.in.active.state";
 
     public static final String accountMappingForPaymentParamName = "accountMappingForPayment";
+    public static final String accountNameParamName = "accountName";
+    public static final String accountDBAParamName = "dbaAlias";
 }

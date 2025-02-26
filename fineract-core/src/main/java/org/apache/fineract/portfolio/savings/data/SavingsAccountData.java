@@ -51,6 +51,7 @@ public final class SavingsAccountData implements Serializable {
 
     private final Long id;
     private final String accountNo;
+    private String accountName;
     private final EnumOptionData depositType;
     private final String externalId;
     private final Long groupId;
@@ -93,6 +94,7 @@ public final class SavingsAccountData implements Serializable {
     private final BigDecimal savingsAmountOnHold;
     // associations
     private final SavingsAccountSummaryData summary;
+    private EnumOptionData onAccountClosure;
     @SuppressWarnings("unused")
     private final Collection<SavingsAccountTransactionData> transactions;
 
@@ -132,6 +134,7 @@ public final class SavingsAccountData implements Serializable {
     private transient SavingsAccountSummaryData savingsAccountSummaryData;
     private transient LocalDate activatedOnDate;
     private transient LocalDate lockedInUntilDate;
+    private transient LocalDate fdaMaturityDate;
     private transient ClientData clientData;
     private transient SavingsProductData savingsProductData;
     private transient List<SavingsAccountTransactionData> newSavingsAccountTransactionData = new ArrayList<>();
@@ -688,26 +691,32 @@ public final class SavingsAccountData implements Serializable {
             final Collection<EnumOptionData> withdrawalFeeTypeOptions = null;
             final Collection<ChargeData> chargeOptions = null;
 
-            return withTemplateOptions(account, productOptions, fieldOfficerOptions, interestCompoundingPeriodTypeOptions,
-                    interestPostingPeriodTypeOptions, interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions,
-                    lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, transactions, charges, chargeOptions);
+            SavingsAccountData savingsAccountData = withTemplateOptions(account, productOptions, fieldOfficerOptions,
+                    interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions, interestCalculationTypeOptions,
+                    interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, transactions,
+                    charges, chargeOptions);
+            savingsAccountData.setAccountName(account.getAccountName());
+            return savingsAccountData;
         }
 
-        return new SavingsAccountData(account.id, account.accountNo, account.depositType, account.externalId, account.groupId,
-                account.groupName, account.clientId, account.clientName, account.savingsProductId, account.savingsProductName,
-                account.fieldOfficerId, account.fieldOfficerName, account.status, account.subStatus, account.reasonForBlock,
-                account.timeline, account.currency, account.nominalAnnualInterestRate, account.interestCompoundingPeriodType,
-                account.interestPostingPeriodType, account.interestCalculationType, account.interestCalculationDaysInYearType,
-                account.minRequiredOpeningBalance, account.lockinPeriodFrequency, account.lockinPeriodFrequencyType,
-                account.withdrawalFeeForTransfers, account.summary, transactions, template.productOptions, template.fieldOfficerOptions,
-                template.interestCompoundingPeriodTypeOptions, template.interestPostingPeriodTypeOptions,
-                template.interestCalculationTypeOptions, template.interestCalculationDaysInYearTypeOptions,
-                template.lockinPeriodFrequencyTypeOptions, template.withdrawalFeeTypeOptions, charges, template.chargeOptions,
-                account.allowOverdraft, account.overdraftLimit, account.minRequiredBalance, account.enforceMinRequiredBalance,
-                account.maxAllowedLienLimit, account.lienAllowed, account.minBalanceForInterestCalculation, account.onHoldFunds,
-                account.nominalAnnualInterestRateOverdraft, account.minOverdraftForInterestCalculation, account.withHoldTax,
-                account.taxGroup, account.lastActiveTransactionDate, account.isDormancyTrackingActive, account.daysToInactive,
-                account.daysToDormancy, account.daysToEscheat, account.savingsAmountOnHold);
+        SavingsAccountData savingsAccountData = new SavingsAccountData(account.id, account.accountNo, account.depositType,
+                account.externalId, account.groupId, account.groupName, account.clientId, account.clientName, account.savingsProductId,
+                account.savingsProductName, account.fieldOfficerId, account.fieldOfficerName, account.status, account.subStatus,
+                account.reasonForBlock, account.timeline, account.currency, account.nominalAnnualInterestRate,
+                account.interestCompoundingPeriodType, account.interestPostingPeriodType, account.interestCalculationType,
+                account.interestCalculationDaysInYearType, account.minRequiredOpeningBalance, account.lockinPeriodFrequency,
+                account.lockinPeriodFrequencyType, account.withdrawalFeeForTransfers, account.summary, transactions,
+                template.productOptions, template.fieldOfficerOptions, template.interestCompoundingPeriodTypeOptions,
+                template.interestPostingPeriodTypeOptions, template.interestCalculationTypeOptions,
+                template.interestCalculationDaysInYearTypeOptions, template.lockinPeriodFrequencyTypeOptions,
+                template.withdrawalFeeTypeOptions, charges, template.chargeOptions, account.allowOverdraft, account.overdraftLimit,
+                account.minRequiredBalance, account.enforceMinRequiredBalance, account.maxAllowedLienLimit, account.lienAllowed,
+                account.minBalanceForInterestCalculation, account.onHoldFunds, account.nominalAnnualInterestRateOverdraft,
+                account.minOverdraftForInterestCalculation, account.withHoldTax, account.taxGroup, account.lastActiveTransactionDate,
+                account.isDormancyTrackingActive, account.daysToInactive, account.daysToDormancy, account.daysToEscheat,
+                account.savingsAmountOnHold);
+        savingsAccountData.setAccountName(account.getAccountName());
+        return savingsAccountData;
     }
 
     public static SavingsAccountData withTemplateOptions(final SavingsAccountData account,
@@ -961,5 +970,21 @@ public final class SavingsAccountData implements Serializable {
 
     public boolean isIsDormancyTrackingActive() {
         return this.isDormancyTrackingActive;
+    }
+
+    public void setFdaMaturityDate(LocalDate fdaMaturityDate) {
+        this.fdaMaturityDate = fdaMaturityDate;
+    }
+
+    public EnumOptionData getOnAccountClosure() {
+        return onAccountClosure;
+    }
+
+    public void setOnAccountClosure(EnumOptionData onAccountClosure) {
+        this.onAccountClosure = onAccountClosure;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 }

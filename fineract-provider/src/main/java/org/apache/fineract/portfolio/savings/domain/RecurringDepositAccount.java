@@ -339,7 +339,7 @@ public class RecurringDepositAccount extends SavingsAccount {
                 .fromInt(this.interestCalculationDaysInYearType);
         List<LocalDate> PostedAsOnDates = getManualPostingDates();
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(depositStartDate(),
-                maturityDate, postingPeriodType, financialYearBeginningMonth, PostedAsOnDates);
+                maturityDate, postingPeriodType, financialYearBeginningMonth, PostedAsOnDates, false);
 
         final List<PostingPeriod> allPostingPeriods = new ArrayList<>();
 

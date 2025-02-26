@@ -47,18 +47,24 @@ public class CommandWrapperBuilder {
     private Long organisationCreditBureauId;
     private String jobName;
     private String idempotencyKey;
+    private String useRef;
+    private String transactionAmount;
+
+    private String reference;
 
     @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD", justification = "TODO: fix this!")
     public CommandWrapper build() {
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
-                this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey);
+                this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey, this.transactionAmount,
+                this.useRef, this.reference);
     }
 
     public CommandWrapper build(String idempotencyKey) {
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
-                this.creditBureauId, this.organisationCreditBureauId, this.jobName, idempotencyKey);
+                this.creditBureauId, this.organisationCreditBureauId, this.jobName, idempotencyKey, this.transactionAmount, this.useRef,
+                this.reference);
     }
 
     public CommandWrapperBuilder updateCreditBureau() {
@@ -209,6 +215,16 @@ public class CommandWrapperBuilder {
 
     public CommandWrapperBuilder withJson(final String withJson) {
         this.json = withJson;
+        return this;
+    }
+
+    public CommandWrapperBuilder withJobName(final String withJobName) {
+        this.jobName = withJobName;
+        return this;
+    }
+
+    public CommandWrapperBuilder withTransactionAmount(final String transactionAmount) {
+        this.transactionAmount = transactionAmount;
         return this;
     }
 
@@ -1570,6 +1586,20 @@ public class CommandWrapperBuilder {
         this.entityId = accountId;
         this.subentityId = transactionId;
         this.transactionId = transactionId.toString();
+        this.href = "/savingsaccounts/" + accountId + "/transactions/" + transactionId + "?command=undo";
+        return this;
+    }
+
+    public CommandWrapperBuilder undoSavingsAccountTransactionWithReference(final Long accountId, final String reference,
+            final String transactionAmount, String useRef) {
+        this.actionName = "UNDOREFERENCETRANSACTION";
+        this.entityName = "SAVINGSACCOUNT";
+        this.savingsId = accountId;
+        this.entityId = accountId;
+        this.reference = reference;
+        this.transactionId = reference;
+        this.transactionAmount = transactionAmount;
+        this.useRef = useRef;
         this.href = "/savingsaccounts/" + accountId + "/transactions/" + transactionId + "?command=undo";
         return this;
     }
@@ -3714,4 +3744,27 @@ public class CommandWrapperBuilder {
         this.href = "/loans/" + loanId + "/delinquency-action";
         return this;
     }
+
+    public CommandWrapperBuilder undoInterTenantTransfer(final String reference) {
+        this.actionName = "UNDOTRANSFER";
+        this.entityName = "ACCOUNTTRANSFER";
+        this.entityId = null;
+        this.transactionId = reference;
+        this.href = "/uniqueReference/" + reference;
+        return this;
+    }
+
+    public CommandWrapperBuilder withUseReference(String useRef) {
+        this.useRef = useRef;
+        return this;
+    }
+
+    public CommandWrapperBuilder multiTenantTransfer() {
+        this.actionName = "MULTI_TENANT_TRANSFER";
+        this.entityName = "ACCOUNTTRANSFER";
+        this.entityId = null;
+        this.href = "/refundByTransfer";
+        return this;
+    }
+
 }

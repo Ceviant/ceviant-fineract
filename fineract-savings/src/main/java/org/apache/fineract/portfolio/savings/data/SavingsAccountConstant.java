@@ -39,7 +39,7 @@ public class SavingsAccountConstant extends SavingsApiConstants {
             withdrawalFeeForTransfersParamName, feeAmountParamName, feeOnMonthDayParamName, chargesParamName, allowOverdraftParamName,
             overdraftLimitParamName, minRequiredBalanceParamName, enforceMinRequiredBalanceParamName, lienAllowedParamName,
             maxAllowedLienLimitParamName, nominalAnnualInterestRateOverdraftParamName, minOverdraftForInterestCalculationParamName,
-            withHoldTaxParamName, datatables, gsimApplicationId, gsimLastApplication));
+            withHoldTaxParamName, datatables, gsimApplicationId, gsimLastApplication, accountNameParamName, accountDBAParamName));
 
     /**
      * These parameters will match the class level parameters of {@link SavingsAccountData}. Where possible, we try to
@@ -49,7 +49,7 @@ public class SavingsAccountConstant extends SavingsApiConstants {
     protected static final Set<String> SAVINGS_ACCOUNT_TRANSACTION_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(localeParamName,
             dateFormatParamName, transactionDateParamName, transactionAmountParamName, paymentTypeIdParamName,
             transactionAccountNumberParamName, checkNumberParamName, routingCodeParamName, receiptNumberParamName, bankNumberParamName,
-            retailEntriesParamName, childAccountIdParamName, noteParamName, UNIQUE_TRANSACTION_REFERENCE_PARAM_NAME));
+            retailEntriesParamName, childAccountIdParamName, narrationParamName, reference));
 
     protected static final Set<String> SAVINGS_ACCOUNT_TRANSACTION_RESPONSE_DATA_PARAMETERS = new HashSet<>(
             Arrays.asList(idParamName, accountNoParamName));
@@ -58,7 +58,7 @@ public class SavingsAccountConstant extends SavingsApiConstants {
             Arrays.asList(localeParamName, dateFormatParamName, activatedOnDateParamName));
 
     protected static final Set<String> SAVINGS_ACCOUNT_CLOSE_REQUEST_DATA_PARAMETERS = new HashSet<>(
-            Arrays.asList(localeParamName, dateFormatParamName, closedOnDateParamName, noteParamName, paymentTypeIdParamName,
+            Arrays.asList(localeParamName, dateFormatParamName, closedOnDateParamName, narrationParamName, paymentTypeIdParamName,
                     withdrawBalanceParamName, transactionAccountNumberParamName, checkNumberParamName, routingCodeParamName,
                     receiptNumberParamName, bankNumberParamName, postInterestValidationOnClosure));
 
@@ -67,6 +67,6 @@ public class SavingsAccountConstant extends SavingsApiConstants {
                     feeOnMonthDayParamName, monthDayFormatParamName, feeIntervalParamName));
 
     protected static final Set<String> SAVINGS_ACCOUNT_CHARGES_PAY_CHARGE_REQUEST_DATA_PARAMETERS = new HashSet<>(
-            Arrays.asList(amountParamName, dueAsOfDateParamName, dateFormatParamName, localeParamName, noteParamName));
+            Arrays.asList(amountParamName, dueAsOfDateParamName, dateFormatParamName, localeParamName, narrationParamName));
 
 }
