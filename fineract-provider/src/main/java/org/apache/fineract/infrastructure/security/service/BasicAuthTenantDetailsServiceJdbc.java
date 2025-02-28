@@ -19,7 +19,9 @@
 package org.apache.fineract.infrastructure.security.service;
 
 import javax.sql.DataSource;
+import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
+import org.apache.fineract.infrastructure.core.service.tenant.ReadOnlyDatabaseConfig;
 import org.apache.fineract.infrastructure.core.service.tenant.TenantMapper;
 import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentifierException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +39,13 @@ import org.springframework.stereotype.Service;
 public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetailsService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final FineractProperties fineractProperties;
 
     @Autowired
-    public BasicAuthTenantDetailsServiceJdbc(@Qualifier("hikariTenantDataSource") final DataSource dataSource) {
+    public BasicAuthTenantDetailsServiceJdbc(@Qualifier("hikariTenantDataSource") final DataSource dataSource,
+            final FineractProperties fineractProperties) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.fineractProperties = fineractProperties;
     }
 
     @Override
@@ -48,7 +53,12 @@ public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetails
     public FineractPlatformTenant loadTenantById(final String tenantIdentifier, final boolean isReport) {
 
         try {
-            final TenantMapper rm = new TenantMapper(isReport);
+            final String nodeId = fineractProperties.getNodeId();
+            ReadOnlyDatabaseConfig readOnlyDatabaseConfig = new ReadOnlyDatabaseConfig(
+                    fineractProperties.getTenant().getReadOnlyHostDependentOnNodeId(),
+                    fineractProperties.getTenant().getReadOnlySchemeNameDependentOnNodeId(), fineractProperties.getMode().isReadOnlyMode());
+
+            final TenantMapper rm = new TenantMapper(isReport, readOnlyDatabaseConfig, nodeId);
             final String sql = "select  " + rm.schema() + " where t.identifier = ?";
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { tenantIdentifier }); // NOSONAR
