@@ -52,6 +52,7 @@ dependencies {
             fileTree('thirdparty') {
                 include '*.jar'
             },
+            'org.apache.groovy:groovy-all:4.0.12',
             )
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
