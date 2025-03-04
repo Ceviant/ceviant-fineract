@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.fineract.batch.exception.ErrorInfo;
 import org.apache.fineract.commands.domain.CommandProcessingResultType;
 import org.apache.fineract.commands.domain.CommandSource;
@@ -77,6 +78,11 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
 
     private final FineractRequestContextHolder fineractRequestContextHolder;
     private final Gson gson = GoogleGsonSerializerHelper.createSimpleGson();
+
+    @Override
+    public void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker) {
+        throw new NotImplementedException("Not implemented");
+    }
 
     @Override
     @Retry(name = "executeCommand", fallbackMethod = "fallbackExecuteCommand")

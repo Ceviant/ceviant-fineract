@@ -16,21 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.commands.service;
 
-import org.apache.fineract.commands.domain.CommandWrapper;
-import org.apache.fineract.infrastructure.core.api.JsonCommand;
-import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.springframework.scheduling.annotation.Async;
+package org.apache.fineract.camel.data;
 
-public interface CommandProcessingService {
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    @Async
-    void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker);
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class TransactionStatusTrackingData {
 
-    CommandProcessingResult executeCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker);
-
-    boolean validateRollbackCommand(CommandWrapper commandWrapper, AppUser user);
-
+    private String id;
+    private Long transactionId;
+    private String operation;
+    private TransactionStatus status;
+    private String errorMessage;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastModifiedDate;
 }

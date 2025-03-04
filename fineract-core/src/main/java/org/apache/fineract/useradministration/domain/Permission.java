@@ -43,9 +43,6 @@ public class Permission extends AbstractPersistableCustom<Long> implements Seria
     @Column(name = "can_maker_checker", nullable = false)
     private boolean canMakerChecker;
 
-    @Column(name = "is_asynchronous", nullable = true)
-    private Integer asyncAction;
-
     public Permission(final String grouping, final String entityName, final String actionName) {
         this.grouping = grouping;
         this.entityName = entityName;
@@ -83,9 +80,5 @@ public class Permission extends AbstractPersistableCustom<Long> implements Seria
         this.canMakerChecker = canMakerChecker;
 
         return !isUpdatedValueSame;
-    }
-
-    public boolean hasAsyncProcessing() {
-        return this.asyncAction != null && this.asyncAction == 1;
     }
 }

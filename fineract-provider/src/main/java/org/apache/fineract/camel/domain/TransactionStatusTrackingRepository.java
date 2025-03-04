@@ -16,21 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.commands.service;
 
-import org.apache.fineract.commands.domain.CommandWrapper;
-import org.apache.fineract.infrastructure.core.api.JsonCommand;
-import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.springframework.scheduling.annotation.Async;
+package org.apache.fineract.camel.domain;
 
-public interface CommandProcessingService {
+import org.springframework.data.jpa.repository.JpaRepository;
 
-    @Async
-    void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker);
-
-    CommandProcessingResult executeCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker);
-
-    boolean validateRollbackCommand(CommandWrapper commandWrapper, AppUser user);
-
-}
+public interface TransactionStatusTrackingRepository extends JpaRepository<TransactionStatusTracking, String> {}

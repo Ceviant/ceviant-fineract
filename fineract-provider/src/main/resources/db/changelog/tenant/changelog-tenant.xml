@@ -167,4 +167,5 @@
     <include file="parts/0145_Refactor-small-int-data-type-to-boolean-to-support-postgres-app.xml" relativeToChangelogFile="true" />
     <include file="parts/0146_Refactor-short-code-size.xml" relativeToChangelogFile="true" />
     <include file="parts/0148_modify_report_fixed_validation.xml" relativeToChangelogFile="true" />
+    <include file="parts/0150_add_status_tracking_table.xml" relativeToChangelogFile="true" />
 </databaseChangeLog>

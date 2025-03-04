@@ -55,11 +55,11 @@ import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.sse.service.SseEmitterService;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.apache.fineract.useradministration.domain.Permission;
 import org.apache.fineract.useradministration.domain.PermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -89,6 +89,10 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
     @Autowired
     private PermissionRepository permissionRepository;
 
+    @Lazy
+    @Autowired
+    private SynchronousCommandProcessingService synchronousCommandProcessingService;
+
     public CamelAsyncCommandProcessingServiceImpl(PlatformSecurityContext context, ApplicationContext applicationContext,
             ToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
             ToApiJsonSerializer<CommandProcessingResult> toApiResultJsonSerializer, ConfigurationDomainService configurationDomainService,
@@ -104,17 +108,16 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
         if (properties.getEvents().getCamel().getJms().isEnabled() && properties.getEvents().getCamel().getJms().getAsync().isEnabled()
                 && wrapper.isRequestAsync()) {
 
-            final Permission permission = permissionRepository.findOneByCode(wrapper.actionName() + "_" + wrapper.getEntityName());
-            if (permission.hasAsyncProcessing()) {
-                executeAsyncCommand(wrapper, isApprovedByChecker);
-                return CommandProcessingResult.correlationIdResult(mdcWrapper.get("correlationId"));
-            }
+            synchronousCommandProcessingService.executeAsyncCommand(wrapper, isApprovedByChecker);
+            return CommandProcessingResult.correlationIdResult(mdcWrapper.get("correlationId"));
+
         }
 
         return super.executeCommand(wrapper, command, isApprovedByChecker);
     }
 
     @Async
+    @Override
     public void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker) {
         final AppUser appUser = this.securityContext
                 .authenticatedUser(CommandWrapper.wrap(wrapper.actionName(), wrapper.entityName(), null, null));

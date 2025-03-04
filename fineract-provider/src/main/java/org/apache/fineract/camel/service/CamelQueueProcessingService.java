@@ -119,7 +119,8 @@ public class CamelQueueProcessingService {
                 commandWrapper.getEntityName(), commandWrapper.getEntityId(), commandWrapper.getSubentityId(), commandWrapper.getGroupId(),
                 commandWrapper.getClientId(), commandWrapper.getLoanId(), commandWrapper.getSavingsId(), commandWrapper.getTransactionId(),
                 commandWrapper.getHref(), commandWrapper.getProductId(), commandWrapper.getCreditBureauId(),
-                commandWrapper.getOrganisationCreditBureauId(), commandWrapper.getJobName());
+                commandWrapper.getOrganisationCreditBureauId(), commandWrapper.getJobName(), commandWrapper.getTransactionAmount(),
+                commandWrapper.getUseRef(), commandWrapper.getReference());
         commandWrapper.setRequestAsync(false);
 
         CommandProcessingResult result = processingService.executeCommand(commandWrapper, command, approvedByChecker);
