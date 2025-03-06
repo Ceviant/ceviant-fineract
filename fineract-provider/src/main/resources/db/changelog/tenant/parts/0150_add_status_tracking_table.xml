@@ -29,7 +29,7 @@
             </column>
             <column name="transaction_id" type="BIGINT" />
             <column name="operation" type="VARCHAR(50)">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
             <column name="status" type="VARCHAR(50)">
                 <constraints nullable="false"/>

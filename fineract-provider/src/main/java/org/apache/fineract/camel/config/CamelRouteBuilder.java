@@ -19,80 +19,146 @@
 
 package org.apache.fineract.camel.config;
 
+import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_CORRELATION_ID;
+
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.fineract.batch.exception.ErrorInfo;
+import org.apache.fineract.camel.data.TransactionStatus;
+import org.apache.fineract.camel.domain.TransactionStatusTracking;
+import org.apache.fineract.camel.domain.TransactionStatusTrackingRepository;
 import org.apache.fineract.camel.service.CamelProcessingError;
 import org.apache.fineract.camel.service.CamelQueueProcessingService;
-import org.apache.fineract.commands.service.CommandSourceService;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.exception.AbstractPlatformException;
 import org.apache.fineract.infrastructure.core.exception.ErrorHandler;
 import org.apache.fineract.infrastructure.core.serialization.CommandProcessingResultJsonSerializer;
 import org.apache.fineract.sse.service.SseEmitterService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@ConditionalOnProperty(value = "fineract.events.camel.jms.enabled", havingValue = "true")
+@RequiredArgsConstructor
+@ConditionalOnProperty(value = "fineract.events.camel.enabled", havingValue = "true")
 public class CamelRouteBuilder extends RouteBuilder {
 
-    @Autowired
-    private FineractProperties properties;
+    private final FineractProperties properties;
 
-    @Autowired
-    private CamelQueueProcessingService commandProcessingService;
+    private final CamelQueueProcessingService commandProcessingService;
 
-    @Autowired
-    private CamelProcessingError commandErrorProcessor;
+    private final CamelProcessingError commandErrorProcessor;
 
-    @Autowired
-    private SseEmitterService emitterService;
+    private final CommandProcessingResultJsonSerializer commandProcessingResultJsonSerializer;
 
-    @Autowired
-    private CommandProcessingResultJsonSerializer commandProcessingResultJsonSerializer;
+    private boolean routesConfigured = false;
 
-    @Autowired
-    private CommandSourceService commandSourceService;
+    private final CamelContext camelContext;
+
+    private final TransactionStatusTrackingRepository transactionStatusTrackingRepository;
+
+    private final SseEmitterService emitterService;
+
+    @PostConstruct
+    public void init() {
+        try {
+            camelContext.addRoutes(this);
+        } catch (Exception e) {
+            log.error("Failed to add routes to CamelContext", e);
+        }
+    }
 
     @Override
     public void configure() throws Exception {
 
+        if (routesConfigured) {
+            return;
+        }
+        routesConfigured = true;
+
         FineractProperties.FineractCamelEventsProperties camelJmsProperties = properties.getEvents().getCamel();
-        FineractProperties.FineractCamelJmsAsyncProperties asyncProperties = camelJmsProperties.getJms().getAsync();
-        final String asyncQueueSystem = camelJmsProperties.getJms().getQueueSystem();
+        FineractProperties.FineractCamelEventsAsyncProperties asyncProperties = camelJmsProperties.getAsync();
+
         log.info("****** CamelBackendAsyncRoute.configure(): fineract.events.camel.jms.async.enabled = [{}] *****",
                 asyncProperties.isEnabled());
 
         if (asyncProperties.isEnabled()) {
 
-            final String errorTopic = asyncQueueSystem + ":topic:" + asyncProperties.getErrorQueueName();
-            final String resultTopic = asyncQueueSystem + ":topic:" + asyncProperties.getResultQueueName();
-            final String requestQueue = asyncQueueSystem + ":queue:" + asyncProperties.getRequestQueueName();
+            FineractProperties.FineractExternalEventsConsumerRabbitMQProperties rabbitMQProperties = properties.getEvents().getExternal()
+                    .getConsumer().getRabbitmq();
 
-            from(errorTopic).bean(commandProcessingService, "emitErrorResult").end();
+            final String requestQueue = getQueueConsumerConnectionString(rabbitMQProperties.getExchangeName(),
+                    asyncProperties.getRequestQueueName());
+
+            final String errorQueue = commandProcessingService.getQueueProducerConnectionString(rabbitMQProperties.getExchangeName(),
+                    asyncProperties.getErrorRoutingKey());
+
+            final String resultTopic = commandProcessingService.getTopicConnectionString(rabbitMQProperties.getTopicExchangeName(),
+                    asyncProperties.getResultRoutingKey());
+
+            from(errorQueue).bean(commandProcessingService, "emitErrorResult").multicast().to(ExchangePattern.InOnly, resultTopic)
+                    .threads(asyncProperties.getMaxRequestConcurrentConsumers()).end();
 
             from(resultTopic).bean(commandProcessingService, "emitResult").end();
 
-            from(requestQueue).onException(AbstractPlatformException.class).handled(true).process(exchange -> {
-                Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+            from(requestQueue).process(this::markAsProcessing).onException(AbstractPlatformException.class).handled(true)
+                    .process(exchange -> {
+                        Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
 
-                final RuntimeException mappable = ErrorHandler.getMappable(caused);
-                final ErrorInfo errorInfo = commandSourceService.generateErrorInfo(mappable);
-                exchange.getIn().setBody(commandProcessingResultJsonSerializer.serialize(errorInfo));
-            }).handled(true).to(ExchangePattern.InOnly, errorTopic).end().bean(commandProcessingService, "process").multicast()
-                    .to(ExchangePattern.InOnly, resultTopic).threads(asyncProperties.getMaxRequestConcurrentConsumers()).end();
+                        final RuntimeException mappable = ErrorHandler.getMappable(caused);
+                        exchange.getIn().setBody(commandProcessingResultJsonSerializer.serialize(mappable));
+                        this.logError(exchange);
+                    }).handled(true).to(ExchangePattern.InOnly, errorQueue).end().bean(commandProcessingService, "process")
+                    .threads(asyncProperties.getMaxRequestConcurrentConsumers()).end();
 
-            final String sseEventConnectionTopic = properties.getEvents().getCamel().getProducer().getJms().getSseTopicName();
+            final String sseEventConnectionTopic = commandProcessingService
+                    .getTopicConnectionString(rabbitMQProperties.getTopicExchangeName(), asyncProperties.getSseRoutingKey());
 
-            from("activemq:topic:" + sseEventConnectionTopic).bean(emitterService, "cleanupOldConnections").end();
+            from(sseEventConnectionTopic).bean(emitterService, "cleanupOldConnections").end();
 
         }
 
+    }
+
+    private void logError(Exchange exchange) {
+
+        // Get the exception that caused the error
+        Exception exception = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+        String errorMessage = exception != null ? exception.getMessage() : "Unknown error";
+
+        // Get correlation ID from exchange
+        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
+        if (correlationId != null) {
+            // Create or update transaction status as FAILED
+            TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.FAILED)
+                    .build();
+            transactionStatusTrackingRepository.save(failedStatus);
+            log.info("Transaction {} marked as FAILED with error: {}", correlationId, errorMessage);
+        }
+
+    }
+
+    private void markAsProcessing(Exchange exchange) {
+        // Get correlation ID from exchange
+        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
+        if (correlationId != null) {
+            // Create or update transaction status as QUEUED
+            TransactionStatusTracking queuedStatus = TransactionStatusTracking.builder().id(correlationId)
+                    .status(TransactionStatus.PROCESSING).build();
+            transactionStatusTrackingRepository.save(queuedStatus);
+            log.info("Transaction {} marked as QUEUED", correlationId);
+        }
+    }
+
+    private String getQueueConsumerConnectionString(String exchangeName, String queueName) {
+        return properties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?queues=" + queueName + "&concurrentConsumers="
+                + properties.getEvents().getCamel().getAsync().getMaxRequestConcurrentConsumers() + "&testConnectionOnStartup=true"
+                + "&asyncConsumer=true&autoDeclare=true&arg.queue.durable="
+                + properties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
 }

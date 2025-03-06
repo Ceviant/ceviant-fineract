@@ -20,56 +20,35 @@
 package org.apache.fineract.camel.service;
 
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_ACTION_CONTEXT;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_APPROVED_BY_CHECKER;
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_AUTH_TOKEN;
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_BUSINESS_DATE;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_CORRELATION_ID;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_RUN_AS;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_TENANT_ID;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_X_FINGERPRINT;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.ProducerTemplate;
-import org.apache.fineract.camel.helper.BusinessDateSerializer;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.provider.CommandHandlerProvider;
 import org.apache.fineract.commands.service.CommandSourceService;
 import org.apache.fineract.commands.service.IdempotencyKeyResolver;
 import org.apache.fineract.commands.service.SynchronousCommandProcessingService;
-import org.apache.fineract.infrastructure.businessdate.domain.BusinessDateType;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
-import org.apache.fineract.infrastructure.core.domain.ActionContext;
 import org.apache.fineract.infrastructure.core.domain.FineractRequestContextHolder;
 import org.apache.fineract.infrastructure.core.serialization.ToApiJsonSerializer;
 import org.apache.fineract.infrastructure.core.service.MDCWrapper;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
-import org.apache.fineract.sse.service.SseEmitterService;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.apache.fineract.useradministration.domain.PermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@ConditionalOnProperty(value = "fineract.events.camel.jms.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "fineract.events.camel.async.enabled", havingValue = "true")
 public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandProcessingService {
-
-    @Autowired
-    private ProducerTemplate producerTemplate;
 
     @Autowired
     private FineractProperties properties;
@@ -78,20 +57,7 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
     private MDCWrapper mdcWrapper;
 
     @Autowired
-    private BusinessDateSerializer businessDateSerializer;
-
-    @Autowired
-    private PlatformSecurityContext securityContext;
-
-    @Autowired
-    private SseEmitterService emitterService;
-
-    @Autowired
-    private PermissionRepository permissionRepository;
-
-    @Lazy
-    @Autowired
-    private SynchronousCommandProcessingService synchronousCommandProcessingService;
+    private CamelAsyncProcessingServiceHelper camelAsyncProcessingServiceHelper;
 
     public CamelAsyncCommandProcessingServiceImpl(PlatformSecurityContext context, ApplicationContext applicationContext,
             ToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
@@ -105,55 +71,53 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
     @Override
     public CommandProcessingResult executeCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker) {
 
-        if (properties.getEvents().getCamel().getJms().isEnabled() && properties.getEvents().getCamel().getJms().getAsync().isEnabled()
+        if (properties.getEvents().getCamel().isEnabled() && properties.getEvents().getCamel().getAsync().isEnabled()
                 && wrapper.isRequestAsync()) {
-
-            synchronousCommandProcessingService.executeAsyncCommand(wrapper, isApprovedByChecker);
-            return CommandProcessingResult.correlationIdResult(mdcWrapper.get("correlationId"));
+            final String correlationId = mdcWrapper.get("correlationId");
+            this.executeAsyncCommand(wrapper, isApprovedByChecker);
+            return CommandProcessingResult.correlationIdResult(correlationId);
 
         }
 
         return super.executeCommand(wrapper, command, isApprovedByChecker);
     }
 
-    @Async
     @Override
     public void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker) {
-        final AppUser appUser = this.securityContext
-                .authenticatedUser(CommandWrapper.wrap(wrapper.actionName(), wrapper.entityName(), null, null));
-        final String authToken = ThreadLocalContextUtil.getAuthToken();
         final String correlationId = mdcWrapper.get("correlationId");
-        final String tenantIdentifier = ThreadLocalContextUtil.getTenant().getTenantIdentifier();
-        final HashMap<BusinessDateType, LocalDate> businessDate = ThreadLocalContextUtil.getBusinessDates();
-        final ActionContext actionContext = ThreadLocalContextUtil.getActionContext();
-        final String serializedBusinessDates = getSerializedBusinessDates(businessDate);
-        final String ipAddress = ThreadLocalContextUtil.getClientIpAddr();
-        final String userAgent = ThreadLocalContextUtil.getClientUserAgent();
-        final String fingerPrint = emitterService.sseFingerPrint(userAgent, ipAddress);
 
-        final Map<String, Object> requestHeaders = Map.of(FINERACT_HEADER_CORRELATION_ID, correlationId, FINERACT_HEADER_AUTH_TOKEN,
-                authToken, FINERACT_HEADER_RUN_AS, appUser.getUsername(), FINERACT_HEADER_TENANT_ID, tenantIdentifier,
-                FINERACT_HEADER_APPROVED_BY_CHECKER, isApprovedByChecker, FINERACT_HEADER_BUSINESS_DATE, serializedBusinessDates,
-                FINERACT_HEADER_ACTION_CONTEXT, actionContext.toString(), FINERACT_HEADER_X_FINGERPRINT, fingerPrint);
-
-        final String queueName = properties.getEvents().getCamel().getJms().getQueueSystem() + ":queue:"
-                + properties.getEvents().getCamel().getJms().getAsync().getRequestQueueName();
-
-        producerTemplate.sendBodyAndHeaders(queueName, ExchangePattern.InOnly, wrapper, requestHeaders);
+        camelAsyncProcessingServiceHelper.executeAsyncCommand(wrapper, correlationId, isApprovedByChecker, captureThreadContext());
     }
 
-    private String getSerializedBusinessDates(final HashMap<BusinessDateType, LocalDate> businessDate) {
+    private Map<String, Object> captureThreadContext() {
+        Map<String, Object> context = new HashMap<>();
 
-        if (businessDate != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try {
-                businessDateSerializer.marshal(businessDate, baos);
-            } catch (Exception e) {
-                // Handle serialization error
-                throw new RuntimeException("Failed to serialize business dates", e);
-            }
-            return baos.toString(StandardCharsets.UTF_8);
+        // Capture authentication and tenant context
+        context.put(FINERACT_HEADER_AUTH_TOKEN, ThreadLocalContextUtil.getAuthToken());
+        if (ThreadLocalContextUtil.getTenant() != null) {
+            context.put("tenant", ThreadLocalContextUtil.getTenant());
         }
-        return null;
+
+        // Capture business dates and action context
+        if (ThreadLocalContextUtil.getBusinessDates() != null) {
+            context.put(FINERACT_HEADER_BUSINESS_DATE, ThreadLocalContextUtil.getBusinessDates());
+        }
+        context.put(FINERACT_HEADER_ACTION_CONTEXT, ThreadLocalContextUtil.getActionContext().toString());
+
+        // Capture client information
+        if (ThreadLocalContextUtil.getClientUserAgent() != null) {
+            context.put("userAgent", ThreadLocalContextUtil.getClientUserAgent());
+        }
+        if (ThreadLocalContextUtil.getClientIpAddr() != null) {
+            context.put("ipAddress", ThreadLocalContextUtil.getClientIpAddr());
+        }
+
+        // Capture data source context if available
+        if (ThreadLocalContextUtil.getDataSourceContext() != null) {
+            context.put("dataSourceContext", ThreadLocalContextUtil.getDataSourceContext());
+        }
+
+        return context;
     }
+
 }

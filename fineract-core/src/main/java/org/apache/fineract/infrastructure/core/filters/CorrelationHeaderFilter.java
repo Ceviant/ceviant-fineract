@@ -46,7 +46,7 @@ public class CorrelationHeaderFilter extends OncePerRequestFilter {
             throws IOException, ServletException {
         FineractProperties.FineractCorrelationProperties correlationProperties = fineractProperties.getCorrelation();
         FineractProperties.FineractCamelEventsProperties camel = fineractProperties.getEvents().getCamel();
-        if (correlationProperties.isEnabled() || camel.getJms().isEnabled()) {
+        if (correlationProperties.isEnabled() || camel.isEnabled()) {
             handleCorrelations(request, response, filterChain, correlationProperties);
         } else {
             filterChain.doFilter(request, response);

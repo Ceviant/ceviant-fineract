@@ -19,12 +19,8 @@
 
 package org.apache.fineract.camel.config;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.camel.CamelContext;
-import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.spring.SpringCamelContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -33,26 +29,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @Configuration
 @EnableAsync
-@RequiredArgsConstructor
-@ConditionalOnProperty(value = "fineract.events.camel.jms.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "fineract.events.camel.enabled", havingValue = "true")
 public class CamelConfig {
 
-    @Autowired
-    @Qualifier("camelJmsComponent")
-    private final JmsComponent jmsComponent;
-
-    @Autowired
-    private final CamelRouteBuilder camelRouteBuilder;
-
     @Bean
-    public CamelContext camelContext(ApplicationContext applicationContext) throws Exception {
-        SpringCamelContext camelContext = new SpringCamelContext(applicationContext);
-        camelContext.addComponent("activemq", jmsComponent);
-
-        // Add routes
-        camelContext.addRoutes(camelRouteBuilder);
-
-        return camelContext;
+    public CamelContext camelContext(ApplicationContext applicationContext) {
+        return new SpringCamelContext(applicationContext);
     }
 
 }

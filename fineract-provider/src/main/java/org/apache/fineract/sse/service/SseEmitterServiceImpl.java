@@ -45,10 +45,12 @@ import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+@ConditionalOnProperty(value = "fineract.redis.enabled", havingValue = "true")
 @Service
 @Slf4j
 public class SseEmitterServiceImpl implements SseEmitterService {
@@ -226,8 +228,8 @@ public class SseEmitterServiceImpl implements SseEmitterService {
 
     private void broadcastNewConnection(final ClientConnection clientConnection) {
 
-        final String name = fineractProperties.getEvents().getCamel().getProducer().getJms().getSseTopicName();
-        final String topicName = "activemq:topic:" + name;
+        final String name = fineractProperties.getEvents().getCamel().getAsync().getSseRoutingKey();
+        final String topicName = fineractProperties.getEvents().getCamel().getQueueSystem() + ":topic:" + name;
 
         producerTemplate.send(topicName, exchange -> {
 

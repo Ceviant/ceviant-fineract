@@ -111,6 +111,7 @@ dependencies {
             'org.springdoc:springdoc-openapi-starter-webmvc-ui',
             'org.mapstruct:mapstruct',
             'io.github.resilience4j:resilience4j-spring-boot3',
+            'com.jano7:executor:2.0.2'
             )
 
     implementation 'software.amazon.msk:aws-msk-iam-auth'
@@ -209,6 +210,7 @@ dependencies {
     implementation 'org.glassfish.hk2:hk2-utils:3.0.4'
 
     implementation(
+            'org.springframework.boot:spring-boot-starter-amqp',
             'org.springframework.boot:spring-boot-starter',
             'org.apache.camel.springboot:camel-spring-boot-starter',
             'org.apache.camel.springboot:camel-spring-security-starter',
@@ -219,7 +221,8 @@ dependencies {
             'jakarta.ws.rs:jakarta.ws.rs-api:4.0.0',
             'org.apache.commons:commons-lang3:3.16.0',
             'com.google.code.gson:gson:2.10.1',
-            'org.apache.camel:camel-jms:4.7.0',
+            'org.apache.camel:camel-spring-rabbitmq:4.8.1',
+            'org.apache.camel:camel-jms:4.8.1',
             )
 
     // testCompile dependencies are ONLY used in src/test, not src/main.

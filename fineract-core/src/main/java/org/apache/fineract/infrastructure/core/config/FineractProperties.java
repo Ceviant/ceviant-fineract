@@ -289,6 +289,7 @@ public class FineractProperties {
 
         private boolean enabled;
         private FineractExternalEventsProducerProperties producer;
+        private FineractExternalEventsConsumerProperties consumer;
         private int partitionSize;
     }
 
@@ -296,28 +297,23 @@ public class FineractProperties {
     @Setter
     public static class FineractCamelEventsProperties {
 
-        private FineractCamelJmsProperties jms;
-        private FineractCamelEventsProducerProperties producer;
-        private int partitionSize;
-    }
-
-    @Getter
-    @Setter
-    public static class FineractCamelJmsProperties {
-
         private boolean enabled;
         private String queueSystem;
-        private FineractCamelJmsAsyncProperties async;
+        private FineractCamelEventsAsyncProperties async;
     }
 
     @Getter
     @Setter
-    public static class FineractCamelJmsAsyncProperties {
+    public static class FineractCamelEventsAsyncProperties {
 
         private boolean enabled;
         private String requestQueueName;
         private String resultQueueName;
         private String errorQueueName;
+        private String requestRoutingKey;
+        private String resultRoutingKey;
+        private String errorRoutingKey;
+        private String sseRoutingKey;
         private int maxRequestConcurrentConsumers;
     }
 
@@ -327,13 +323,47 @@ public class FineractProperties {
 
         private FineractExternalEventsProducerJmsProperties jms;
         private FineractExternalEventsProducerKafkaProperties kafka;
+        private FineractExternalEventsProducerRabbitMQProperties rabbitmq;
     }
 
     @Getter
     @Setter
-    public static class FineractCamelEventsProducerProperties {
+    public static class FineractExternalEventsProducerRabbitMQProperties {
 
-        private FineractCamelEventsProducerJmsProperties jms;
+        private String routingKey;
+        private boolean durable;
+        private boolean publisherConfirms;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractExternalEventsConsumerProperties {
+
+        private FineractExternalEventsConsumerRabbitMQProperties rabbitmq;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractExternalEventsConsumerRabbitMQProperties {
+
+        private boolean enabled;
+        private String brokerHost;
+        private int brokerPort;
+        private String username;
+        private String password;
+        private String exchangeName;
+        private String routingKey;
+        private String durable;
+        private String autoDelete;
+        private int consumerCount;
+        private String queueName;
+        private boolean passwordProtected;
+        private boolean brokerSslEnabled;
+        private int requestHeartBeat;
+        private int networkRecoveryInterval;
+        private String dlq;
+        private String dlqRoutingKey;
+        private String topicExchangeName;
     }
 
     @Getter
