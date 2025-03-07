@@ -104,7 +104,6 @@ public class SseEmitterServiceImpl implements SseEmitterService {
                     return null;
                 }).thenAccept(result -> {
                     log.info("Event sent to client. Fingerprint: {}, CorrelationId: {}", fingerPrint, correlationId);
-                    removeClient(fingerPrint);
                 });
             } catch (IllegalStateException e) {
                 // The emitter is closed or in an invalid state

@@ -26,6 +26,8 @@ import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_CORRELATION_ID;
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_RUN_AS;
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_TENANT_ID;
+import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_X_FINGERPRINT;
+import static org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil.restoreThreadContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
@@ -44,10 +46,10 @@ import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.infrastructure.businessdate.domain.BusinessDateType;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.domain.ActionContext;
-import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
+import org.apache.fineract.sse.service.SseEmitterService;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -62,6 +64,7 @@ public class CamelAsyncProcessingServiceHelper {
     private final FineractProperties fineractProperties;
     private final TransactionStatusTrackingRepository transactionStatusTrackingRepository;
     private final ObjectMapper objectMapper; // Add ObjectMapper for JSON serialization
+    private final SseEmitterService emitterService;
 
     @Async
     public void executeAsyncCommand(CommandWrapper wrapper, String correlationId, boolean isApprovedByChecker,
@@ -74,23 +77,29 @@ public class CamelAsyncProcessingServiceHelper {
         final HashMap<BusinessDateType, LocalDate> businessDate = ThreadLocalContextUtil.getBusinessDates();
         final ActionContext actionContext = ThreadLocalContextUtil.getActionContext();
         final String serializedBusinessDates = getSerializedBusinessDates(businessDate);
+        final String ipAddress = (String) threadContextCopy.get("ipAddress");
+        final String userAgent = (String) threadContextCopy.get("userAgent");
+        final String fingerPrint = emitterService.sseFingerPrint(userAgent, ipAddress);
 
         final Map<String, Object> requestHeaders = Map.of(FINERACT_HEADER_CORRELATION_ID, correlationId, FINERACT_HEADER_AUTH_TOKEN,
                 authToken, FINERACT_HEADER_RUN_AS, appUser.getUsername(), FINERACT_HEADER_TENANT_ID, tenantIdentifier,
                 FINERACT_HEADER_APPROVED_BY_CHECKER, isApprovedByChecker, FINERACT_HEADER_BUSINESS_DATE, serializedBusinessDates,
-                FINERACT_HEADER_ACTION_CONTEXT, actionContext.toString());
+                FINERACT_HEADER_ACTION_CONTEXT, actionContext.toString(), FINERACT_HEADER_X_FINGERPRINT, fingerPrint);
 
-        final String queueName = fineractProperties.getEvents().getCamel().getQueueSystem() + ":queue:"
-                + fineractProperties.getEvents().getCamel().getAsync().getRequestQueueName();
+        final String queueName = getQueueProducerConnectionString(
+                fineractProperties.getEvents().getExternal().getConsumer().getRabbitmq().getExchangeName(),
+                fineractProperties.getEvents().getCamel().getAsync().getRequestQueueName());
 
         TransactionStatusTracking status = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.QUEUED).build();
         transactionStatusTrackingRepository.save(status);
 
         try {
             // Serialize CommandWrapper to JSON string or byte array
-            String jsonWrapper = objectMapper.writeValueAsString(wrapper);
-            producerTemplate.sendBodyAndHeaders(queueName, ExchangePattern.InOnly, jsonWrapper, requestHeaders);
+            String serializedWrapper = objectMapper.writeValueAsString(wrapper);
+            producerTemplate.sendBodyAndHeaders(queueName, ExchangePattern.InOnly, serializedWrapper, requestHeaders);
         } catch (Exception e) {
+            status.updateStatus(TransactionStatus.FAILED, "Failed to serialize command wrapper");
+            transactionStatusTrackingRepository.saveAndFlush(status);
             throw new PlatformDataIntegrityException("async.camel.command.serialize.error", "Failed to serialize command wrapper", e);
         }
     }
@@ -109,32 +118,10 @@ public class CamelAsyncProcessingServiceHelper {
         return null;
     }
 
-    private void restoreThreadContext(Map<String, Object> threadContextCopy) {
-        ThreadLocalContextUtil.reset();
-
-        if (threadContextCopy.containsKey("tenant")) {
-            ThreadLocalContextUtil.setTenant((FineractPlatformTenant) threadContextCopy.get("tenant"));
-        }
-
-        if (threadContextCopy.containsKey(FINERACT_HEADER_AUTH_TOKEN)) {
-            ThreadLocalContextUtil.setAuthToken((String) threadContextCopy.get(FINERACT_HEADER_AUTH_TOKEN));
-        }
-
-        if (threadContextCopy.containsKey(FINERACT_HEADER_BUSINESS_DATE)) {
-            try {
-                HashMap<BusinessDateType, LocalDate> dates = (HashMap<BusinessDateType, LocalDate>) threadContextCopy
-                        .get(FINERACT_HEADER_BUSINESS_DATE);
-                ThreadLocalContextUtil.setBusinessDates(dates);
-            } catch (Exception e) {
-                throw new PlatformDataIntegrityException("async.camel.businessdate.deserialize.error",
-                        "Failed to deserialize business dates");
-            }
-        }
-
-        // Restore action context
-        if (threadContextCopy.containsKey(FINERACT_HEADER_ACTION_CONTEXT)) {
-            ThreadLocalContextUtil.setActionContext(ActionContext.valueOf((String) threadContextCopy.get(FINERACT_HEADER_ACTION_CONTEXT)));
-        }
+    public String getQueueProducerConnectionString(String exchangeName, String routingKey) {
+        return fineractProperties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?queues=" + routingKey
+                + "&testConnectionOnStartup=true&exchangeType=direct&arg.queue.durable="
+                + fineractProperties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
 }

@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -16,50 +17,53 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.fineract.infrastructure.core.serialization;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
+import org.apache.fineract.commands.domain.CommandWrapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * A Google GSON implementation of contract.
- *
- * It serializes all fields of any Java {@link Object} passed to it.
+ * Serializer for {@link CommandWrapper} objects to/from JSON.
  */
 @Component
-public final class CommandProcessingResultJsonSerializer {
+public class CommandWrapperJsonSerializer {
 
     private final Gson gson;
 
-    public CommandProcessingResultJsonSerializer() {
+    @Autowired
+    public CommandWrapperJsonSerializer() {
         final GsonBuilder builder = new GsonBuilder();
         GoogleGsonSerializerHelper.registerTypeAdapters(builder);
         builder.serializeNulls();
         this.gson = builder.create();
     }
 
-    public String serialize(final Object result) {
-        String returnedResult = null;
-        final String serializedResult = this.gson.toJson(result);
-        if (!"null".equalsIgnoreCase(serializedResult)) {
-            returnedResult = serializedResult;
-        }
-        return returnedResult;
+    /**
+     * Serializes a CommandWrapper object to JSON.
+     *
+     * @param command
+     *            the CommandWrapper object to serialize
+     * @return the JSON string representation
+     */
+    public String serialize(final CommandWrapper command) {
+        return this.gson.toJson(command);
     }
 
     /**
-     * Deserializes a JSON string into a CommandProcessingResult object.
+     * Deserializes a JSON string into a CommandWrapper object.
      *
      * @param json
      *            the JSON string to deserialize
-     * @return the CommandProcessingResult object
+     * @return the CommandWrapper object
      */
-    public CommandProcessingResult deserialize(final String json) {
+    public CommandWrapper deserialize(final String json) {
         if (json == null || json.isBlank()) {
             return null;
         }
-        return this.gson.fromJson(json, CommandProcessingResult.class);
+        return this.gson.fromJson(json, CommandWrapper.class);
     }
 }

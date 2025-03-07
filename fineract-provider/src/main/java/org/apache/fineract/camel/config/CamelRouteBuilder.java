@@ -19,24 +19,23 @@
 
 package org.apache.fineract.camel.config;
 
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_CORRELATION_ID;
-
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
+import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.fineract.camel.data.TransactionStatus;
-import org.apache.fineract.camel.domain.TransactionStatusTracking;
+import org.apache.fineract.camel.converters.StringToCommandProcessingResultConverter;
+import org.apache.fineract.camel.converters.StringToCommandWrapperConverter;
 import org.apache.fineract.camel.domain.TransactionStatusTrackingRepository;
 import org.apache.fineract.camel.service.CamelProcessingError;
 import org.apache.fineract.camel.service.CamelQueueProcessingService;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
-import org.apache.fineract.infrastructure.core.exception.AbstractPlatformException;
 import org.apache.fineract.infrastructure.core.exception.ErrorHandler;
 import org.apache.fineract.infrastructure.core.serialization.CommandProcessingResultJsonSerializer;
+import org.apache.fineract.infrastructure.core.serialization.CommandWrapperJsonSerializer;
 import org.apache.fineract.sse.service.SseEmitterService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -54,6 +53,7 @@ public class CamelRouteBuilder extends RouteBuilder {
     private final CamelProcessingError commandErrorProcessor;
 
     private final CommandProcessingResultJsonSerializer commandProcessingResultJsonSerializer;
+    private final CommandWrapperJsonSerializer commandWrapperJsonSerializer;
 
     private boolean routesConfigured = false;
 
@@ -88,35 +88,44 @@ public class CamelRouteBuilder extends RouteBuilder {
 
         if (asyncProperties.isEnabled()) {
 
+            camelContext.getTypeConverterRegistry()
+                    .addTypeConverters(new StringToCommandProcessingResultConverter(commandProcessingResultJsonSerializer));
+            camelContext.getTypeConverterRegistry().addTypeConverters(new StringToCommandWrapperConverter(commandWrapperJsonSerializer));
+
             FineractProperties.FineractExternalEventsConsumerRabbitMQProperties rabbitMQProperties = properties.getEvents().getExternal()
                     .getConsumer().getRabbitmq();
 
             final String requestQueue = getQueueConsumerConnectionString(rabbitMQProperties.getExchangeName(),
                     asyncProperties.getRequestQueueName());
 
-            final String errorQueue = commandProcessingService.getQueueProducerConnectionString(rabbitMQProperties.getExchangeName(),
-                    asyncProperties.getErrorRoutingKey());
+            final String errorQueue = getQueueConsumerConnectionString(rabbitMQProperties.getExchangeName(),
+                    asyncProperties.getErrorQueueName());
 
-            final String resultTopic = commandProcessingService.getTopicConnectionString(rabbitMQProperties.getTopicExchangeName(),
-                    asyncProperties.getResultRoutingKey());
+            final String resultQueue = getQueueConsumerConnectionString(rabbitMQProperties.getExchangeName(),
+                    asyncProperties.getResultQueueName());
 
-            from(errorQueue).bean(commandProcessingService, "emitErrorResult").multicast().to(ExchangePattern.InOnly, resultTopic)
+            from(errorQueue).bean(commandProcessingService, "emitErrorResult").multicast().to(ExchangePattern.InOnly, resultQueue)
                     .threads(asyncProperties.getMaxRequestConcurrentConsumers()).end();
 
-            from(resultTopic).bean(commandProcessingService, "emitResult").end();
+            from(resultQueue).bean(commandProcessingService, "emitResult").end();
 
-            from(requestQueue).process(this::markAsProcessing).onException(AbstractPlatformException.class).handled(true)
+            from(requestQueue).process(commandProcessingService::markAsProcessing).onException(InvalidPayloadException.class).handled(true)
                     .process(exchange -> {
+                        Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+                        // Log this specific error
+                        log.error("Type conversion error:", caused);
+                        commandProcessingService.logError(exchange);
+                    }).to(ExchangePattern.InOnly, errorQueue).end().onException(Exception.class).handled(true).process(exchange -> {
                         Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
 
                         final RuntimeException mappable = ErrorHandler.getMappable(caused);
                         exchange.getIn().setBody(commandProcessingResultJsonSerializer.serialize(mappable));
-                        this.logError(exchange);
+                        commandProcessingService.logError(exchange);
                     }).handled(true).to(ExchangePattern.InOnly, errorQueue).end().bean(commandProcessingService, "process")
                     .threads(asyncProperties.getMaxRequestConcurrentConsumers()).end();
 
-            final String sseEventConnectionTopic = commandProcessingService
-                    .getTopicConnectionString(rabbitMQProperties.getTopicExchangeName(), asyncProperties.getSseRoutingKey());
+            final String sseEventConnectionTopic = getTopicConnectionString(rabbitMQProperties.getTopicExchangeName(),
+                    asyncProperties.getSseRoutingKey());
 
             from(sseEventConnectionTopic).bean(emitterService, "cleanupOldConnections").end();
 
@@ -124,41 +133,17 @@ public class CamelRouteBuilder extends RouteBuilder {
 
     }
 
-    private void logError(Exchange exchange) {
-
-        // Get the exception that caused the error
-        Exception exception = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
-        String errorMessage = exception != null ? exception.getMessage() : "Unknown error";
-
-        // Get correlation ID from exchange
-        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
-        if (correlationId != null) {
-            // Create or update transaction status as FAILED
-            TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.FAILED)
-                    .build();
-            transactionStatusTrackingRepository.save(failedStatus);
-            log.info("Transaction {} marked as FAILED with error: {}", correlationId, errorMessage);
-        }
-
-    }
-
-    private void markAsProcessing(Exchange exchange) {
-        // Get correlation ID from exchange
-        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
-        if (correlationId != null) {
-            // Create or update transaction status as QUEUED
-            TransactionStatusTracking queuedStatus = TransactionStatusTracking.builder().id(correlationId)
-                    .status(TransactionStatus.PROCESSING).build();
-            transactionStatusTrackingRepository.save(queuedStatus);
-            log.info("Transaction {} marked as QUEUED", correlationId);
-        }
-    }
-
     private String getQueueConsumerConnectionString(String exchangeName, String queueName) {
         return properties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?queues=" + queueName + "&concurrentConsumers="
-                + properties.getEvents().getCamel().getAsync().getMaxRequestConcurrentConsumers() + "&testConnectionOnStartup=true"
-                + "&asyncConsumer=true&autoDeclare=true&arg.queue.durable="
+                + properties.getEvents().getCamel().getAsync().getMaxRequestConcurrentConsumers()
+                + "&testConnectionOnStartup=true&acknowledgeMode=AUTO"
+                + "&asyncConsumer=true&rejectAndDontRequeue=true&autoDeclare=true&exchangeType=direct&arg.queue.durable="
                 + properties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
+    private String getTopicConnectionString(String topicExchangeName, String sseRoutingKey) {
+
+        return properties.getEvents().getCamel().getQueueSystem() + ":" + topicExchangeName + "?queues=" + sseRoutingKey
+                + "&rejectAndDontRequeue=true&testConnectionOnStartup=true&exchangeType=topic&acknowledgeMode=AUTO";
+    }
 }

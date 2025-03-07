@@ -72,4 +72,10 @@ public class TransactionStatusTracking {
     @LastModifiedDate
     @Column(name = "last_modified_date", nullable = false)
     private LocalDateTime lastModifiedDate;
+
+    public void updateStatus(TransactionStatus status, String errorMessage) {
+        this.status = status;
+        this.errorMessage = errorMessage;
+        this.lastModifiedDate = LocalDateTime.now();
+    }
 }

@@ -19,10 +19,6 @@
 
 package org.apache.fineract.camel.service;
 
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_ACTION_CONTEXT;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_AUTH_TOKEN;
-import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_BUSINESS_DATE;
-
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -93,16 +89,16 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
         Map<String, Object> context = new HashMap<>();
 
         // Capture authentication and tenant context
-        context.put(FINERACT_HEADER_AUTH_TOKEN, ThreadLocalContextUtil.getAuthToken());
+        context.put("authToken", ThreadLocalContextUtil.getAuthToken());
         if (ThreadLocalContextUtil.getTenant() != null) {
             context.put("tenant", ThreadLocalContextUtil.getTenant());
         }
 
         // Capture business dates and action context
         if (ThreadLocalContextUtil.getBusinessDates() != null) {
-            context.put(FINERACT_HEADER_BUSINESS_DATE, ThreadLocalContextUtil.getBusinessDates());
+            context.put("businessDate", ThreadLocalContextUtil.getBusinessDates());
         }
-        context.put(FINERACT_HEADER_ACTION_CONTEXT, ThreadLocalContextUtil.getActionContext().toString());
+        context.put("actionContext", ThreadLocalContextUtil.getActionContext().toString());
 
         // Capture client information
         if (ThreadLocalContextUtil.getClientUserAgent() != null) {

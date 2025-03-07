@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -48,6 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Body;
+import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.Header;
 import org.apache.camel.ProducerTemplate;
@@ -168,12 +170,13 @@ public class CamelQueueProcessingService {
                 result.setCorrelationId(correlationId);
 
                 TransactionStatusTracking successStatus = TransactionStatusTracking.builder().id(correlationId)
-                        .errorMessage(commandProcessingResultJsonSerializer.serialize(result)).status(TransactionStatus.COMPLETED).build();
+                        .lastModifiedDate(LocalDateTime.now()).errorMessage(commandProcessingResultJsonSerializer.serialize(result))
+                        .status(TransactionStatus.COMPLETED).build();
                 transactionStatusTrackingRepository.saveAndFlush(successStatus);
 
-                final String resultTopic = getTopicConnectionString(
+                final String resultTopic = getQueueProducerConnectionString(
                         properties.getEvents().getExternal().getConsumer().getRabbitmq().getTopicExchangeName(),
-                        properties.getEvents().getCamel().getAsync().getResultRoutingKey());
+                        properties.getEvents().getCamel().getAsync().getResultQueueName());
 
                 Map<String, Object> headers = Map.of(FINERACT_HEADER_X_FINGERPRINT, fingerPrint, FINERACT_HEADER_CORRELATION_ID,
                         correlationId);
@@ -189,14 +192,14 @@ public class CamelQueueProcessingService {
 
                 String errorQueue = getQueueProducerConnectionString(
                         properties.getEvents().getExternal().getConsumer().getRabbitmq().getQueueName(),
-                        properties.getEvents().getCamel().getAsync().getErrorRoutingKey());
+                        properties.getEvents().getCamel().getAsync().getErrorQueueName());
 
                 Map<String, Object> headers = Map.of(FINERACT_HEADER_X_FINGERPRINT, fingerPrint, FINERACT_HEADER_CORRELATION_ID,
                         correlationId);
 
                 // Create or update transaction status as FAILED
                 TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId).errorMessage(body)
-                        .status(TransactionStatus.FAILED).build();
+                        .lastModifiedDate(LocalDateTime.now()).status(TransactionStatus.FAILED).build();
                 transactionStatusTrackingRepository.save(failedStatus);
                 log.info("Transaction {} marked as FAILED with error: {}", correlationId, body);
 
@@ -207,10 +210,10 @@ public class CamelQueueProcessingService {
         keyExecutor.execute(runnable);
     }
 
-    public void emitResult(@Header(FINERACT_HEADER_X_FINGERPRINT) String fingerPrint, @Body CommandProcessingResult commandResult) {
+    public void emitResult(@Header(FINERACT_HEADER_X_FINGERPRINT) String fingerPrint,
+            @Header(FINERACT_HEADER_X_FINGERPRINT) String correlationId, @Body CommandProcessingResult commandResult) {
 
-        emitterService.sendEvent(fingerPrint, commandResult.getCorrelationId(),
-                commandProcessingResultJsonSerializer.serialize(commandResult));
+        emitterService.sendEvent(fingerPrint, correlationId, commandProcessingResultJsonSerializer.serialize(commandResult));
 
     }
 
@@ -251,12 +254,53 @@ public class CamelQueueProcessingService {
 
     public String getQueueProducerConnectionString(String exchangeName, String routingKey) {
         return properties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?routingKey=" + routingKey
-                + "&testConnectionOnStartup=true";
+                + "&testConnectionOnStartup=true&exchangeType=direct&arg.queue.durable="
+                + properties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
-    public String getTopicConnectionString(String exchangeName, String routingKey) {
-        return properties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?exchangeType=topic&routingKey=" + routingKey
-                + "&concurrentConsumers=" + properties.getEvents().getCamel().getAsync().getMaxRequestConcurrentConsumers()
-                + "&testConnectionOnStartup=true" + "&asyncConsumer=true&autoDeclare=true";
+    public void logError(Exchange exchange) {
+        // Get the exception that caused the error
+        Exception exception = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+        String errorMessage = exception != null ? exception.getMessage() : "Unknown error";
+
+        // Get correlation ID from exchange
+        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
+        if (correlationId != null) {
+
+            String tenantId = exchange.getIn().getHeader(FINERACT_HEADER_TENANT_ID, String.class);
+            String authToken = exchange.getIn().getHeader(FINERACT_HEADER_AUTH_TOKEN, String.class);
+            final FineractPlatformTenant tenant = this.tenantDetailsService.loadTenantById(tenantId);
+
+            ThreadLocalContextUtil.setTenant(tenant);
+            ThreadLocalContextUtil.setAuthToken(authToken);
+            // Create or update transaction status as FAILED
+            TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.FAILED)
+                    .lastModifiedDate(LocalDateTime.now()).build();
+            transactionStatusTrackingRepository.save(failedStatus);
+            log.info("Transaction {} marked as FAILED with error: {}", correlationId, errorMessage);
+        }
+
     }
+
+    public void markAsProcessing(Exchange exchange) {
+        // Get correlation ID from exchange
+        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
+        if (correlationId != null) {
+
+            String tenantId = exchange.getIn().getHeader(FINERACT_HEADER_TENANT_ID, String.class);
+            String authToken = exchange.getIn().getHeader(FINERACT_HEADER_AUTH_TOKEN, String.class);
+
+            final FineractPlatformTenant tenant = this.tenantDetailsService.loadTenantById(tenantId);
+
+            ThreadLocalContextUtil.setTenant(tenant);
+            ThreadLocalContextUtil.setAuthToken(authToken);
+            // Create or update transaction status as QUEUED
+            TransactionStatusTracking queuedStatus = TransactionStatusTracking.builder().id(correlationId)
+                    .status(TransactionStatus.PROCESSING).build();
+            queuedStatus.setLastModifiedDate(LocalDateTime.now());
+            transactionStatusTrackingRepository.save(queuedStatus);
+            log.info("Transaction {} marked as PROCESSING", correlationId);
+        }
+    }
+
 }
