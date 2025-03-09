@@ -155,6 +155,7 @@
         <class>org.apache.fineract.portfolio.tax.domain.TaxGroupMappings</class>
         <class>org.apache.fineract.portfolio.tax.domain.TaxComponent</class>
         <class>org.apache.fineract.portfolio.tax.domain.TaxComponentHistory</class>
+        <class>org.apache.fineract.camel.domain.TransactionStatusTracking</class>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
         <properties>
             <property name="eclipselink.weaving" value="static" />

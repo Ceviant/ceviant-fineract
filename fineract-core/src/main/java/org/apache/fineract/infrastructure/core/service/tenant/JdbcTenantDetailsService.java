@@ -42,7 +42,7 @@ public class JdbcTenantDetailsService implements TenantDetailsService {
     private final JdbcTemplate jdbcTemplate;
     private final Boolean isReadOnlyInstance;
     private final String nodeId;
-    private ReadOnlyDatabaseConfig readOnlyDatabaseConfig;
+    private final ReadOnlyDatabaseConfig readOnlyDatabaseConfig;
 
     @Autowired
     public JdbcTenantDetailsService(@Qualifier("hikariTenantDataSource") final DataSource dataSource,

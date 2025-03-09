@@ -18,20 +18,19 @@
  */
 package org.apache.fineract.infrastructure.report.service;
 
+import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection.toJdbcUrl;
+import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection.toProtocol;
+
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.sql.Date;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-
+import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.ApiParameterHelper;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
@@ -48,7 +47,6 @@ import org.pentaho.reporting.engine.classic.core.CompoundDataFactory;
 import org.pentaho.reporting.engine.classic.core.DataFactory;
 import org.pentaho.reporting.engine.classic.core.DefaultReportEnvironment;
 import org.pentaho.reporting.engine.classic.core.MasterReport;
-import org.pentaho.reporting.engine.classic.core.ReportProcessingException;
 import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.DriverConnectionProvider;
 import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.SQLReportDataFactory;
 import org.pentaho.reporting.engine.classic.core.modules.output.pageable.pdf.PdfReportUtil;
@@ -56,9 +54,7 @@ import org.pentaho.reporting.engine.classic.core.modules.output.table.csv.CSVRep
 import org.pentaho.reporting.engine.classic.core.modules.output.table.html.HtmlReportUtil;
 import org.pentaho.reporting.engine.classic.core.modules.output.table.xls.ExcelReportUtil;
 import org.pentaho.reporting.engine.classic.core.parameters.ParameterDefinitionEntry;
-import org.pentaho.reporting.engine.classic.core.util.ReportParameterValues;
 import org.pentaho.reporting.libraries.resourceloader.Resource;
-import org.pentaho.reporting.libraries.resourceloader.ResourceException;
 import org.pentaho.reporting.libraries.resourceloader.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,11 +64,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import javax.sql.DataSource;
-
-import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection.toJdbcUrl;
-import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection.toProtocol;
 
 @Service
 @ReportService(type = "Pentaho")
@@ -99,7 +90,7 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
 
     @Autowired
     public PentahoReportingProcessServiceImpl(final PlatformSecurityContext context,
-                                              final @Qualifier("hikariTenantDataSource") DataSource tenantDataSource, DatabasePasswordEncryptor databasePasswordEncryptor) {
+            final @Qualifier("hikariTenantDataSource") DataSource tenantDataSource, DatabasePasswordEncryptor databasePasswordEncryptor) {
         ClassicEngineBoot.getInstance().start();
         this.tenantDataSource = tenantDataSource;
         this.context = context;
@@ -188,12 +179,14 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
             throw new PlatformDataIntegrityException("error.msg.reporting.error", "Pentaho failed: " + t.getMessage());
         }
     }
+
     private String getReportPath() {
         if (StringUtils.isNotBlank(fineractPentahoBaseDir)) {
             return this.fineractPentahoBaseDir + File.separator;
         }
         return this.mifosBaseDir + File.separator + "pentahoReports" + File.separator;
     }
+
     private void setConnectionDetail(DataFactory dataFactory) throws SQLException {
         final FineractPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
         final FineractPlatformTenantConnection tenantConnection = tenant.getConnection();
@@ -226,12 +219,9 @@ public class PentahoReportingProcessServiceImpl implements ReportingProcessServi
         String schemaConnectionParameters = tenantConnection.getSchemaConnectionParameters();
         // Properties to ReadOnly case
         if (fineractProperties.getMode().isReadOnlyMode()) {
-            schemaServer = getPropertyValue(tenantConnection.getReadOnlySchemaServer(), "FINERACT_RO_SCHEMA_SERVER_NAME",
-                    schemaServer);
-            schemaPort = getPropertyValue(tenantConnection.getReadOnlySchemaServerPort(), "FINERACT_RO_SCHEMA_SERVER_PORT",
-                    schemaPort);
-            schemaName = getPropertyValue(tenantConnection.getReadOnlySchemaName(), "FINERACT_RO_SCHEMA_SCHEMA_NAME",
-                    schemaName);
+            schemaServer = getPropertyValue(tenantConnection.getReadOnlySchemaServer(), "FINERACT_RO_SCHEMA_SERVER_NAME", schemaServer);
+            schemaPort = getPropertyValue(tenantConnection.getReadOnlySchemaServerPort(), "FINERACT_RO_SCHEMA_SERVER_PORT", schemaPort);
+            schemaName = getPropertyValue(tenantConnection.getReadOnlySchemaName(), "FINERACT_RO_SCHEMA_SCHEMA_NAME", schemaName);
 
             schemaConnectionParameters = getPropertyValue(tenantConnection.getReadOnlySchemaConnectionParameters(),
                     "FINERACT_RO_SCHEMA_CONNECTION_PARAMETERS", schemaConnectionParameters);

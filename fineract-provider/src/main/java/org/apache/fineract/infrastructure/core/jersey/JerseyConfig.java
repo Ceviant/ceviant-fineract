@@ -35,6 +35,7 @@ public class JerseyConfig extends ResourceConfig {
 
     JerseyConfig() {
         register(org.glassfish.jersey.media.multipart.MultiPartFeature.class);
+        register(org.glassfish.jersey.media.sse.SseFeature.class);
         property(ServerProperties.WADL_FEATURE_DISABLE, true);
     }
 
