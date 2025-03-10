@@ -19,6 +19,7 @@
 package org.apache.fineract.infrastructure.core.boot;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.model.rest.springboot.RestConfigurationDefinitionAutoConfiguration;
 import org.apache.fineract.infrastructure.core.condition.FineractWebApplicationCondition;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.springframework.beans.factory.InitializingBean;
@@ -45,7 +46,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
         DataSourceTransactionManagerAutoConfiguration.class, GsonAutoConfiguration.class, JdbcTemplateAutoConfiguration.class,
-        LiquibaseAutoConfiguration.class })
+        LiquibaseAutoConfiguration.class, RestConfigurationDefinitionAutoConfiguration.class })
 @EnableTransactionManagement
 @EnableWebSecurity
 @EnableConfigurationProperties({ FineractProperties.class, LiquibaseProperties.class })

@@ -20,10 +20,12 @@ package org.apache.fineract.infrastructure.core.service;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.Map;
 import org.apache.fineract.infrastructure.businessdate.domain.BusinessDateType;
 import org.apache.fineract.infrastructure.core.domain.ActionContext;
 import org.apache.fineract.infrastructure.core.domain.FineractContext;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
+import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.springframework.util.Assert;
 
 /**
@@ -37,6 +39,8 @@ public final class ThreadLocalContextUtil {
     private static final ThreadLocal<String> authTokenContext = new ThreadLocal<>();
     private static final ThreadLocal<HashMap<BusinessDateType, LocalDate>> businessDateContext = new ThreadLocal<>();
     private static final ThreadLocal<ActionContext> actionContext = new ThreadLocal<>();
+    private static final ThreadLocal<String> userAgent = new ThreadLocal<>();
+    private static final ThreadLocal<String> ipAddress = new ThreadLocal<>();
 
     private ThreadLocalContextUtil() {}
 
@@ -104,6 +108,22 @@ public final class ThreadLocalContextUtil {
         actionContext.set(context);
     }
 
+    public static String getClientIpAddr() {
+        return ipAddress.get();
+    }
+
+    public static void setIpAddress(final String ipAddress) {
+        ThreadLocalContextUtil.ipAddress.set(ipAddress);
+    }
+
+    public static String getClientUserAgent() {
+        return userAgent.get();
+    }
+
+    public static void setUserAgent(final String userAgent) {
+        ThreadLocalContextUtil.userAgent.set(userAgent);
+    }
+
     public static FineractContext getContext() {
         return new FineractContext(getDataSourceContext(), getTenant(), getAuthToken(), getBusinessDates(), getActionContext());
     }
@@ -123,5 +143,33 @@ public final class ThreadLocalContextUtil {
         authTokenContext.remove();
         businessDateContext.remove();
         actionContext.remove();
+        ipAddress.remove();
+        userAgent.remove();
+    }
+
+    public static void restoreThreadContext(Map<String, Object> threadContextCopy) {
+        ThreadLocalContextUtil.reset();
+
+        if (threadContextCopy.containsKey("tenant")) {
+            ThreadLocalContextUtil.setTenant((FineractPlatformTenant) threadContextCopy.get("tenant"));
+        }
+
+        if (threadContextCopy.containsKey("authToken")) {
+            ThreadLocalContextUtil.setAuthToken((String) threadContextCopy.get("authToken"));
+        }
+
+        if (threadContextCopy.containsKey("businessDate")) {
+            try {
+                HashMap<BusinessDateType, LocalDate> dates = (HashMap<BusinessDateType, LocalDate>) threadContextCopy.get("businessDate");
+                ThreadLocalContextUtil.setBusinessDates(dates);
+            } catch (Exception e) {
+                throw new PlatformDataIntegrityException("async.camel.businessdate.deserialize.error",
+                        "Failed to deserialize business dates");
+            }
+        }
+
+        if (threadContextCopy.containsKey("actionContext")) {
+            ThreadLocalContextUtil.setActionContext(ActionContext.valueOf((String) threadContextCopy.get("actionContext")));
+        }
     }
 }

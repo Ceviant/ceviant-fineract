@@ -57,14 +57,22 @@ public class CommandWrapperBuilder {
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
                 this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey, this.transactionAmount,
-                this.useRef, this.reference);
+                this.useRef, this.reference, false);
     }
 
     public CommandWrapper build(String idempotencyKey) {
         return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
                 this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
                 this.creditBureauId, this.organisationCreditBureauId, this.jobName, idempotencyKey, this.transactionAmount, this.useRef,
-                this.reference);
+                this.reference, false);
+    }
+
+    @SuppressFBWarnings(value = "UWF_UNWRITTEN_FIELD", justification = "TODO: fix this!")
+    public CommandWrapper buildWithAsync() {
+        return new CommandWrapper(this.officeId, this.groupId, this.clientId, this.loanId, this.savingsId, this.actionName, this.entityName,
+                this.entityId, this.subentityId, this.href, this.json, this.transactionId, this.productId, this.templateId,
+                this.creditBureauId, this.organisationCreditBureauId, this.jobName, this.idempotencyKey, this.transactionAmount,
+                this.useRef, this.reference, true);
     }
 
     public CommandWrapperBuilder updateCreditBureau() {
