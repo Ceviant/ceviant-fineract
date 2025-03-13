@@ -38,6 +38,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
+import org.apache.fineract.camel.data.CamelOperation;
 import org.apache.fineract.camel.data.TransactionStatus;
 import org.apache.fineract.camel.domain.TransactionStatusTracking;
 import org.apache.fineract.camel.domain.TransactionStatusTrackingRepository;
@@ -84,13 +85,15 @@ public class CamelAsyncProcessingServiceHelper {
         final Map<String, Object> requestHeaders = Map.of(FINERACT_HEADER_CORRELATION_ID, correlationId, FINERACT_HEADER_AUTH_TOKEN,
                 authToken, FINERACT_HEADER_RUN_AS, appUser.getUsername(), FINERACT_HEADER_TENANT_ID, tenantIdentifier,
                 FINERACT_HEADER_APPROVED_BY_CHECKER, isApprovedByChecker, FINERACT_HEADER_BUSINESS_DATE, serializedBusinessDates,
-                FINERACT_HEADER_ACTION_CONTEXT, actionContext.toString(), FINERACT_HEADER_X_FINGERPRINT, fingerPrint);
+                FINERACT_HEADER_ACTION_CONTEXT, actionContext.toString(), FINERACT_HEADER_X_FINGERPRINT, fingerPrint, "operation",
+                wrapper.getOperation());
 
         final String queueName = getQueueProducerConnectionString(
                 fineractProperties.getEvents().getExternal().getConsumer().getRabbitmq().getExchangeName(),
                 fineractProperties.getEvents().getCamel().getAsync().getRequestQueueName());
 
-        TransactionStatusTracking status = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.QUEUED).build();
+        TransactionStatusTracking status = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.QUEUED)
+                .operation(CamelOperation.fromString(wrapper.getOperation())).build();
         transactionStatusTrackingRepository.save(status);
 
         try {
@@ -119,8 +122,8 @@ public class CamelAsyncProcessingServiceHelper {
     }
 
     public String getQueueProducerConnectionString(String exchangeName, String routingKey) {
-        return fineractProperties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?queues=" + routingKey
-                + "&testConnectionOnStartup=true&exchangeType=direct&arg.queue.durable="
+        return fineractProperties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?routingKey=" + routingKey
+                + "&testConnectionOnStartup=true" + "&exchangeType=direct" + "&arg.queue.durable="
                 + fineractProperties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
