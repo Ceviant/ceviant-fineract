@@ -20,5 +20,21 @@
 package org.apache.fineract.camel.data;
 
 public enum CamelOperation {
-    DEPOSIT, WITHDRAW
+
+    DEPOSIT, WITHDRAW, INTEREST_POSTING, HOLD_AMOUNT, UNKNOWN;
+
+    public static CamelOperation fromString(String operation) {
+        switch (operation) {
+            case "DEPOSIT":
+                return DEPOSIT;
+            case "WITHDRAW":
+                return WITHDRAW;
+            case "INTEREST_POSTING":
+                return INTEREST_POSTING;
+            case "HOLD_AMOUNT":
+                return HOLD_AMOUNT;
+            default:
+                return UNKNOWN;
+        }
+    }
 }

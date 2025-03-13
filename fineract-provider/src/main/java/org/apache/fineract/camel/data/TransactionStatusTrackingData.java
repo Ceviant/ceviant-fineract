@@ -35,7 +35,7 @@ public class TransactionStatusTrackingData {
     private Long transactionId;
     private String operation;
     private TransactionStatus status;
-    private String errorMessage;
+    private String message;
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
 }

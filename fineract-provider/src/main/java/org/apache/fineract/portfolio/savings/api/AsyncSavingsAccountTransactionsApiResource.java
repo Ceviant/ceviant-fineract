@@ -37,6 +37,7 @@ import jakarta.ws.rs.core.UriInfo;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fineract.camel.data.CamelOperation;
 import org.apache.fineract.camel.data.TransactionStatusTrackingData;
 import org.apache.fineract.camel.service.TransactionStatusReadPlatformService;
 import org.apache.fineract.commands.domain.CommandWrapper;
@@ -77,19 +78,22 @@ public class AsyncSavingsAccountTransactionsApiResource {
 
         CommandProcessingResult result = null;
         if (is(commandParam, "deposit")) {
-            final CommandWrapper commandRequest = builder.savingsAccountDeposit(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.savingsAccountDeposit(savingsId).buildWithAsync(CamelOperation.DEPOSIT.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "gsimDeposit")) {
-            final CommandWrapper commandRequest = builder.gsimSavingsAccountDeposit(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.gsimSavingsAccountDeposit(savingsId)
+                    .buildWithAsync(CamelOperation.DEPOSIT.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "withdrawal")) {
-            final CommandWrapper commandRequest = builder.savingsAccountWithdrawal(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.savingsAccountWithdrawal(savingsId)
+                    .buildWithAsync(CamelOperation.WITHDRAW.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "postInterestAsOn")) {
-            final CommandWrapper commandRequest = builder.savingsAccountInterestPosting(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.savingsAccountInterestPosting(savingsId)
+                    .buildWithAsync(CamelOperation.INTEREST_POSTING.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, SavingsApiConstants.COMMAND_HOLD_AMOUNT)) {
-            final CommandWrapper commandRequest = builder.holdAmount(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.holdAmount(savingsId).buildWithAsync(CamelOperation.HOLD_AMOUNT.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         }
 

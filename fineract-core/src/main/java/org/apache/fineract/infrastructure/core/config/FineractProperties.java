@@ -312,6 +312,8 @@ public class FineractProperties {
         private String resultQueueName;
         private String errorQueueName;
         private String sseRoutingKey;
+        private boolean activeRequestNode;
+        private boolean activeSseNode;
         private int maxRequestConcurrentConsumers;
     }
 
