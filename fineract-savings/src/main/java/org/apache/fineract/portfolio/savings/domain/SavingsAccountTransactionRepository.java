@@ -61,4 +61,6 @@ public interface SavingsAccountTransactionRepository
     List<SavingsAccountTransaction> findByUniqueTransactionReference(
             @Param("uniqueTransactionReference") String uniqueTransactionReference);
 
+    @Query("SELECT sat FROM SavingsAccountTransaction sat WHERE sat.savingsAccount.id = :savingsId order by sat.id DESC")
+    List<SavingsAccountTransaction> getLimitedTransactionsBySavingsAccount(@Param("savingsId") Long savingsId, Pageable pageable);
 }
