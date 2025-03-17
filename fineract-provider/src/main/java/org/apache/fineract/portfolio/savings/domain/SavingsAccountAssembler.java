@@ -394,6 +394,9 @@ public class SavingsAccountAssembler {
                 savingsAccountTransactions = this.savingsAccountRepository.findAllTransactions(account);
                 account.setSavingsAccountTransactions(savingsAccountTransactions);
             }
+        } else {
+            savingsAccountTransactions = this.savingsAccountRepository.findAllTransactions(account);
+            account.setTransactions(savingsAccountTransactions);
         }
 
         account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);
