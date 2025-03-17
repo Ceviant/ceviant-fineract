@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -640,6 +640,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                 }
             }
 
+            if (this.summary.getRunningBalanceOnPivotDate().compareTo(BigDecimal.ZERO) > 0) {
+                openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
+            }
+
             // update existing transactions so derived balance fields are
             // correct.
             recalculateDailyBalances(openingAccountBalance, interestPostingUpToDate, backdatedTxnsAllowedTill, postReversals);
@@ -669,6 +673,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                 } else {
                     openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
                 }
+            }
+
+            if (this.summary.getRunningBalanceOnPivotDate().compareTo(BigDecimal.ZERO) > 0) {
+                openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
             }
 
             // update existing transactions so derived balance fields are
@@ -862,6 +870,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         Money openingAccountBalance = backdatedTxnsAllowedTill ? Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate())
                 : Money.zero(this.currency);
 
+        if (this.summary.getRunningBalanceOnPivotDate().compareTo(BigDecimal.ZERO) > 0) {
+            openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
+        }
+
         // update existing transactions so derived balance fields are correct.
         recalculateDailyBalances(openingAccountBalance, upToInterestCalculationDate, backdatedTxnsAllowedTill, postReversals);
 
@@ -1038,12 +1050,6 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             accountTransactionsSorted = retrieveSortedTransactions();
         } else {
             accountTransactionsSorted = retrieveListOfTransactions();
-        }
-
-        if (openingAccountBalance.isEqualTo(Money.zero(this.currency)) && !accountTransactionsSorted.isEmpty()) {
-            if(accountTransactionsSorted.get(0).getId() != null) { // it's not the current transaction
-                runningBalance = accountTransactionsSorted.remove(0).getRunningBalance(this.currency);
-            }
         }
 
         boolean isTransactionsModified = false;

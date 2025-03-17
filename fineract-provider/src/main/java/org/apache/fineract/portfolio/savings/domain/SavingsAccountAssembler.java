@@ -53,6 +53,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -390,19 +391,21 @@ public class SavingsAccountAssembler {
                     account.setSavingsAccountTransactions(savingsAccountTransactions);
                 }
             } else {
-                savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
+                savingsAccountTransactions = this.savingsAccountRepository.findAllTransactions(account);
                 account.setSavingsAccountTransactions(savingsAccountTransactions);
             }
-        } else {
-            savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
-            account.setTransactions(savingsAccountTransactions);
         }
 
         account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);
         return account;
     }
 
-    public SavingsAccount loadTransactionsToSavingsAccountOld(final SavingsAccount account, final boolean backdatedTxnsAllowedTill) {
+    public SavingsAccount assembleWithLimitedTransacations(final Long savingsId, final boolean backdatedTxnsAllowedTill) {
+        SavingsAccount account = this.savingsAccountRepository.findSavingsWithNotFoundDetection(savingsId, backdatedTxnsAllowedTill);
+        return loadTransactionsToSavingsAccountWithLimitedTransactions(account, backdatedTxnsAllowedTill);
+    }
+
+    public SavingsAccount loadTransactionsToSavingsAccountWithLimitedTransactions(final SavingsAccount account, final boolean backdatedTxnsAllowedTill) {
         List<SavingsAccountTransaction> savingsAccountTransactions = null;
         if (backdatedTxnsAllowedTill) {
             LocalDate pivotDate = account.getSummary().getInterestPostedTillDate();
@@ -434,8 +437,23 @@ public class SavingsAccountAssembler {
                     account.setSavingsAccountTransactions(savingsAccountTransactions);
                 }
             } else {
-                savingsAccountTransactions = this.savingsAccountRepository.findAllTransactions(account);
-                account.setSavingsAccountTransactions(savingsAccountTransactions);
+                savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
+                if(!savingsAccountTransactions.isEmpty()) {
+                    final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
+                    Collections.sort(savingsAccountTransactions, transactionComparator);
+                    account.getSummary().setRunningBalanceOnPivotDate(savingsAccountTransactions.remove(0)
+                            .getRunningBalance(account.getCurrency()).getAmount());
+                    account.setTransactions(savingsAccountTransactions);
+                }
+            }
+        } else {
+            savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
+            if(!savingsAccountTransactions.isEmpty()) {
+                final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
+                Collections.sort(savingsAccountTransactions, transactionComparator);
+                account.getSummary().setRunningBalanceOnPivotDate(savingsAccountTransactions.remove(0)
+                        .getRunningBalance(account.getCurrency()).getAmount());
+                account.setTransactions(savingsAccountTransactions);
             }
         }
 
