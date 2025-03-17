@@ -364,6 +364,7 @@ public class FineractProperties {
         private String dlq;
         private String dlqRoutingKey;
         private String topicExchangeName;
+        private String brokerVhost;
     }
 
     @Getter
