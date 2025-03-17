@@ -2135,60 +2135,6 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .withClientId(account.clientId()).withGroupId(account.groupId()).withSavingsId(savingsId).with(changes).build();
     }
 
-    public CommandProcessingResult recalculateBalances(final Long savingsId, final JsonCommand command) {
-
-        this.savingsAccountTransactionDataValidator.validate(command);
-
-        boolean isGsim = false;
-
-        final Locale locale = command.extractLocale();
-        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
-
-        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
-
-        if (account.getGsim() != null) {
-            isGsim = true;
-        }
-        checkClientOrGroupActive(account);
-
-        final boolean isAccountTransfer = false;
-        final boolean isRegularTransaction = true;
-        final boolean isApplyWithdrawFee = true;
-        final boolean isInterestTransfer = false;
-        final boolean isWithdrawBalance = false;
-        final SavingsTransactionBooleanValues transactionBooleanValues = new SavingsTransactionBooleanValues(isAccountTransfer,
-                isRegularTransaction, isApplyWithdrawFee, isInterestTransfer, isWithdrawBalance);
-        final SavingsAccountTransaction withdrawal = this.savingsAccountDomainService.handleWithdrawal(account, fmt, transactionDate,
-                transactionAmount, paymentDetail, transactionBooleanValues, backdatedTxnsAllowedTill);
-        withdrawal.setReference(reference);
-
-        if (isGsim && (withdrawal.getId() != null)) {
-            GroupSavingsIndividualMonitoring gsim = gsimRepository.findById(account.getGsim().getId()).orElseThrow();
-            BigDecimal currentBalance = gsim.getParentDeposit().subtract(transactionAmount);
-            gsim.setParentDeposit(currentBalance);
-            gsimRepository.save(gsim);
-
-        }
-
-        final String noteText = command.stringValueOfParameterNamed("narration");
-        if (StringUtils.isNotBlank(noteText)) {
-            final Note note = Note.savingsTransactionNote(account, withdrawal, noteText);
-            this.noteRepository.save(note);
-        }
-
-        return new CommandProcessingResultBuilder() //
-                .withEntityId(withdrawal.getId()) //
-                .withOfficeId(account.officeId()) //
-                .withClientId(account.clientId()) //
-                .withGroupId(account.groupId()) //
-                .withSavingsId(savingsId) //
-                .withReference(reference) //
-                .withNarration(noteText) //
-                .with(changes)//
-                .build();
-
-    }
-
     private void validateTransactionsForTransfer(final SavingsAccount savingsAccount, final LocalDate transferDate) {
         for (SavingsAccountTransaction transaction : savingsAccount.getTransactions()) {
             if ((DateUtils.isEqual(transferDate, transaction.getTransactionDate())
