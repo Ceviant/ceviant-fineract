@@ -2135,6 +2135,31 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .withClientId(account.clientId()).withGroupId(account.groupId()).withSavingsId(savingsId).with(changes).build();
     }
 
+//    public CommandProcessingResult recalculateBalances(final Long savingsId, final JsonCommand command) {
+//
+//        this.savingsAccountTransactionDataValidator.validate(command);
+//
+//        boolean isGsim = false;
+//
+//        final Locale locale = command.extractLocale();
+//        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
+//
+//        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
+//        account.rec
+//
+//        return new CommandProcessingResultBuilder() //
+//                .withEntityId(withdrawal.getId()) //
+//                .withOfficeId(account.officeId()) //
+//                .withClientId(account.clientId()) //
+//                .withGroupId(account.groupId()) //
+//                .withSavingsId(savingsId) //
+//                .withReference(reference) //
+//                .withNarration(noteText) //
+//                .with(changes)//
+//                .build();
+//
+//    }
+
     private void validateTransactionsForTransfer(final SavingsAccount savingsAccount, final LocalDate transferDate) {
         for (SavingsAccountTransaction transaction : savingsAccount.getTransactions()) {
             if ((DateUtils.isEqual(transferDate, transaction.getTransactionDate())
