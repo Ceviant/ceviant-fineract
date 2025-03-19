@@ -74,10 +74,13 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
     @Override
     public CommandProcessingResult executeCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker) {
 
+        log.info("Request received in camel processing entry point, checking if its async or not async");
         if (properties.getEvents().getCamel().isEnabled() && properties.getEvents().getCamel().getAsync().isEnabled()
                 && wrapper.isRequestAsync()) {
+            log.info("Async request received in camel");
             final String correlationId = mdcWrapper.get("correlationId");
             this.executeAsyncCommand(wrapper, isApprovedByChecker);
+            log.info("Return async request received in camel");
             return CommandProcessingResult.correlationIdResult(correlationId);
 
         }
@@ -87,11 +90,13 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
 
     @Override
     public void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker) {
+        log.info("Entered execute async request method, heading if not duplicate, reqeust will be placed on the queue");
         final String correlationId = mdcWrapper.get("correlationId");
 
         Optional<TransactionStatusTracking> exists = transactionStatusTrackingRepository.findById(correlationId);
-
+        log.info("Checking if this is a duplicate received in camel");
         if (exists.isPresent()) {
+            log.info("Duplicate request received request received in camel");
             throw new PlatformDataIntegrityException("async.camel.command.duplicate.error", "Command with correlation id [" + correlationId
                     + "] already exists with status [{" + exists.get().getStatus().name() + "}]", "correlationId", correlationId);
         }
