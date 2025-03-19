@@ -26,6 +26,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Immutable data object representing platform API request used for logging/debugging.
@@ -53,6 +55,7 @@ public final class PlatformRequestLog {
         parameters.remove("password");
         parameters.remove("_");
 
+        LoggerFactory.getLogger(PlatformRequestLog.class).info("Loging request path: "+requestUrl.toString());
         return new PlatformRequestLog().setStartTime(task.getStartTime()).setTotalTime(task.getTime()).setMethod(request.getMethod())
                 .setUrl(requestUrl).setParameters(parameters);
     }
