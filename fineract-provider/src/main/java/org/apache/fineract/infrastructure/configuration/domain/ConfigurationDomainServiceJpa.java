@@ -366,7 +366,7 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
     public boolean retrievePivotDateConfig() {
         final String propertyName = "allow-backdated-transaction-before-interest-posting";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
-        return !property.isEnabled();
+        return property.isEnabled();
 
     }
 

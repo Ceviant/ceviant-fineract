@@ -48,7 +48,6 @@ import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withHold
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withdrawalFeeForTransfersParamName;
 
 import com.google.gson.JsonElement;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterException;
@@ -111,14 +109,14 @@ public class SavingsAccountAssembler {
 
     @Autowired
     public SavingsAccountAssembler(final SavingsAccountTransactionSummaryWrapper savingsAccountTransactionSummaryWrapper,
-                                   final SavingsAccountTransactionDataSummaryWrapper savingsAccountTransactionDataSummaryWrapper,
-                                   final ClientRepositoryWrapper clientRepository, final GroupRepositoryWrapper groupRepository,
-                                   final StaffRepositoryWrapper staffRepository, final SavingsProductRepository savingProductRepository,
-                                   final SavingsAccountRepositoryWrapper savingsAccountRepository,
-                                   final SavingsAccountChargeAssembler savingsAccountChargeAssembler, final FromJsonHelper fromApiJsonHelper,
-                                   final AccountTransfersReadPlatformService accountTransfersReadPlatformService, final JdbcTemplate jdbcTemplate,
-                                   final ConfigurationDomainService configurationDomainService, ExternalIdFactory externalIdFactory,
-                                   final SavingsAccountTransactionRepository savingsAccountTransactionRepository) {
+            final SavingsAccountTransactionDataSummaryWrapper savingsAccountTransactionDataSummaryWrapper,
+            final ClientRepositoryWrapper clientRepository, final GroupRepositoryWrapper groupRepository,
+            final StaffRepositoryWrapper staffRepository, final SavingsProductRepository savingProductRepository,
+            final SavingsAccountRepositoryWrapper savingsAccountRepository,
+            final SavingsAccountChargeAssembler savingsAccountChargeAssembler, final FromJsonHelper fromApiJsonHelper,
+            final AccountTransfersReadPlatformService accountTransfersReadPlatformService, final JdbcTemplate jdbcTemplate,
+            final ConfigurationDomainService configurationDomainService, ExternalIdFactory externalIdFactory,
+            final SavingsAccountTransactionRepository savingsAccountTransactionRepository) {
         this.savingsAccountTransactionSummaryWrapper = savingsAccountTransactionSummaryWrapper;
         this.savingsAccountTransactionDataSummaryWrapper = savingsAccountTransactionDataSummaryWrapper;
         this.clientRepository = clientRepository;
@@ -408,7 +406,8 @@ public class SavingsAccountAssembler {
         return loadTransactionsToSavingsAccountWithLimitedTransactions(account, backdatedTxnsAllowedTill);
     }
 
-    public SavingsAccount loadTransactionsToSavingsAccountWithLimitedTransactions(final SavingsAccount account, final boolean backdatedTxnsAllowedTill) {
+    public SavingsAccount loadTransactionsToSavingsAccountWithLimitedTransactions(final SavingsAccount account,
+            final boolean backdatedTxnsAllowedTill) {
         List<SavingsAccountTransaction> savingsAccountTransactions = null;
         if (backdatedTxnsAllowedTill) {
             LocalDate pivotDate = account.getSummary().getInterestPostedTillDate();
@@ -440,22 +439,25 @@ public class SavingsAccountAssembler {
                     account.setSavingsAccountTransactions(savingsAccountTransactions);
                 }
             } else {
-                savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
-                if(!savingsAccountTransactions.isEmpty()) {
+                savingsAccountTransactions = this.savingsAccountTransactionRepository
+                        .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
+                if (!savingsAccountTransactions.isEmpty()) {
                     final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
                     Collections.sort(savingsAccountTransactions, transactionComparator);
-                    account.getSummary().setRunningBalanceOnPivotDate(savingsAccountTransactions.remove(0)
-                            .getRunningBalance(account.getCurrency()).getAmount());
+                    account.getSummary().setRunningBalanceOnPivotDate(
+                            savingsAccountTransactions.remove(0).getRunningBalance(account.getCurrency()).getAmount());
+                    account.setSavingsAccountTransactions(savingsAccountTransactions);
                     account.setTransactions(savingsAccountTransactions);
                 }
             }
         } else {
-            savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
-            if(!savingsAccountTransactions.isEmpty()) {
+            savingsAccountTransactions = this.savingsAccountTransactionRepository.getLimitedTransactionsBySavingsAccount(account.getId(),
+                    PageRequest.of(0, 10));
+            if (!savingsAccountTransactions.isEmpty()) {
                 final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
                 Collections.sort(savingsAccountTransactions, transactionComparator);
-                account.getSummary().setRunningBalanceOnPivotDate(savingsAccountTransactions.remove(0)
-                        .getRunningBalance(account.getCurrency()).getAmount());
+                account.getSummary().setRunningBalanceOnPivotDate(
+                        savingsAccountTransactions.remove(0).getRunningBalance(account.getCurrency()).getAmount());
                 account.setTransactions(savingsAccountTransactions);
             }
         }
@@ -508,7 +510,7 @@ public class SavingsAccountAssembler {
      * chosen {@link SavingsProduct}.
      */
     public SavingsAccount assembleFrom(final Client client, final Group group, final Long productId, final LocalDate appliedonDate,
-                                       final AppUser appliedBy) {
+            final AppUser appliedBy) {
 
         AccountType accountType = AccountType.INVALID;
         if (client != null) {

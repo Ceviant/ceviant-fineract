@@ -182,27 +182,6 @@ public final class SavingsAccountSummary {
                 default:
                 break;
             }
-        } else {
-            // INTEREST_POSTING
-            Money interestTotal = Money.zero(currency);
-            Money withHoldTaxTotal = Money.zero(currency);
-            Money overdraftInterestTotal = Money.zero(currency);
-            this.totalDeposits = wrapper.calculateTotalDeposits(currency, savingsAccountTransactions);
-            this.totalWithdrawals = wrapper.calculateTotalWithdrawals(currency, savingsAccountTransactions);
-
-            final HashMap<String, Money> map = updateRunningBalanceAndPivotDate(true, savingsAccountTransactions, interestTotal,
-                    overdraftInterestTotal, withHoldTaxTotal, currency);
-            interestTotal = map.get("interestTotal");
-            withHoldTaxTotal = map.get("withHoldTax");
-            overdraftInterestTotal = map.get("overdraftInterestTotal");
-            this.totalInterestPosted = interestTotal.getAmountDefaultedToNullIfZero();
-            this.totalOverdraftInterestDerived = overdraftInterestTotal.getAmountDefaultedToNullIfZero();
-            this.totalWithholdTax = withHoldTaxTotal.getAmountDefaultedToNullIfZero();
-
-            this.accountBalance = getRunningBalanceOnPivotDate();
-            this.accountBalance = Money.of(currency, this.accountBalance).plus(Money.of(currency, this.totalDeposits))
-                    .plus(this.totalInterestPosted).minus(this.totalWithdrawals).minus(this.totalWithholdTax)
-                    .minus(this.totalOverdraftInterestDerived).getAmount();
         }
     }
 
