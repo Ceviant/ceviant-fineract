@@ -29,6 +29,7 @@ import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_TENANT_ID;
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_X_FINGERPRINT;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.jano7.executor.BoundedStrategy;
 import com.jano7.executor.KeyRunnable;
@@ -47,6 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Body;
@@ -71,7 +73,6 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.domain.ActionContext;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.exception.ErrorHandler;
-import org.apache.fineract.infrastructure.core.serialization.CommandProcessingResultJsonSerializer;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsService;
@@ -102,7 +103,7 @@ public class CamelQueueProcessingService {
 
     private final BusinessDateSerializer businessDateSerializer;
 
-    private final CommandProcessingResultJsonSerializer commandProcessingResultJsonSerializer;
+    private final Gson gson = new Gson();
 
     private final SseEmitterService emitterService;
 
@@ -173,7 +174,7 @@ public class CamelQueueProcessingService {
 
                 TransactionStatusTracking successStatus = TransactionStatusTracking.builder().id(correlationId)
                         .operation(CamelOperation.fromString(commandWrapper.getOperation())).lastModifiedDate(LocalDateTime.now())
-                        .errorMessage(commandProcessingResultJsonSerializer.serialize(result)).status(TransactionStatus.COMPLETED).build();
+                        .errorMessage(gson.toJson(result)).status(TransactionStatus.COMPLETED).build();
                 transactionStatusTrackingRepository.saveAndFlush(successStatus);
 
                 final String resultTopic = getTopicProducer(
@@ -183,13 +184,13 @@ public class CamelQueueProcessingService {
                 Map<String, Object> headers = Map.of(FINERACT_HEADER_X_FINGERPRINT, fingerPrint, FINERACT_HEADER_CORRELATION_ID,
                         correlationId);
 
-                producerTemplate.sendBodyAndHeaders(resultTopic, ExchangePattern.InOnly,
-                        commandProcessingResultJsonSerializer.serialize(result), headers);
+                producerTemplate.sendBodyAndHeaders(resultTopic, ExchangePattern.InOnly, getWrappedResponse(successStatus, result),
+                        headers);
 
             } catch (Throwable caused) {
                 final RuntimeException mappable = ErrorHandler.getMappable(caused);
                 final ErrorInfo errorInfo = commandSourceService.generateErrorInfo(mappable);
-                String body = commandProcessingResultJsonSerializer.serialize(errorInfo);
+                String body = gson.toJson(errorInfo);
 
                 String errorQueue = getTopicProducer(
                         properties.getEvents().getExternal().getConsumer().getRabbitmq().getTopicExchangeName(),
@@ -205,7 +206,8 @@ public class CamelQueueProcessingService {
                 transactionStatusTrackingRepository.save(failedStatus);
                 log.info("Transaction {} marked as FAILED with error: {}", correlationId, body);
 
-                producerTemplate.sendBodyAndHeaders(errorQueue, ExchangePattern.InOnly, body, headers);
+                producerTemplate.sendBodyAndHeaders(errorQueue, ExchangePattern.InOnly, getWrappedResponse(failedStatus, errorInfo),
+                        headers);
             }
         });
 
@@ -221,7 +223,7 @@ public class CamelQueueProcessingService {
             log.error("Cannot emit error result: Missing correlation ID");
             return;
         }
-        emitterService.sendEvent(fingerPrint, correlationId, commandProcessingResultJsonSerializer.serialize(commandResult));
+        emitterService.sendEvent(fingerPrint, correlationId, gson.toJson(commandResult));
 
     }
 
@@ -257,7 +259,7 @@ public class CamelQueueProcessingService {
             return;
         }
 
-        emitterService.sendEvent(fingerPrint, correlationId, commandProcessingResultJsonSerializer.serialize(commandErrorResult));
+        emitterService.sendEvent(fingerPrint, correlationId, gson.toJson(commandErrorResult));
     }
 
     private String generateKey(CommandWrapper cmd) {
@@ -367,4 +369,16 @@ public class CamelQueueProcessingService {
                 .noneMatch(t -> t.getStatus().equals(TransactionStatus.QUEUED));
     }
 
+    public String getWrappedResponse(TransactionStatusTracking status, Object result) {
+        return gson.toJson(SseEmitterBodyWrapper.builder().status(status.getStatus().name()).operation(status.getOperation().name())
+                .body(result).build());
+    }
+
+    @Builder
+    private static final class SseEmitterBodyWrapper {
+
+        private String operation;
+        private String status;
+        private Object body;
+    }
 }
