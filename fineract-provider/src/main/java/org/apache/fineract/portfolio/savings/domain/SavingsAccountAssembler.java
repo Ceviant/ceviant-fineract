@@ -446,10 +446,10 @@ public class SavingsAccountAssembler {
                     savingsAccountTransactions = this.savingsAccountTransactionRepository
                             .findTransactionsAfterPivotDate(account, transactionDate);
 
-                    List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountRepository
-                            .findTransactionRunningBalanceBeforePivotDate(account, transactionDate);
+                    List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountTransactionRepository
+                            .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 10));
                     if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
-                        account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(pivotDateTransaction.size() - 1)
+                        account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(0)
                                 .getRunningBalance(account.getCurrency()).getAmount());
                     }
 
@@ -472,10 +472,10 @@ public class SavingsAccountAssembler {
                 savingsAccountTransactions = this.savingsAccountTransactionRepository
                         .findTransactionsAfterPivotDate(account, transactionDate);
 
-                List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountRepository
-                        .findTransactionRunningBalanceBeforePivotDate(account, transactionDate);
+                List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountTransactionRepository
+                        .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 10));
                 if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
-                    account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(pivotDateTransaction.size() - 1)
+                    account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(0)
                             .getRunningBalance(account.getCurrency()).getAmount());
                 }
 

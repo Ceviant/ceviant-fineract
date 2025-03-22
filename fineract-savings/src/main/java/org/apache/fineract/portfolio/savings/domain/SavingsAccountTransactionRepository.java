@@ -63,4 +63,9 @@ public interface SavingsAccountTransactionRepository
 
     @Query("SELECT sat FROM SavingsAccountTransaction sat WHERE sat.savingsAccount.id = :savingsId and sat.reversalTransaction <> 1 and sat.reversed <> 1 order by sat.id DESC")
     List<SavingsAccountTransaction> getLimitedTransactionsBySavingsAccount(@Param("savingsId") Long savingsId, Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select st from SavingsAccountTransaction st where st.savingsAccount = :savingsAccount and st.dateOf <= :date and st.reversalTransaction <> 1 and st.reversed <> 1 order by st.dateOf,st.createdDate,st.id DESC")
+    List<SavingsAccountTransaction> findLimitedTransactionRunningBalanceBeforeDate(@Param("savingsAccount") SavingsAccount savingsAccount,
+                                                                                 @Param("date") LocalDate date, Pageable pageable);
 }
