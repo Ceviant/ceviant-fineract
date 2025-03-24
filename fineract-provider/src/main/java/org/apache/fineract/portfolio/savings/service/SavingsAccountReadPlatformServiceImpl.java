@@ -106,6 +106,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     private final SavingAccountMapper savingAccountMapper;
     private final SavingAccountMapperForInterestPosting savingAccountMapperForInterestPosting;
     private SavingsAccountTransactionPackDataMapper savingsAccountTransactionPackDataMapper;
+    private final AccountBalanceMapper accountBalanceMapper;
 
     // pagination
     private final PaginationHelper paginationHelper;
@@ -144,6 +145,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         this.savingAccountMapperForInterestPosting = new SavingAccountMapperForInterestPosting();
         this.savingAccountAssembler = savingAccountAssembler;
         this.savingsAccountTransactionPackDataMapper = new SavingsAccountTransactionPackDataMapper();
+        this.accountBalanceMapper = new AccountBalanceMapper();
     }
 
     @Override
@@ -280,6 +282,18 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             this.savingAccountAssembler.assembleSavings(savingsAccountData);
         }
         return savingsAccountDataList;
+    }
+
+    @Override
+    public SavingsAccountSummaryData retrieveAccountBalance(final Long accountId) {
+
+        try {
+            final String sql = "select " + this.accountBalanceMapper.schema() + " where sa.id = ?";
+
+            return this.jdbcTemplate.queryForObject(sql, this.accountBalanceMapper, new Object[] { accountId }); // NOSONAR
+        } catch (final EmptyResultDataAccessException e) {
+            throw new SavingsAccountNotFoundException(accountId, e);
+        }
     }
 
     private static final class SavingAccountMapperForInterestPosting implements ResultSetExtractor<List<SavingsAccountData>> {
@@ -1000,6 +1014,120 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             return accountData;
         }
     }
+
+
+    private static final class AccountBalanceMapper implements RowMapper<SavingsAccountSummaryData> {
+
+        private final String schemaSql;
+
+        AccountBalanceMapper() {
+            final StringBuilder sqlBuilder = new StringBuilder(400);
+            sqlBuilder.append(
+                    "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+            sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
+            sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
+
+
+            sqlBuilder.append("sa.nominal_annual_interest_rate as nominalAnnualInterestRate, ");
+            sqlBuilder.append("sa.interest_compounding_period_enum as interestCompoundingPeriodType, ");
+            sqlBuilder.append("sa.interest_posting_period_enum as interestPostingPeriodType, ");
+            sqlBuilder.append("sa.interest_calculation_type_enum as interestCalculationType, ");
+            sqlBuilder.append("sa.interest_calculation_days_in_year_type_enum as interestCalculationDaysInYearType, ");
+            sqlBuilder.append("sa.min_required_opening_balance as minRequiredOpeningBalance, ");
+            sqlBuilder.append("sa.lockin_period_frequency as lockinPeriodFrequency,");
+            sqlBuilder.append("sa.lockin_period_frequency_enum as lockinPeriodFrequencyType, ");
+
+            sqlBuilder.append("sa.last_interest_calculation_date as lastInterestCalculationDate, ");
+            sqlBuilder.append("sa.interest_posted_till_date as interestPostedTillDate, ");
+            sqlBuilder.append("sa.total_deposits_derived as totalDeposits, ");
+            sqlBuilder.append("sa.total_withdrawals_derived as totalWithdrawals, ");
+            sqlBuilder.append("sa.total_withdrawal_fees_derived as totalWithdrawalFees, ");
+            sqlBuilder.append("sa.total_annual_fees_derived as totalAnnualFees, ");
+            sqlBuilder.append("sa.total_interest_earned_derived as totalInterestEarned, ");
+            sqlBuilder.append("sa.total_interest_posted_derived as totalInterestPosted, ");
+            sqlBuilder.append("sa.total_overdraft_interest_derived as totalOverdraftInterestDerived, ");
+            sqlBuilder.append("sa.account_balance_derived as accountBalance, ");
+            sqlBuilder.append("sa.total_fees_charge_derived as totalFeeCharge, ");
+            sqlBuilder.append("sa.total_penalty_charge_derived as totalPenaltyCharge, ");
+            sqlBuilder.append("sa.min_balance_for_interest_calculation as minBalanceForInterestCalculation,");
+            sqlBuilder.append("sa.min_required_balance as minRequiredBalance, ");
+            sqlBuilder.append("sa.enforce_min_required_balance as enforceMinRequiredBalance, ");
+            sqlBuilder.append("sa.max_allowed_lien_limit as maxAllowedLienLimit, ");
+            sqlBuilder.append("sa.is_lien_allowed as lienAllowed, ");
+            sqlBuilder.append("sa.on_hold_funds_derived as onHoldFunds, ");
+            sqlBuilder.append("sa.withhold_tax as withHoldTax, ");
+            sqlBuilder.append("sa.total_withhold_tax_derived as totalWithholdTax, ");
+            sqlBuilder.append("sa.total_savings_amount_on_hold as onHoldAmount ");
+
+            sqlBuilder.append("from m_savings_account sa ");
+            sqlBuilder.append("join m_savings_product sp ON sa.product_id = sp.id ");
+            sqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
+            sqlBuilder.append("left join m_client c ON c.id = sa.client_id ");
+            sqlBuilder.append("left join m_group g ON g.id = sa.group_id ");
+            sqlBuilder.append("left join m_staff s ON s.id = sa.field_officer_id ");
+            sqlBuilder.append("left join m_tax_group tg on tg.id = sa.tax_group_id ");
+
+            this.schemaSql = sqlBuilder.toString();
+        }
+
+        public String schema() {
+            return this.schemaSql;
+        }
+
+        @Override
+        public SavingsAccountSummaryData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
+
+            final String currencyCode = rs.getString("currencyCode");
+            final String currencyName = rs.getString("currencyName");
+            final String currencyNameCode = rs.getString("currencyNameCode");
+            final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
+            final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
+            final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
+
+            final BigDecimal totalDeposits = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalDeposits");
+            final BigDecimal totalWithdrawals = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalWithdrawals");
+            final BigDecimal totalWithdrawalFees = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalWithdrawalFees");
+            final BigDecimal totalAnnualFees = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalAnnualFees");
+
+            final BigDecimal totalInterestEarned = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalInterestEarned");
+            final BigDecimal totalInterestPosted = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs, "totalInterestPosted");
+            final BigDecimal accountBalance = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs, "accountBalance");
+            final BigDecimal totalFeeCharge = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalFeeCharge");
+            final BigDecimal totalPenaltyCharge = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalPenaltyCharge");
+            final BigDecimal totalOverdraftInterestDerived = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs,
+                    "totalOverdraftInterestDerived");
+            final BigDecimal totalWithholdTax = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalWithholdTax");
+            final LocalDate interestPostedTillDate = JdbcSupport.getLocalDate(rs, "interestPostedTillDate");
+
+            final BigDecimal onHoldFunds = rs.getBigDecimal("onHoldFunds");
+
+            final BigDecimal onHoldAmount = rs.getBigDecimal("onHoldAmount");
+
+            BigDecimal availableBalance = accountBalance;
+            if (availableBalance != null && onHoldFunds != null) {
+                availableBalance = availableBalance.subtract(onHoldFunds);
+            }
+
+            if (availableBalance != null && onHoldAmount != null) {
+                availableBalance = availableBalance.subtract(onHoldAmount);
+            }
+
+            BigDecimal interestNotPosted = BigDecimal.ZERO;
+            LocalDate lastInterestCalculationDate = null;
+            if (totalInterestEarned != null) {
+                interestNotPosted = totalInterestEarned.subtract(totalInterestPosted).add(totalOverdraftInterestDerived);
+                lastInterestCalculationDate = JdbcSupport.getLocalDate(rs, "lastInterestCalculationDate");
+            }
+
+           return new SavingsAccountSummaryData(currency, totalDeposits, totalWithdrawals,
+                    totalWithdrawalFees, totalAnnualFees, totalInterestEarned, totalInterestPosted, accountBalance, totalFeeCharge,
+                    totalPenaltyCharge, totalOverdraftInterestDerived, totalWithholdTax, interestNotPosted, lastInterestCalculationDate,
+                    availableBalance, interestPostedTillDate);
+        }
+    }
+
 
     private static final class SavingAccountMapperForLookup implements RowMapper<SavingsAccountData> {
 
