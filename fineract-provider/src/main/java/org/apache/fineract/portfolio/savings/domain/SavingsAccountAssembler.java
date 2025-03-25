@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -48,16 +48,19 @@ import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withHold
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withdrawalFeeForTransfersParamName;
 
 import com.google.gson.JsonElement;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.organisation.staff.domain.StaffRepositoryWrapper;
@@ -83,6 +86,7 @@ import org.apache.fineract.useradministration.domain.AppUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -103,16 +107,18 @@ public class SavingsAccountAssembler {
     private final JdbcTemplate jdbcTemplate;
     private final ConfigurationDomainService configurationDomainService;
     private final ExternalIdFactory externalIdFactory;
+    private final SavingsAccountTransactionRepository savingsAccountTransactionRepository;
 
     @Autowired
     public SavingsAccountAssembler(final SavingsAccountTransactionSummaryWrapper savingsAccountTransactionSummaryWrapper,
-            final SavingsAccountTransactionDataSummaryWrapper savingsAccountTransactionDataSummaryWrapper,
-            final ClientRepositoryWrapper clientRepository, final GroupRepositoryWrapper groupRepository,
-            final StaffRepositoryWrapper staffRepository, final SavingsProductRepository savingProductRepository,
-            final SavingsAccountRepositoryWrapper savingsAccountRepository,
-            final SavingsAccountChargeAssembler savingsAccountChargeAssembler, final FromJsonHelper fromApiJsonHelper,
-            final AccountTransfersReadPlatformService accountTransfersReadPlatformService, final JdbcTemplate jdbcTemplate,
-            final ConfigurationDomainService configurationDomainService, ExternalIdFactory externalIdFactory) {
+                                   final SavingsAccountTransactionDataSummaryWrapper savingsAccountTransactionDataSummaryWrapper,
+                                   final ClientRepositoryWrapper clientRepository, final GroupRepositoryWrapper groupRepository,
+                                   final StaffRepositoryWrapper staffRepository, final SavingsProductRepository savingProductRepository,
+                                   final SavingsAccountRepositoryWrapper savingsAccountRepository,
+                                   final SavingsAccountChargeAssembler savingsAccountChargeAssembler, final FromJsonHelper fromApiJsonHelper,
+                                   final AccountTransfersReadPlatformService accountTransfersReadPlatformService, final JdbcTemplate jdbcTemplate,
+                                   final ConfigurationDomainService configurationDomainService, ExternalIdFactory externalIdFactory,
+                                   final SavingsAccountTransactionRepository savingsAccountTransactionRepository) {
         this.savingsAccountTransactionSummaryWrapper = savingsAccountTransactionSummaryWrapper;
         this.savingsAccountTransactionDataSummaryWrapper = savingsAccountTransactionDataSummaryWrapper;
         this.clientRepository = clientRepository;
@@ -126,6 +132,7 @@ public class SavingsAccountAssembler {
         this.jdbcTemplate = jdbcTemplate;
         this.configurationDomainService = configurationDomainService;
         this.externalIdFactory = externalIdFactory;
+        this.savingsAccountTransactionRepository = savingsAccountTransactionRepository;
     }
 
     /**
@@ -387,6 +394,102 @@ public class SavingsAccountAssembler {
                 savingsAccountTransactions = this.savingsAccountRepository.findAllTransactions(account);
                 account.setSavingsAccountTransactions(savingsAccountTransactions);
             }
+        } else {
+            savingsAccountTransactions = this.savingsAccountRepository.findAllTransactions(account);
+            account.setTransactions(savingsAccountTransactions);
+        }
+
+        account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);
+        return account;
+    }
+
+    public SavingsAccount assembleWithLimitedTransacations(final Long savingsId, final boolean backdatedTxnsAllowedTill,
+                                                           LocalDate transactionDate) {
+        SavingsAccount account = this.savingsAccountRepository.findSavingsWithNotFoundDetection(savingsId, backdatedTxnsAllowedTill);
+        return loadTransactionsToSavingsAccountWithLimitedTransactions(account, backdatedTxnsAllowedTill, transactionDate);
+    }
+
+    public SavingsAccount loadTransactionsToSavingsAccountWithLimitedTransactions(final SavingsAccount account,
+                                                                                  final boolean backdatedTxnsAllowedTill, LocalDate transactionDate) {
+        List<SavingsAccountTransaction> savingsAccountTransactions = null;
+        if (backdatedTxnsAllowedTill) {
+            LocalDate pivotDate = account.getSummary().getInterestPostedTillDate();
+            boolean isNotPresent = pivotDate == null;
+            if (!isNotPresent) {
+                // Get savings account transactions
+                if (isRelaxingDaysConfigForPivotDateEnabled()) {
+                    final Long relaxingDaysForPivotDate = this.configurationDomainService.retrieveRelaxingDaysConfigForPivotDate();
+                    LocalDate interestPostedTillDate = account.getSummary().getInterestPostedTillDate();
+                    savingsAccountTransactions = this.savingsAccountRepository.findTransactionsAfterPivotDate(account,
+                            interestPostedTillDate.minusDays(relaxingDaysForPivotDate));
+
+                    savingsAccountTransactions.get(0).getSavingsAccount()
+                            .setStartInterestCalculationDate(interestPostedTillDate.minusDays(relaxingDaysForPivotDate));
+                    List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountRepository
+                            .findTransactionRunningBalanceBeforePivotDate(account,
+                                    interestPostedTillDate.minusDays(relaxingDaysForPivotDate + 1));
+                    if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
+                        account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(pivotDateTransaction.size() - 1)
+                                .getRunningBalance(account.getCurrency()).getAmount());
+                    }
+                } else {
+                    savingsAccountTransactions = this.savingsAccountRepository.findTransactionsAfterPivotDate(account,
+                            account.getSummary().getInterestPostedTillDate());
+                }
+
+                if (savingsAccountTransactions != null && savingsAccountTransactions.size() > 0) {
+                    // Update transient variable
+                    account.setSavingsAccountTransactions(savingsAccountTransactions);
+                }
+            } else {
+                if (transactionDate.isBefore(DateUtils.getLocalDateOfTenant())) {
+                    savingsAccountTransactions = this.savingsAccountTransactionRepository
+                            .findTransactionsAfterPivotDate(account, transactionDate);
+
+                    List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountTransactionRepository
+                            .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 2));
+                    if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
+                        account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(0)
+                                .getRunningBalance(account.getCurrency()).getAmount());
+                    }
+
+                } else {
+                    savingsAccountTransactions = this.savingsAccountTransactionRepository
+                            .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 2));
+                    final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
+                    savingsAccountTransactions.sort(transactionComparator);
+                    account.getSummary().setRunningBalanceOnPivotDate(
+                            savingsAccountTransactions.remove(0).getRunningBalance(account.getCurrency()).getAmount());
+                }
+
+                if (!savingsAccountTransactions.isEmpty()) {
+                    account.setSavingsAccountTransactions(savingsAccountTransactions);
+                    account.setTransactions(savingsAccountTransactions);
+                }
+            }
+        } else {
+            if (transactionDate.isBefore(DateUtils.getLocalDateOfTenant())) {
+                savingsAccountTransactions = this.savingsAccountTransactionRepository
+                        .findTransactionsAfterPivotDate(account, transactionDate);
+
+                List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountTransactionRepository
+                        .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 2));
+                if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
+                    account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(0)
+                            .getRunningBalance(account.getCurrency()).getAmount());
+                }
+
+            } else {
+                savingsAccountTransactions = this.savingsAccountTransactionRepository
+                        .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 2));
+                final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
+                savingsAccountTransactions.sort(transactionComparator);
+                account.getSummary().setRunningBalanceOnPivotDate(
+                        savingsAccountTransactions.remove(0).getRunningBalance(account.getCurrency()).getAmount());
+            }
+            if (!savingsAccountTransactions.isEmpty()) {
+                account.setTransactions(savingsAccountTransactions);
+            }
         }
 
         account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);
@@ -437,7 +540,7 @@ public class SavingsAccountAssembler {
      * chosen {@link SavingsProduct}.
      */
     public SavingsAccount assembleFrom(final Client client, final Group group, final Long productId, final LocalDate appliedonDate,
-            final AppUser appliedBy) {
+                                       final AppUser appliedBy) {
 
         AccountType accountType = AccountType.INVALID;
         if (client != null) {
