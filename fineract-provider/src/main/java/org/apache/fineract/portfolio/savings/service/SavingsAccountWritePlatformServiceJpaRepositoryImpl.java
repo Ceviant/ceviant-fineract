@@ -292,20 +292,21 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final boolean backdatedTxnsAllowedTill = this.savingAccountAssembler.getPivotConfigStatus();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
-
-        if (account.getGsim() != null) {
-            isGsim = true;
-            log.debug("is gsim");
-        }
-        checkClientOrGroupActive(account);
-
         final Locale locale = command.extractLocale();
         final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
 
         final LocalDate transactionDate = command.localDateValueOfParameterNamed("transactionDate");
         final BigDecimal transactionAmount = command.bigDecimalValueOfParameterNamed("transactionAmount");
         final String reference = command.stringValueOfParameterNamed("reference");
+
+        final SavingsAccount account = this.savingAccountAssembler.assembleWithLimitedTransacations(savingsId, backdatedTxnsAllowedTill,
+                transactionDate);
+
+        if (account.getGsim() != null) {
+            isGsim = true;
+            log.debug("is gsim");
+        }
+        checkClientOrGroupActive(account);
 
         this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(transactionDate, account);
         final SavingsAccountTransaction savingsAccountTransaction = this.savingsAccountTransactionRepository
@@ -403,7 +404,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             throw new DuplicateSavingsAccountTransactionFoundException(reference);
         }
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
+        final SavingsAccount account = this.savingAccountAssembler.assembleWithLimitedTransacations(savingsId, backdatedTxnsAllowedTill, transactionDate);
 
         if (account.getGsim() != null) {
             isGsim = true;
