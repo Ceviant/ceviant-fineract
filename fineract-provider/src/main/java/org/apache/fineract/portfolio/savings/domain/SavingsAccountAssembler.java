@@ -447,7 +447,7 @@ public class SavingsAccountAssembler {
                             .findTransactionsAfterPivotDate(account, transactionDate);
 
                     List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountTransactionRepository
-                            .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 10));
+                            .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 2));
                     if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
                         account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(0)
                                 .getRunningBalance(account.getCurrency()).getAmount());
@@ -455,7 +455,7 @@ public class SavingsAccountAssembler {
 
                 } else {
                     savingsAccountTransactions = this.savingsAccountTransactionRepository
-                            .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
+                            .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 2));
                     final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
                     savingsAccountTransactions.sort(transactionComparator);
                     account.getSummary().setRunningBalanceOnPivotDate(
@@ -473,7 +473,7 @@ public class SavingsAccountAssembler {
                         .findTransactionsAfterPivotDate(account, transactionDate);
 
                 List<SavingsAccountTransaction> pivotDateTransaction = this.savingsAccountTransactionRepository
-                        .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 10));
+                        .findLimitedTransactionRunningBalanceBeforeDate(account, transactionDate, PageRequest.of(0, 2));
                 if (pivotDateTransaction != null && !pivotDateTransaction.isEmpty()) {
                     account.getSummary().setRunningBalanceOnPivotDate(pivotDateTransaction.get(0)
                             .getRunningBalance(account.getCurrency()).getAmount());
@@ -481,7 +481,7 @@ public class SavingsAccountAssembler {
 
             } else {
                 savingsAccountTransactions = this.savingsAccountTransactionRepository
-                        .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 10));
+                        .getLimitedTransactionsBySavingsAccount(account.getId(), PageRequest.of(0, 2));
                 final SavingsAccountTransactionComparator transactionComparator = new SavingsAccountTransactionComparator();
                 savingsAccountTransactions.sort(transactionComparator);
                 account.getSummary().setRunningBalanceOnPivotDate(
