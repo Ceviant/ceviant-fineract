@@ -315,6 +315,8 @@ public class FineractProperties {
         private boolean activeRequestNode;
         private boolean activeSseNode;
         private int maxRequestConcurrentConsumers;
+        private int threadPoolQueueSize;
+        private int threadPoolSize;
     }
 
     @Getter

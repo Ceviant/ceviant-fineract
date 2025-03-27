@@ -115,12 +115,6 @@ public class CamelQueueProcessingService {
 
     private final TransactionStatusTrackingRepository transactionStatusTrackingRepository;
 
-    @Value("${fineract.events.camel.async.thread-pool-size}")
-    private Integer threadPoolSize;
-
-    @Value("${fineract.events.camel.async.thread-pool-queue-size}")
-    private Integer threadPoolQueueSize;
-
     private ExecutorService underlyingExecutor;
     private KeySequentialBoundedExecutor keyExecutor;
 
@@ -271,8 +265,8 @@ public class CamelQueueProcessingService {
 
     @PostConstruct
     public void init() {
-        log.info("ThreadPool Size: {}", this.threadPoolSize);
-        log.info("ThreadPool Queue Size: {}", this.threadPoolQueueSize);
+        log.info("ThreadPool Size: {}",properties.getEvents().getCamel().getAsync().getThreadPoolSize() );
+        log.info("ThreadPool Queue Size: {}", properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize());
 
         var td = new ThreadFactory() {
 
@@ -287,8 +281,8 @@ public class CamelQueueProcessingService {
             }
         };
 
-        this.underlyingExecutor = Executors.newFixedThreadPool(this.threadPoolSize, td);
-        this.keyExecutor = new KeySequentialBoundedExecutor(threadPoolQueueSize, BoundedStrategy.BLOCK, underlyingExecutor);
+        this.underlyingExecutor = Executors.newFixedThreadPool(properties.getEvents().getCamel().getAsync().getThreadPoolSize(), td);
+        this.keyExecutor = new KeySequentialBoundedExecutor(properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize(), BoundedStrategy.BLOCK, underlyingExecutor);
     }
 
     private String getTopicProducer(String exchangeName, String routingKey) {
@@ -354,6 +348,7 @@ public class CamelQueueProcessingService {
         String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
 
         if (correlationId == null) {
+            log.info("No correlation ID found, treating as new message");
             return false;
         }
 
@@ -365,8 +360,12 @@ public class CamelQueueProcessingService {
         ThreadLocalContextUtil.setTenant(tenant);
         ThreadLocalContextUtil.setAuthToken(authToken);
 
-        return transactionStatusTrackingRepository.findById(correlationId).stream()
+        // Check if the message has been processed before
+        boolean processed = transactionStatusTrackingRepository.findById(correlationId).stream()
                 .noneMatch(t -> t.getStatus().equals(TransactionStatus.QUEUED));
+        
+        log.debug("Message with correlationId {} already processed: {}", correlationId, processed);
+        return processed;
     }
 
     public String getWrappedResponse(TransactionStatusTracking status, Object result) {
