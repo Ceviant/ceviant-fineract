@@ -136,16 +136,26 @@ public class CamelRouteBuilder extends RouteBuilder {
                             commandProcessingService.logError(exchange);
                         }).to(ExchangePattern.InOnly, errorQueue).end().process(exchange -> {
                             String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
-                            boolean alreadyProcessed = false;
                             log.info("Received message with correlationId: {}", correlationId);
 
-                            if (commandProcessingService.isAlreadyProcessed(exchange)) {
-                                log.warn("Message with correlationId {} has already been processed. Skipping.", correlationId);
-                                alreadyProcessed = true;
+                            // Check if already processed
+                            boolean alreadyProcessed = commandProcessingService.isAlreadyProcessed(exchange);
+                            if (alreadyProcessed) {
+                                log.warn("Message with correlationId {} has already been processed. Acknowledging and skipping.",
+                                        correlationId);
                             }
                             exchange.setProperty("alreadyProcessed", alreadyProcessed);
-                        }).filter(exchange -> !exchange.getProperty("alreadyProcessed", Boolean.class))
-                        .process(commandProcessingService::markAsProcessing).bean(commandProcessingService, "process").threads(1);
+                        })
+                        // Use two separate filters instead of choice/otherwise
+                        .filter(exchange -> !exchange.getProperty("alreadyProcessed", Boolean.class))
+                        .process(commandProcessingService::markAsProcessing).bean(commandProcessingService, "process").threads(1).end()
+                        // Second filter for already processed messages
+                        .filter(exchange -> exchange.getProperty("alreadyProcessed", Boolean.class))
+                        // Explicitly acknowledge already processed messages by completing the route
+                        .log("Acknowledging already processed message with correlationId: ${header." + FINERACT_HEADER_CORRELATION_ID + "}")
+                        .process(exchange -> log.info("Route completed for already processed message with correlationId: {}",
+                                exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class)))
+                        .end();
 
             }
 
