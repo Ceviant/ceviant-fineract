@@ -123,51 +123,38 @@ public class CamelRouteBuilder extends RouteBuilder {
                 final String requestQueue = getQueueConsumerConnectionString(rabbitMQProperties.getExchangeName(),
                         asyncProperties.getRequestQueueName(), asyncProperties.getRequestQueueName(), 1);
 
-                from(requestQueue).routeId("requestQueueRoute")
-                        .onException(InvalidPayloadException.class)
-                            .handled(true)
-                            .log("Invalid payload exception: ${exception.message}")
-                            .process(exchange -> {
-                                Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
-                                log.error("Type conversion error:", caused);
-                                commandProcessingService.logError(exchange);
-                            })
-                            .to(ExchangePattern.InOnly, errorQueue)
-                        .end()
-                        .onException(Exception.class)
-                            .handled(true)
-                            .log("General exception: ${exception.message}")
-                            .process(exchange -> {
-                                Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
-                                final RuntimeException mappable = ErrorHandler.getMappable(caused);
-                                exchange.getIn().setBody(commandProcessingResultJsonSerializer.serialize(mappable));
-                                commandProcessingService.logError(exchange);
-                            })
-                            .to(ExchangePattern.InOnly, errorQueue)
-                        .end()
-                        .process(exchange -> {
+                from(requestQueue).routeId("requestQueueRoute").onException(InvalidPayloadException.class).handled(true)
+                        .log("Invalid payload exception: ${exception.message}").process(exchange -> {
+                            Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+                            log.error("Type conversion error:", caused);
+                            commandProcessingService.logError(exchange);
+                        }).to(ExchangePattern.InOnly, errorQueue).end().onException(Exception.class).handled(true)
+                        .log("General exception: ${exception.message}").process(exchange -> {
+                            Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+                            final RuntimeException mappable = ErrorHandler.getMappable(caused);
+                            exchange.getIn().setBody(commandProcessingResultJsonSerializer.serialize(mappable));
+                            commandProcessingService.logError(exchange);
+                        }).to(ExchangePattern.InOnly, errorQueue).end().process(exchange -> {
                             String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
                             log.info("Received message with correlationId: {}", correlationId);
-                            
+
                             // Check if already processed
                             boolean alreadyProcessed = commandProcessingService.isAlreadyProcessed(exchange);
                             if (alreadyProcessed) {
-                                log.warn("Message with correlationId {} has already been processed. Acknowledging and skipping.", correlationId);
+                                log.warn("Message with correlationId {} has already been processed. Acknowledging and skipping.",
+                                        correlationId);
                             }
                             exchange.setProperty("alreadyProcessed", alreadyProcessed);
                         })
                         // Use two separate filters instead of choice/otherwise
                         .filter(exchange -> !exchange.getProperty("alreadyProcessed", Boolean.class))
-                            .process(commandProcessingService::markAsProcessing)
-                            .bean(commandProcessingService, "process")
-                            .threads(1)
-                        .end()
+                        .process(commandProcessingService::markAsProcessing).bean(commandProcessingService, "process").threads(1).end()
                         // Second filter for already processed messages
                         .filter(exchange -> exchange.getProperty("alreadyProcessed", Boolean.class))
-                            // Explicitly acknowledge already processed messages by completing the route
-                            .log("Acknowledging already processed message with correlationId: ${header." + FINERACT_HEADER_CORRELATION_ID + "}")
-                            .process(exchange -> log.info("Route completed for already processed message with correlationId: {}",
-                                    exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class)))
+                        // Explicitly acknowledge already processed messages by completing the route
+                        .log("Acknowledging already processed message with correlationId: ${header." + FINERACT_HEADER_CORRELATION_ID + "}")
+                        .process(exchange -> log.info("Route completed for already processed message with correlationId: {}",
+                                exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class)))
                         .end();
 
             }

@@ -79,7 +79,6 @@ import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsServi
 import org.apache.fineract.sse.service.SseEmitterService;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.apache.fineract.useradministration.domain.AppUserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -265,7 +264,7 @@ public class CamelQueueProcessingService {
 
     @PostConstruct
     public void init() {
-        log.info("ThreadPool Size: {}",properties.getEvents().getCamel().getAsync().getThreadPoolSize() );
+        log.info("ThreadPool Size: {}", properties.getEvents().getCamel().getAsync().getThreadPoolSize());
         log.info("ThreadPool Queue Size: {}", properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize());
 
         var td = new ThreadFactory() {
@@ -282,7 +281,8 @@ public class CamelQueueProcessingService {
         };
 
         this.underlyingExecutor = Executors.newFixedThreadPool(properties.getEvents().getCamel().getAsync().getThreadPoolSize(), td);
-        this.keyExecutor = new KeySequentialBoundedExecutor(properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize(), BoundedStrategy.BLOCK, underlyingExecutor);
+        this.keyExecutor = new KeySequentialBoundedExecutor(properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize(),
+                BoundedStrategy.BLOCK, underlyingExecutor);
     }
 
     private String getTopicProducer(String exchangeName, String routingKey) {
@@ -363,7 +363,7 @@ public class CamelQueueProcessingService {
         // Check if the message has been processed before
         boolean processed = transactionStatusTrackingRepository.findById(correlationId).stream()
                 .noneMatch(t -> t.getStatus().equals(TransactionStatus.QUEUED));
-        
+
         log.debug("Message with correlationId {} already processed: {}", correlationId, processed);
         return processed;
     }
