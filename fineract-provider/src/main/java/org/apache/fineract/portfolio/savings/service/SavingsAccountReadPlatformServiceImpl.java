@@ -1062,10 +1062,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("from m_savings_account sa ");
             sqlBuilder.append("join m_savings_product sp ON sa.product_id = sp.id ");
             sqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
-            sqlBuilder.append("left join m_client c ON c.id = sa.client_id ");
-            sqlBuilder.append("left join m_group g ON g.id = sa.group_id ");
-            sqlBuilder.append("left join m_staff s ON s.id = sa.field_officer_id ");
-            sqlBuilder.append("left join m_tax_group tg on tg.id = sa.tax_group_id ");
 
             this.schemaSql = sqlBuilder.toString();
         }
