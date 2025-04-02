@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -38,13 +38,17 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.commands.domain.CommandWrapper;
@@ -53,6 +57,7 @@ import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformS
 import org.apache.fineract.infrastructure.bulkimport.data.GlobalEntityType;
 import org.apache.fineract.infrastructure.bulkimport.service.BulkImportWorkbookPopulatorService;
 import org.apache.fineract.infrastructure.bulkimport.service.BulkImportWorkbookService;
+import org.apache.fineract.infrastructure.businessdate.data.BusinessDateData;
 import org.apache.fineract.infrastructure.core.api.ApiParameterHelper;
 import org.apache.fineract.infrastructure.core.api.ApiRequestParameterHelper;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
@@ -70,6 +75,7 @@ import org.apache.fineract.portfolio.savings.DepositAccountType;
 import org.apache.fineract.portfolio.savings.SavingsApiConstants;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountChargeData;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountData;
+import org.apache.fineract.portfolio.savings.data.SavingsAccountSummaryData;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionData;
 import org.apache.fineract.portfolio.savings.exception.SavingsAccountNotFoundException;
 import org.apache.fineract.portfolio.savings.service.SavingsAccountChargeReadPlatformService;
@@ -94,6 +100,7 @@ public class SavingsAccountsApiResource {
     private final BulkImportWorkbookService bulkImportWorkbookService;
     private final BulkImportWorkbookPopulatorService bulkImportWorkbookPopulatorService;
     private final SqlValidator sqlValidator;
+    private final DefaultToApiJsonSerializer<SavingsAccountSummaryData> accountSummaryJsonSerializer;
 
     @GET
     @Path("template")
@@ -246,8 +253,8 @@ public class SavingsAccountsApiResource {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SavingsAccountsApiResourceSwagger.PutSavingsAccountsAccountIdResponse.class))) })
     public String update(@PathParam("externalId") @Parameter(description = "externalId") final String externalId,
-            @Parameter(hidden = true) final String apiRequestBodyAsJson,
-            @QueryParam("command") @Parameter(description = "command") final String commandParam) {
+                         @Parameter(hidden = true) final String apiRequestBodyAsJson,
+                         @QueryParam("command") @Parameter(description = "command") final String commandParam) {
 
         return updateSavingAccount(null, externalId, apiRequestBodyAsJson, commandParam);
     }
@@ -482,6 +489,18 @@ public class SavingsAccountsApiResource {
         return toApiJsonSerializer.serialize(importDocumentId);
     }
 
+    @GET
+    @Path("balance/{accountId}")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    @Operation(summary = "Retrieve a savings account balance application/account", description = "Retrieves a savings account balance application/account\n\n"
+            + "Example Requests :\n" + "\n" + "accountBalance/1")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SavingsAccountsApiResourceSwagger.GetSavingsAccountsAccountIdResponse.class)))})
+    public String retrieveAccountBalance(@PathParam("accountId") @Parameter(description = "accountId") final Long accountId) {
+        return retrieveSavingAccountBalance(accountId);
+    }
+
     private String retrieveSavingAccount(Long accountId, String externalId, boolean staffInSelectedOfficeOnly, String chargeStatus,
             UriInfo uriInfo) {
         context.authenticatedUser().validateHasReadPermission(SavingsApiConstants.SAVINGS_ACCOUNT_RESOURCE_NAME);
@@ -667,5 +686,10 @@ public class SavingsAccountsApiResource {
         }
 
         return SavingsAccountData.withTemplateOptions(savingsAccount, templateData, transactions, charges);
+    }
+
+    private String retrieveSavingAccountBalance(Long accountId) {
+        context.authenticatedUser().validateHasReadPermission(SavingsApiConstants.SAVINGS_ACCOUNT_RESOURCE_NAME);
+        return accountSummaryJsonSerializer.serialize(savingsAccountReadPlatformService.retrieveAccountBalance(accountId));
     }
 }

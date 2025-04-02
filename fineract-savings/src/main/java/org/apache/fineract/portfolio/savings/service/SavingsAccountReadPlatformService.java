@@ -26,6 +26,7 @@ import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.portfolio.savings.DepositAccountType;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountData;
+import org.apache.fineract.portfolio.savings.data.SavingsAccountSummaryData;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionData;
 
 public interface SavingsAccountReadPlatformService {
@@ -74,4 +75,6 @@ public interface SavingsAccountReadPlatformService {
 
     List<SavingsAccountTransactionData> fetchSavingsAccountTransactions(Long savingsId, String accountNumber, String accountName,
             String transactionReferenceNumber, String startDate, String endDate);
+
+    SavingsAccountSummaryData retrieveAccountBalance(final Long accountId);
 }
