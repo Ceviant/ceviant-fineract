@@ -121,7 +121,7 @@ public class CamelRouteBuilder extends RouteBuilder {
 
             if (isRequestNode) {
                 final String requestQueue = getQueueConsumerConnectionString(rabbitMQProperties.getExchangeName(),
-                        asyncProperties.getRequestQueueName(), asyncProperties.getRequestQueueName(), 1);
+                        asyncProperties.getRequestQueueName(), asyncProperties.getRequestQueueName());
 
                 from(requestQueue).routeId("requestQueueRoute").onException(InvalidPayloadException.class).handled(true)
                         .log("Invalid payload exception: ${exception.message}").process(exchange -> {
@@ -163,13 +163,11 @@ public class CamelRouteBuilder extends RouteBuilder {
 
     }
 
-    private String getQueueConsumerConnectionString(String exchangeName, String queueName, String routingKey,
-            int totalConcurrentConsumers) {
+    private String getQueueConsumerConnectionString(String exchangeName, String queueName, String routingKey) {
         return properties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?queues=" + queueName + "&routingKey="
-                + routingKey + "&concurrentConsumers=" + totalConcurrentConsumers + "&testConnectionOnStartup=true"
-                + "&acknowledgeMode=AUTO" + "&asyncConsumer=true" + "&rejectAndDontRequeue=true" + "&autoDeclare=true"
-                + "&exchangeType=direct" + "&arg.queue.durable="
-                + properties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
+                + routingKey + "&concurrentConsumers=" + 1 + "&exclusive=true&testConnectionOnStartup=true" + "&acknowledgeMode=AUTO"
+                + "&asyncConsumer=true" + "&rejectAndDontRequeue=true" + "&autoDeclare=true" + "&exchangeType=direct"
+                + "&arg.queue.durable=" + properties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
     private String getTopicConnectionString(String topicExchangeName, String sseRoutingKey) {
