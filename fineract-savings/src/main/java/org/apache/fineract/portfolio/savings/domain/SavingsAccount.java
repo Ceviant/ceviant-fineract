@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -49,7 +49,6 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
@@ -305,8 +304,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     @Embedded
     protected SavingsAccountSummary summary;
 
-    @OrderBy(value = "dateOf, createdDate, id")
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "savingsAccount", orphanRemoval = true, fetch = FetchType.LAZY)
+    @Transient
     protected List<SavingsAccountTransaction> transactions = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "savingsAccount", orphanRemoval = true, fetch = FetchType.LAZY)
@@ -465,6 +463,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
 
     public void setSavingsAccountTransactions(final List<SavingsAccountTransaction> savingsAccountTransactions) {
         this.savingsAccountTransactions.addAll(savingsAccountTransactions);
+    }
+
+    public void setTransactions(final List<SavingsAccountTransaction> savingsAccountTransactions) {
+        this.transactions.addAll(savingsAccountTransactions);
     }
 
     public List<SavingsAccountTransaction> getSavingsAccountTransactionsWithPivotConfig() {
@@ -635,6 +637,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                 }
             }
 
+            if (this.summary.getRunningBalanceOnPivotDate().compareTo(BigDecimal.ZERO) > 0) {
+                openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
+            }
+
             // update existing transactions so derived balance fields are
             // correct.
             recalculateDailyBalances(openingAccountBalance, interestPostingUpToDate, backdatedTxnsAllowedTill, postReversals);
@@ -666,6 +672,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                 }
             }
 
+            if (this.summary.getRunningBalanceOnPivotDate().compareTo(BigDecimal.ZERO) > 0) {
+                openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
+            }
+
             // update existing transactions so derived balance fields are
             // correct.
             recalculateDailyBalances(openingAccountBalance, interestPostingUpToDate, backdatedTxnsAllowedTill, postReversals);
@@ -677,6 +687,14 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             this.summary.updateSummaryWithPivotConfig(this.currency, this.savingsAccountTransactionSummaryWrapper, null,
                     this.savingsAccountTransactions);
         }
+    }
+
+    public void sanitizeRunningBalances(final LocalDate interestPostingUpToDate, final boolean postReversals) {
+
+        recalculateDailyBalances(Money.zero(this.currency), interestPostingUpToDate, false, postReversals);
+
+        this.summary.recalculateAllSummaries(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+
     }
 
     protected List<SavingsAccountTransaction> findWithHoldTransactions() {
@@ -856,6 +874,10 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         // Check global configurations and 'pivot' date is null
         Money openingAccountBalance = backdatedTxnsAllowedTill ? Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate())
                 : Money.zero(this.currency);
+
+        if (this.summary.getRunningBalanceOnPivotDate().compareTo(BigDecimal.ZERO) > 0) {
+            openingAccountBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
+        }
 
         // update existing transactions so derived balance fields are correct.
         recalculateDailyBalances(openingAccountBalance, upToInterestCalculationDate, backdatedTxnsAllowedTill, postReversals);
@@ -1113,7 +1135,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     }
 
     protected void resetAccountTransactionsEndOfDayBalances(final List<SavingsAccountTransaction> accountTransactionsSorted,
-            final LocalDate interestPostingUpToDate) {
+                                                            final LocalDate interestPostingUpToDate) {
         // loop over transactions in reverse
         LocalDate endOfBalanceDate = interestPostingUpToDate;
         for (int i = accountTransactionsSorted.size() - 1; i >= 0; i--) {
@@ -1142,8 +1164,8 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     }
 
     public SavingsAccountTransaction deposit(final SavingsAccountTransactionDTO transactionDTO,
-            final SavingsAccountTransactionType savingsAccountTransactionType, final boolean backdatedTxnsAllowedTill,
-            final Long relaxingDaysConfigForPivotDate, final String refNo) {
+                                             final SavingsAccountTransactionType savingsAccountTransactionType, final boolean backdatedTxnsAllowedTill,
+                                             final Long relaxingDaysConfigForPivotDate, final String refNo) {
         final String resourceTypeName = depositAccountType().resourceName();
         if (isNotActive()) {
             final String defaultUserMessage = "Transaction is not allowed. Account is not active.";
@@ -1365,7 +1387,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                 }
 
                 if (charge.isEnablePaymentType() && charge.isEnableFreeWithdrawal()) { // discount transaction to
-                                                                                       // specific paymentType
+                    // specific paymentType
                     if (paymentDetail.getPaymentType().getName().equals(charge.getCharge().getPaymentType().getName())) {
                         resetFreeChargeDaysCount(charge, transactionAmount, transactionDate, refNo);
                     }
@@ -1376,8 +1398,8 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
                                 refNo);
                     }
                 } else if (!charge.isEnablePaymentType() && charge.isEnableFreeWithdrawal()) { // discount transaction
-                                                                                               // irrespective of
-                                                                                               // PaymentTypes.
+                    // irrespective of
+                    // PaymentTypes.
                     resetFreeChargeDaysCount(charge, transactionAmount, transactionDate, refNo);
 
                 } else { // normal-withdraw

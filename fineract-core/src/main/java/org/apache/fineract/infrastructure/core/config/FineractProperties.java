@@ -100,6 +100,8 @@ public class FineractProperties {
         private String readOnlyPassword;
         private String readOnlyParameters;
         private String readOnlyName;
+        private Boolean readOnlyHostDependentOnNodeId = false;
+        private Boolean readOnlySchemeNameDependentOnNodeId = false;
 
         private FineractConfigProperties config;
     }
@@ -271,6 +273,7 @@ public class FineractProperties {
     public static class FineractEventsProperties {
 
         private FineractExternalEventsProperties external;
+        private FineractCamelEventsProperties camel;
     }
 
     @Getter
@@ -287,7 +290,33 @@ public class FineractProperties {
 
         private boolean enabled;
         private FineractExternalEventsProducerProperties producer;
+        private FineractExternalEventsConsumerProperties consumer;
         private int partitionSize;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsProperties {
+
+        private boolean enabled;
+        private String queueSystem;
+        private FineractCamelEventsAsyncProperties async;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsAsyncProperties {
+
+        private boolean enabled;
+        private String requestQueueName;
+        private String resultQueueName;
+        private String errorQueueName;
+        private String sseRoutingKey;
+        private boolean activeRequestNode;
+        private boolean activeSseNode;
+        private int maxRequestConcurrentConsumers;
+        private int threadPoolQueueSize;
+        private int threadPoolSize;
     }
 
     @Getter
@@ -296,6 +325,48 @@ public class FineractProperties {
 
         private FineractExternalEventsProducerJmsProperties jms;
         private FineractExternalEventsProducerKafkaProperties kafka;
+        private FineractExternalEventsProducerRabbitMQProperties rabbitmq;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractExternalEventsProducerRabbitMQProperties {
+
+        private String routingKey;
+        private boolean durable;
+        private boolean publisherConfirms;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractExternalEventsConsumerProperties {
+
+        private FineractExternalEventsConsumerRabbitMQProperties rabbitmq;
+    }
+
+    @Getter
+    @Setter
+    public static class FineractExternalEventsConsumerRabbitMQProperties {
+
+        private boolean enabled;
+        private String brokerHost;
+        private int brokerPort;
+        private String username;
+        private String password;
+        private String exchangeName;
+        private String routingKey;
+        private String durable;
+        private String autoDelete;
+        private int consumerCount;
+        private String queueName;
+        private boolean passwordProtected;
+        private boolean brokerSslEnabled;
+        private int requestHeartBeat;
+        private int networkRecoveryInterval;
+        private String dlq;
+        private String dlqRoutingKey;
+        private String topicExchangeName;
+        private String brokerVhost;
     }
 
     @Getter
@@ -316,6 +387,28 @@ public class FineractProperties {
         public boolean isBrokerPasswordProtected() {
             return StringUtils.isNotBlank(brokerUsername) || StringUtils.isNotBlank(brokerPassword);
         }
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsProducerJmsProperties {
+
+        private boolean enabled;
+        private int producerCount;
+        private int threadPoolTaskExecutorCorePoolSize;
+        private int threadPoolTaskExecutorMaxPoolSize;
+        private String sseTopicName;
+
+    }
+
+    @Getter
+    @Setter
+    public static class FineractCamelEventsQueueCommandProperties {
+
+        private String requestQueueName;
+        private String resultQueueName;
+        private int maxConcurrentConsumers;
+        private boolean enabled;
     }
 
     @Getter

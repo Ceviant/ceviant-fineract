@@ -22,6 +22,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.List;
 import javax.sql.DataSource;
+import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentifierException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +40,18 @@ import org.springframework.stereotype.Service;
 public class JdbcTenantDetailsService implements TenantDetailsService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final Boolean isReadOnlyInstance;
+    private final String nodeId;
+    private final ReadOnlyDatabaseConfig readOnlyDatabaseConfig;
 
     @Autowired
-    public JdbcTenantDetailsService(@Qualifier("hikariTenantDataSource") final DataSource dataSource) {
+    public JdbcTenantDetailsService(@Qualifier("hikariTenantDataSource") final DataSource dataSource,
+            FineractProperties fineractProperties) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        isReadOnlyInstance = fineractProperties.getMode().isReadOnlyMode();
+        readOnlyDatabaseConfig = new ReadOnlyDatabaseConfig(fineractProperties.getTenant().getReadOnlyHostDependentOnNodeId(),
+                fineractProperties.getTenant().getReadOnlySchemeNameDependentOnNodeId(), isReadOnlyInstance);
+        nodeId = fineractProperties.getNodeId();
     }
 
     @Override
@@ -52,7 +61,8 @@ public class JdbcTenantDetailsService implements TenantDetailsService {
             throw new IllegalArgumentException("tenantIdentifier cannot be blank");
         }
         try {
-            final TenantMapper rm = new TenantMapper(false);
+
+            final TenantMapper rm = new TenantMapper(false, readOnlyDatabaseConfig, nodeId);
             final String sql = "select " + rm.schema() + " where t.identifier = ?";
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { tenantIdentifier }); // NOSONAR
@@ -63,10 +73,9 @@ public class JdbcTenantDetailsService implements TenantDetailsService {
 
     @Override
     public List<FineractPlatformTenant> findAllTenants() {
-        final TenantMapper rm = new TenantMapper(false);
+        final TenantMapper rm = new TenantMapper(false, readOnlyDatabaseConfig, nodeId);
         final String sql = "select  " + rm.schema();
 
-        final List<FineractPlatformTenant> fineractPlatformTenants = this.jdbcTemplate.query(sql, rm); // NOSONAR
-        return fineractPlatformTenants;
+        return this.jdbcTemplate.query(sql, rm); // NOSONAR
     }
 }

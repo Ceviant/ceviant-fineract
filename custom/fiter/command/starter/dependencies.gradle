@@ -1,0 +1,6 @@
+dependencies {
+    implementation(project(':custom:fiter:command:service'))
+    implementation(project(':fineract-core'))
+    implementation(project(':fineract-provider'))
+    implementation('org.springframework.boot:spring-boot-starter')
+}

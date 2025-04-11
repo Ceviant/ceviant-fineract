@@ -22,8 +22,12 @@ import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.springframework.scheduling.annotation.Async;
 
 public interface CommandProcessingService {
+
+    @Async
+    void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker);
 
     CommandProcessingResult executeCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker);
 

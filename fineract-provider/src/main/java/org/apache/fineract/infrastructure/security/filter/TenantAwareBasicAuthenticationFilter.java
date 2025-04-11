@@ -136,6 +136,15 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
                     if (authToken != null && authToken.startsWith("Basic ")) {
                         ThreadLocalContextUtil.setAuthToken(authToken.replaceFirst("Basic ", ""));
                     }
+                    final String userAgent = request.getHeader("User-Agent");
+                    String ipAddress = request.getHeader("X-Forwarded-For");
+
+                    if (ipAddress == null || ipAddress.isEmpty()) {
+                        ipAddress = request.getRemoteAddr();
+                    }
+
+                    ThreadLocalContextUtil.setUserAgent(userAgent);
+                    ThreadLocalContextUtil.setIpAddress(ipAddress);
 
                     if (!FIRST_REQUEST_PROCESSED) {
                         final String baseUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "/");
@@ -155,6 +164,8 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
             }
         } catch (final InvalidTenantIdentifierException e) {
             // deal with exception at low level
+            log.info("Got tenant identification errors");
+            e.printStackTrace();
             SecurityContextHolder.getContext().setAuthentication(null);
 
             response.addHeader("WWW-Authenticate", "Basic realm=\"" + "Fineract Platform API" + "\"");

@@ -19,8 +19,10 @@
 package org.apache.fineract.infrastructure.core.data;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.fineract.infrastructure.core.domain.ExternalId;
 
@@ -51,6 +53,8 @@ public class CommandProcessingResult implements Serializable {
     private final ExternalId subResourceExternalId;
     private String narration;
     private String reference;
+    @Setter
+    private String correlationId;
 
     private CommandProcessingResult(final Long commandId, final Long officeId, final Long groupId, final Long clientId, final Long loanId,
             final Long savingsId, final String resourceIdentifier, final Long resourceId, final String transactionId,
@@ -77,6 +81,28 @@ public class CommandProcessingResult implements Serializable {
         this.subResourceExternalId = subResourceExternalId;
         this.reference = reference;
         this.narration = narration;
+    }
+
+    private CommandProcessingResult(final String correlationId) {
+        this.correlationId = correlationId;
+        this.commandId = null;
+        this.officeId = null;
+        this.groupId = null;
+        this.clientId = null;
+        this.loanId = null;
+        this.savingsId = null;
+        this.resourceIdentifier = null;
+        this.resourceId = null;
+        this.changes = new HashMap<>();
+        this.transactionId = null;
+        this.productId = null;
+        this.gsimId = null;
+        this.glimId = null;
+        this.creditBureauReportData = null;
+        this.rollbackTransaction = null;
+        this.subResourceId = null;
+        this.resourceExternalId = null;
+        this.subResourceExternalId = null;
     }
 
     protected CommandProcessingResult(final Long resourceId, final Long officeId, final Long commandId, final Map<String, Object> changes,
@@ -129,6 +155,10 @@ public class CommandProcessingResult implements Serializable {
 
     public static CommandProcessingResult resourceResult(final Long resourceId) {
         return new CommandProcessingResult(resourceId);
+    }
+
+    public static CommandProcessingResult correlationIdResult(final String correlationId) {
+        return new CommandProcessingResult(correlationId);
     }
 
     public static CommandProcessingResult withChanges(final Long resourceId, final Map<String, Object> changes) {

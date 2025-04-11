@@ -20,6 +20,7 @@ package org.apache.fineract.infrastructure.core.serialization;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,5 +47,19 @@ public final class CommandProcessingResultJsonSerializer {
             returnedResult = serializedResult;
         }
         return returnedResult;
+    }
+
+    /**
+     * Deserializes a JSON string into a CommandProcessingResult object.
+     *
+     * @param json
+     *            the JSON string to deserialize
+     * @return the CommandProcessingResult object
+     */
+    public CommandProcessingResult deserialize(final String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        return this.gson.fromJson(json, CommandProcessingResult.class);
     }
 }

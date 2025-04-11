@@ -18,11 +18,17 @@
  */
 package org.apache.fineract.commands.domain;
 
+import java.io.Serial;
+import java.io.Serializable;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.fineract.useradministration.api.PasswordPreferencesApiConstants;
 
 @Getter
-public class CommandWrapper {
+public class CommandWrapper implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private final Long commandId;
     @SuppressWarnings("unused")
@@ -46,20 +52,30 @@ public class CommandWrapper {
 
     private final String idempotencyKey;
 
+    @lombok.Getter
     private String transactionAmount;
+    @lombok.Getter
     private String useRef;
+    @lombok.Getter
     private String reference;
+
+    @Setter
+    private boolean isRequestAsync = false;
+
+    @Setter
+    private String operation;
 
     @SuppressWarnings("unused")
     private Long templateId;
 
     public static CommandWrapper wrap(final String actionName, final String entityName, final Long resourceId, final Long subresourceId) {
-        return new CommandWrapper(null, actionName, entityName, resourceId, subresourceId, null, null);
+        return new CommandWrapper(null, actionName, entityName, resourceId, subresourceId, null, null, null, null, null, false);
     }
 
     public static CommandWrapper fromExistingCommand(final Long commandId, final String actionName, final String entityName,
             final Long resourceId, final Long subresourceId, final String resourceGetUrl, final Long productId) {
-        return new CommandWrapper(commandId, actionName, entityName, resourceId, subresourceId, resourceGetUrl, productId);
+        return new CommandWrapper(commandId, actionName, entityName, resourceId, subresourceId, resourceGetUrl, productId, null, null, null,
+                false);
     }
 
     public static CommandWrapper fromExistingCommand(final Long commandId, final String actionName, final String entityName,
@@ -71,7 +87,8 @@ public class CommandWrapper {
     }
 
     private CommandWrapper(final Long commandId, final String actionName, final String entityName, final Long resourceId,
-            final Long subresourceId, final String resourceGetUrl, final Long productId) {
+            final Long subresourceId, final String resourceGetUrl, final Long productId, final String transactionAmount,
+            final String useRef, final String reference, final boolean isRequestAsync) {
         this.commandId = commandId;
         this.officeId = null;
         this.groupId = null;
@@ -91,6 +108,10 @@ public class CommandWrapper {
         this.organisationCreditBureauId = null;
         this.jobName = null;
         this.idempotencyKey = null;
+        this.isRequestAsync = isRequestAsync;
+        this.transactionAmount = transactionAmount;
+        this.useRef = useRef;
+        this.reference = reference;
     }
 
     public CommandWrapper(final Long officeId, final Long groupId, final Long clientId, final Long loanId, final Long savingsId,
@@ -122,6 +143,39 @@ public class CommandWrapper {
         this.transactionAmount = transactionAmount;
         this.useRef = useRef;
         this.reference = reference;
+        this.isRequestAsync = false;
+    }
+
+    public CommandWrapper(final Long officeId, final Long groupId, final Long clientId, final Long loanId, final Long savingsId,
+            final String actionName, final String entityName, final Long entityId, final Long subentityId, final String href,
+            final String json, final String transactionId, final Long productId, final Long templateId, final Long creditBureauId,
+            final Long organisationCreditBureauId, final String jobName, final String idempotencyKey, final String transactionAmount,
+            String useRef, final String reference, final boolean isRequestAsync) {
+
+        this.commandId = null;
+        this.officeId = officeId;
+        this.groupId = groupId;
+        this.clientId = clientId;
+        this.loanId = loanId;
+        this.savingsId = savingsId;
+        this.actionName = actionName;
+        this.entityName = entityName;
+        this.taskPermissionName = actionName + "_" + entityName;
+        this.entityId = entityId;
+        this.subentityId = subentityId;
+        this.href = href;
+        this.json = json;
+        this.transactionId = transactionId;
+        this.productId = productId;
+        this.templateId = templateId;
+        this.creditBureauId = creditBureauId;
+        this.organisationCreditBureauId = organisationCreditBureauId;
+        this.jobName = jobName;
+        this.idempotencyKey = idempotencyKey;
+        this.transactionAmount = transactionAmount;
+        this.useRef = useRef;
+        this.reference = reference;
+        this.isRequestAsync = isRequestAsync;
     }
 
     private CommandWrapper(final Long commandId, final String actionName, final String entityName, final Long resourceId,
@@ -300,17 +354,5 @@ public class CommandWrapper {
     public boolean addAndDeleteDisbursementDetails() {
         return this.actionName.equalsIgnoreCase("UPDATE") && this.entityName.equalsIgnoreCase("DISBURSEMENTDETAIL")
                 && this.entityId == null;
-    }
-
-    public String getTransactionAmount() {
-        return transactionAmount;
-    }
-
-    public String getUseRef() {
-        return useRef;
-    }
-
-    public String getReference() {
-        return reference;
     }
 }
