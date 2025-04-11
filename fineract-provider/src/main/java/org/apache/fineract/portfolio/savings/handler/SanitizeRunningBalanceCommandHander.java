@@ -24,6 +24,6 @@ public class SanitizeRunningBalanceCommandHander implements NewCommandSourceHand
     @Transactional
     @Override
     public CommandProcessingResult processCommand(JsonCommand command) {
-        return this.writePlatformService.satizeRunningBalances(command.getSavingsId());
+        return this.writePlatformService.sanitizeRunningBalances(command.getSavingsId());
     }
 }

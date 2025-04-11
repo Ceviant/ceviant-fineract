@@ -2138,7 +2138,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
     @Transactional
     @Override
-    public CommandProcessingResult satizeRunningBalances(final Long savingsId) {
+    public CommandProcessingResult sanitizeRunningBalances(final Long savingsId) {
         this.context.authenticatedUser();
 
         final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);

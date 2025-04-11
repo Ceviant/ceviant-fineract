@@ -127,5 +127,5 @@ public interface SavingsAccountWritePlatformService {
 
     CommandProcessingResult bulkGSIMClose(Long gsimId, JsonCommand command);
 
-    CommandProcessingResult satizeRunningBalances(Long savingsId);
+    CommandProcessingResult sanitizeRunningBalances(Long savingsId);
 }
