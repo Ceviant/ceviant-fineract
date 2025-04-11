@@ -3778,4 +3778,13 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder sanitizeRunningBalances(final Long accountId) {
+        this.actionName = "SANITIZE_RUNNING_BALANCE";
+        this.entityName = "SAVINGSACCOUNT";
+        this.savingsId = accountId;
+        this.entityId = null;
+        this.href = "/savingsaccounts/" + accountId + "?command=sanitizeRunningBalances";
+        return this;
+    }
+
 }

@@ -689,6 +689,14 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         }
     }
 
+    public void sanitizeRunningBalances(final LocalDate interestPostingUpToDate, final boolean postReversals) {
+
+        recalculateDailyBalances(Money.zero(this.currency), interestPostingUpToDate, false, postReversals);
+
+        this.summary.recalculateAllSummaries(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+
+    }
+
     protected List<SavingsAccountTransaction> findWithHoldTransactions() {
         final List<SavingsAccountTransaction> withholdTransactions = new ArrayList<>();
         List<SavingsAccountTransaction> trans = getTransactions();

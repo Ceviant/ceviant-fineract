@@ -434,4 +434,32 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
 
         return reversal;
     }
+
+
+    @Transactional
+    @Override
+    public SavingsAccount handleBalanceSanitisation(final SavingsAccount account) {
+
+        context.authenticatedUser();
+        account.validateForAccountBlock();
+        account.validateForCreditBlock();
+
+        // Global configurations
+        final Set<Long> existingTransactionIds = new HashSet<>();
+        final Set<Long> existingReversedTransactionIds = new HashSet<>();
+
+        updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
+
+
+        final LocalDate postInterestOnDate = DateUtils.getBusinessLocalDate();
+        boolean postReversals = this.configurationDomainService.isReversalTransactionAllowed();
+
+        account.sanitizeRunningBalances(postInterestOnDate, postReversals);
+        saveUpdatedTransactionsOfSavingsAccount(account.getTransactions());
+        this.savingsAccountRepository.saveAndFlush(account);
+
+        postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, false, true);
+
+        return account;
+    }
 }

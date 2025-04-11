@@ -174,7 +174,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         final StringBuilder sqlBuilder = new StringBuilder("select " + this.savingAccountMapper.schema());
         sqlBuilder.append(" where sa.client_id = ? and sa.status_enum = 300 and sa.deposit_type_enum = ? and sa.currency_code = ? ");
 
-        final Object[] queryParameters = new Object[] { clientId, depositAccountType.getValue(), currencyCode };
+        final Object[] queryParameters = new Object[]{clientId, depositAccountType.getValue(), currencyCode};
         return this.jdbcTemplate.query(sqlBuilder.toString(), this.savingAccountMapper, queryParameters);
     }
 
@@ -1023,7 +1023,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         AccountBalanceMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(
-                    "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+                    "sa.account_no as accountNo, sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
 
@@ -1072,7 +1072,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
         @Override
         public SavingsAccountSummaryData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
-
+            final String accountNo = rs.getString("accountNo");
             final String currencyCode = rs.getString("currencyCode");
             final String currencyName = rs.getString("currencyName");
             final String currencyNameCode = rs.getString("currencyNameCode");
@@ -1117,10 +1117,12 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                 lastInterestCalculationDate = JdbcSupport.getLocalDate(rs, "lastInterestCalculationDate");
             }
 
-           return new SavingsAccountSummaryData(currency, totalDeposits, totalWithdrawals,
+            SavingsAccountSummaryData savingsAccountSummaryData = new SavingsAccountSummaryData(currency, totalDeposits, totalWithdrawals,
                     totalWithdrawalFees, totalAnnualFees, totalInterestEarned, totalInterestPosted, accountBalance, totalFeeCharge,
                     totalPenaltyCharge, totalOverdraftInterestDerived, totalWithholdTax, interestNotPosted, lastInterestCalculationDate,
                     availableBalance, interestPostedTillDate);
+            savingsAccountSummaryData.setAccountNo(accountNo);
+            return savingsAccountSummaryData;
         }
     }
 
