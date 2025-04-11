@@ -2136,6 +2136,23 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .withClientId(account.clientId()).withGroupId(account.groupId()).withSavingsId(savingsId).with(changes).build();
     }
 
+    @Transactional
+    @Override
+    public CommandProcessingResult satizeRunningBalances(final Long savingsId) {
+        this.context.authenticatedUser();
+
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
+        checkClientOrGroupActive(account);
+
+        account.updateReason("RUNNING_BALANCE_SANITISATION");
+
+        this.savingsAccountDomainService.handleBalanceSanitisation(account);
+
+        return new CommandProcessingResultBuilder().withEntityId(savingsId).withOfficeId(account.officeId())
+                .withClientId(account.clientId()).withGroupId(account.groupId()).withSavingsId(savingsId).build();
+    }
+
+
     private void validateTransactionsForTransfer(final SavingsAccount savingsAccount, final LocalDate transferDate) {
         for (SavingsAccountTransaction transaction : savingsAccount.getTransactions()) {
             if ((DateUtils.isEqual(transferDate, transaction.getTransactionDate())

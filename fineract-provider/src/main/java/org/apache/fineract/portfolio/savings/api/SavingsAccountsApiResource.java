@@ -607,6 +607,9 @@ public class SavingsAccountsApiResource {
         } else if (is(commandParam, SavingsApiConstants.COMMAND_UNBLOCK_ACCOUNT)) {
             final CommandWrapper commandRequest = builder.unblockSavingsAccount(accountId).build();
             result = commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        } else if (is(commandParam, SavingsApiConstants.COMMAND_SANITIZE_RUNNING_BALANCES)) {
+            final CommandWrapper commandRequest = builder.sanitizeRunningBalances(accountId).build();
+            result = commandsSourceWritePlatformService.logCommandSource(commandRequest);
         }
 
         if (result == null) {
