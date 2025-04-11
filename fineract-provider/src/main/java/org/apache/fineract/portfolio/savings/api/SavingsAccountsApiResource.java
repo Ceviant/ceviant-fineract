@@ -494,7 +494,7 @@ public class SavingsAccountsApiResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     @Operation(summary = "Retrieve a savings account balance application/account", description = "Retrieves a savings account balance application/account\n\n"
-            + "Example Requests :\n" + "\n" + "accountBalance/1")
+            + "Example Requests :\n" + "\n" + "balance/1")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SavingsAccountsApiResourceSwagger.GetSavingsAccountsAccountIdResponse.class)))})
     public String retrieveAccountBalance(@PathParam("accountId") @Parameter(description = "accountId") final Long accountId) {
