@@ -1975,8 +1975,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final AppUser submittedBy = this.context.authenticatedUser();
         final boolean backdatedTxnsAllowedTill = this.savingAccountAssembler.getPivotConfigStatus();
-        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
         final LocalDate transactionDate = command.localDateValueOfParameterNamed(transactionDateParamName);
+        final SavingsAccount account = this.savingAccountAssembler.assembleWithLimitedTransacations(savingsId, backdatedTxnsAllowedTill, transactionDate);
         final boolean lienAllowed = command.booleanPrimitiveValueOfParameterNamed(lienAllowedParamName);
 
         checkClientOrGroupActive(account);
@@ -2028,7 +2028,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .validateReleaseAmountAndAssembleForm(holdTransaction);
 
         final boolean backdatedTxnsAllowedTill = this.savingAccountAssembler.getPivotConfigStatus();
-        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, backdatedTxnsAllowedTill);
+        final SavingsAccount account = this.savingAccountAssembler.assembleWithLimitedTransacations(savingsId, backdatedTxnsAllowedTill, transaction.getDateOf());
         checkClientOrGroupActive(account);
 
         Money runningBalance = Money.of(account.getCurrency(), account.getAccountBalance());
@@ -2135,6 +2135,23 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         return new CommandProcessingResultBuilder().withEntityId(savingsId).withOfficeId(account.officeId())
                 .withClientId(account.clientId()).withGroupId(account.groupId()).withSavingsId(savingsId).with(changes).build();
     }
+
+    @Transactional
+    @Override
+    public CommandProcessingResult sanitizeRunningBalances(final Long savingsId) {
+        this.context.authenticatedUser();
+
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
+        checkClientOrGroupActive(account);
+
+        account.updateReason("RUNNING_BALANCE_SANITISATION");
+
+        this.savingsAccountDomainService.handleBalanceSanitisation(account);
+
+        return new CommandProcessingResultBuilder().withEntityId(savingsId).withOfficeId(account.officeId())
+                .withClientId(account.clientId()).withGroupId(account.groupId()).withSavingsId(savingsId).build();
+    }
+
 
     private void validateTransactionsForTransfer(final SavingsAccount savingsAccount, final LocalDate transferDate) {
         for (SavingsAccountTransaction transaction : savingsAccount.getTransactions()) {

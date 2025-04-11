@@ -56,4 +56,6 @@ public interface SavingsAccountDomainService {
             boolean backdatedTxnsAllowedTill);
 
     SavingsAccountTransaction handleHold(SavingsAccount account, BigDecimal amount, LocalDate transactionDate, Boolean lienAllowed);
+
+    SavingsAccount handleBalanceSanitisation(final SavingsAccount account);
 }

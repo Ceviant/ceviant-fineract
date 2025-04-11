@@ -409,7 +409,7 @@ public class SavingsAccountAssembler {
         return loadTransactionsToSavingsAccountWithLimitedTransactions(account, backdatedTxnsAllowedTill, transactionDate);
     }
 
-    public SavingsAccount loadTransactionsToSavingsAccountWithLimitedTransactions(final SavingsAccount account,
+    private SavingsAccount loadTransactionsToSavingsAccountWithLimitedTransactions(final SavingsAccount account,
                                                                                   final boolean backdatedTxnsAllowedTill, LocalDate transactionDate) {
         List<SavingsAccountTransaction> savingsAccountTransactions = null;
         if (backdatedTxnsAllowedTill) {
