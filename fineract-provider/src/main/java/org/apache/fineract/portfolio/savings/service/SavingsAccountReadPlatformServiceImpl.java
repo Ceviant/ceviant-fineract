@@ -1023,7 +1023,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         AccountBalanceMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(
-                    "sa.account_no as accountNo, sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+                    "sa.account_no as accountNo, sa.account_name as saAccountName, sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
 
@@ -1073,6 +1073,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         @Override
         public SavingsAccountSummaryData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
             final String accountNo = rs.getString("accountNo");
+            final String saAccountName = rs.getString("saAccountName");
             final String currencyCode = rs.getString("currencyCode");
             final String currencyName = rs.getString("currencyName");
             final String currencyNameCode = rs.getString("currencyNameCode");
@@ -1122,6 +1123,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     totalPenaltyCharge, totalOverdraftInterestDerived, totalWithholdTax, interestNotPosted, lastInterestCalculationDate,
                     availableBalance, interestPostedTillDate);
             savingsAccountSummaryData.setAccountNo(accountNo);
+            savingsAccountSummaryData.setAccountName(saAccountName);
             return savingsAccountSummaryData;
         }
     }
