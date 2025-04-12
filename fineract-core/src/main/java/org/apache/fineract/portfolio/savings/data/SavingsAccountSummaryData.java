@@ -38,6 +38,7 @@ import org.apache.fineract.portfolio.savings.domain.interest.PostingPeriod;
 @Getter
 public class SavingsAccountSummaryData implements Serializable {
     private String accountNo;
+    private String accountName;
     private final CurrencyData currency;
     private BigDecimal totalDeposits;
     private BigDecimal totalWithdrawals;
@@ -279,5 +280,13 @@ public class SavingsAccountSummaryData implements Serializable {
 
     public void setAccountNo(String accountNo) {
         this.accountNo = accountNo;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 }
