@@ -1023,7 +1023,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         AccountBalanceMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(
-                    "sa.account_no as accountNo, sa.account_name as saAccountName, sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+                    "sa.account_no as accountNo, c.display_name as clientName, sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
 
@@ -1060,6 +1060,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("sa.total_savings_amount_on_hold as onHoldAmount ");
 
             sqlBuilder.append("from m_savings_account sa ");
+            sqlBuilder.append("join m_client c ON sa.client_id = c.id ");
             sqlBuilder.append("join m_savings_product sp ON sa.product_id = sp.id ");
             sqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
 
@@ -1073,7 +1074,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         @Override
         public SavingsAccountSummaryData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
             final String accountNo = rs.getString("accountNo");
-            final String saAccountName = rs.getString("saAccountName");
+            final String saAccountName = rs.getString("clientName");
             final String currencyCode = rs.getString("currencyCode");
             final String currencyName = rs.getString("currencyName");
             final String currencyNameCode = rs.getString("currencyNameCode");
