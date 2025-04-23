@@ -68,4 +68,7 @@ public interface SavingsAccountTransactionRepository
     @Query("select st from SavingsAccountTransaction st where st.savingsAccount = :savingsAccount and st.dateOf <= :date and st.reversalTransaction <> 1 and st.reversed <> 1 order by st.id DESC")
     List<SavingsAccountTransaction> findLimitedTransactionRunningBalanceBeforeDate(@Param("savingsAccount") SavingsAccount savingsAccount,
                                                                                  @Param("date") LocalDate date, Pageable pageable);
+
+    SavingsAccountTransaction findTopBySavingsAccountAndReversalTransactionFalseAndReversedFalseOrderByDateOfDescIdDesc(SavingsAccount savingsAccount);
+
 }
