@@ -87,6 +87,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -460,13 +462,14 @@ public class SavingsAccountAssembler {
     }
 
     private List<SavingsAccountTransaction> fetchTransactions(SavingsAccount account, LocalDate transactionDate) {
-        if (transactionDate.isBefore(DateUtils.getLocalDateOfTenant())) {
+        SavingsAccountTransaction lastTransaction = this.savingsAccountTransactionRepository.findTopBySavingsAccountAndReversalTransactionFalseAndReversedFalseOrderByDateOfDescIdDesc(account);
+        if (transactionDate.isBefore(lastTransaction.getTransactionDate())) {
             List<SavingsAccountTransaction> transactions =
                     this.savingsAccountTransactionRepository.findTransactionsAfterPivotDate(account, transactionDate);
 
             List<SavingsAccountTransaction> pivotTransactions =
                     this.savingsAccountTransactionRepository.findLimitedTransactionRunningBalanceBeforeDate(
-                            account, transactionDate, PageRequest.of(0, 2)
+                            account, transactionDate, PageRequest.of(0, 1)
                     );
 
             updateRunningBalanceOnPivot(account, pivotTransactions);
@@ -489,6 +492,7 @@ public class SavingsAccountAssembler {
             account.getSummary().setRunningBalanceOnPivotDate(
                     transactions.get(0).getRunningBalance(account.getCurrency()).getAmount()
             );
+            transactions.remove(0);
         }
     }
 
