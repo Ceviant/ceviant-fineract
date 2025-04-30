@@ -463,7 +463,7 @@ public class SavingsAccountAssembler {
 
     private List<SavingsAccountTransaction> fetchTransactions(SavingsAccount account, LocalDate transactionDate) {
         SavingsAccountTransaction lastTransaction = this.savingsAccountTransactionRepository.findTopBySavingsAccountAndReversalTransactionFalseAndReversedFalseOrderByDateOfDescIdDesc(account);
-        if (transactionDate.isBefore(lastTransaction.getTransactionDate())) {
+        if (lastTransaction != null && transactionDate.isBefore(lastTransaction.getTransactionDate())) {
             List<SavingsAccountTransaction> transactions =
                     this.savingsAccountTransactionRepository.findTransactionsAfterPivotDate(account, transactionDate);
 
