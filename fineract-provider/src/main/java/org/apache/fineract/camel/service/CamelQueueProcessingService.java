@@ -29,6 +29,7 @@ import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_TENANT_ID;
 import static org.apache.fineract.camel.constants.CamelConstants.FINERACT_HEADER_X_FINGERPRINT;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.jano7.executor.BoundedStrategy;
 import com.jano7.executor.KeyRunnable;
@@ -42,10 +43,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Body;
@@ -55,6 +58,7 @@ import org.apache.camel.Header;
 import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.fineract.batch.exception.ErrorInfo;
+import org.apache.fineract.camel.data.CamelOperation;
 import org.apache.fineract.camel.data.TransactionStatus;
 import org.apache.fineract.camel.domain.TransactionStatusTracking;
 import org.apache.fineract.camel.domain.TransactionStatusTrackingRepository;
@@ -69,14 +73,12 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.domain.ActionContext;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.exception.ErrorHandler;
-import org.apache.fineract.infrastructure.core.serialization.CommandProcessingResultJsonSerializer;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.core.service.tenant.TenantDetailsService;
 import org.apache.fineract.sse.service.SseEmitterService;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.apache.fineract.useradministration.domain.AppUserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -100,7 +102,7 @@ public class CamelQueueProcessingService {
 
     private final BusinessDateSerializer businessDateSerializer;
 
-    private final CommandProcessingResultJsonSerializer commandProcessingResultJsonSerializer;
+    private final Gson gson = new Gson();
 
     private final SseEmitterService emitterService;
 
@@ -111,12 +113,6 @@ public class CamelQueueProcessingService {
     private final FineractProperties properties;
 
     private final TransactionStatusTrackingRepository transactionStatusTrackingRepository;
-
-    @Value("${fineract.events.camel.async.thread-pool-size}")
-    private Integer threadPoolSize;
-
-    @Value("${fineract.events.camel.async.thread-pool-queue-size}")
-    private Integer threadPoolQueueSize;
 
     private ExecutorService underlyingExecutor;
     private KeySequentialBoundedExecutor keyExecutor;
@@ -170,28 +166,27 @@ public class CamelQueueProcessingService {
                 result.setCorrelationId(correlationId);
 
                 TransactionStatusTracking successStatus = TransactionStatusTracking.builder().id(correlationId)
-                        .lastModifiedDate(LocalDateTime.now()).errorMessage(commandProcessingResultJsonSerializer.serialize(result))
-                        .status(TransactionStatus.COMPLETED).build();
+                        .operation(CamelOperation.fromString(commandWrapper.getOperation())).lastModifiedDate(LocalDateTime.now())
+                        .errorMessage(gson.toJson(result)).status(TransactionStatus.COMPLETED).build();
                 transactionStatusTrackingRepository.saveAndFlush(successStatus);
 
-                final String resultTopic = getQueueProducerConnectionString(
+                final String resultTopic = getTopicProducer(
                         properties.getEvents().getExternal().getConsumer().getRabbitmq().getTopicExchangeName(),
                         properties.getEvents().getCamel().getAsync().getResultQueueName());
 
                 Map<String, Object> headers = Map.of(FINERACT_HEADER_X_FINGERPRINT, fingerPrint, FINERACT_HEADER_CORRELATION_ID,
                         correlationId);
 
-                producerTemplate.sendBodyAndHeaders(resultTopic, ExchangePattern.InOnly, result, headers);
+                producerTemplate.sendBodyAndHeaders(resultTopic, ExchangePattern.InOnly, getWrappedResponse(successStatus, result),
+                        headers);
 
             } catch (Throwable caused) {
-                log.error("Error processing command", caused);
-
                 final RuntimeException mappable = ErrorHandler.getMappable(caused);
                 final ErrorInfo errorInfo = commandSourceService.generateErrorInfo(mappable);
-                String body = commandProcessingResultJsonSerializer.serialize(errorInfo);
+                String body = gson.toJson(errorInfo);
 
-                String errorQueue = getQueueProducerConnectionString(
-                        properties.getEvents().getExternal().getConsumer().getRabbitmq().getQueueName(),
+                String errorQueue = getTopicProducer(
+                        properties.getEvents().getExternal().getConsumer().getRabbitmq().getTopicExchangeName(),
                         properties.getEvents().getCamel().getAsync().getErrorQueueName());
 
                 Map<String, Object> headers = Map.of(FINERACT_HEADER_X_FINGERPRINT, fingerPrint, FINERACT_HEADER_CORRELATION_ID,
@@ -199,11 +194,13 @@ public class CamelQueueProcessingService {
 
                 // Create or update transaction status as FAILED
                 TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId).errorMessage(body)
-                        .lastModifiedDate(LocalDateTime.now()).status(TransactionStatus.FAILED).build();
+                        .operation(CamelOperation.fromString(commandWrapper.getOperation())).lastModifiedDate(LocalDateTime.now())
+                        .status(TransactionStatus.FAILED).build();
                 transactionStatusTrackingRepository.save(failedStatus);
                 log.info("Transaction {} marked as FAILED with error: {}", correlationId, body);
 
-                producerTemplate.sendBodyAndHeaders(errorQueue, ExchangePattern.InOnly, body, headers);
+                producerTemplate.sendBodyAndHeaders(errorQueue, ExchangePattern.InOnly, getWrappedResponse(failedStatus, errorInfo),
+                        headers);
             }
         });
 
@@ -211,16 +208,51 @@ public class CamelQueueProcessingService {
     }
 
     public void emitResult(@Header(FINERACT_HEADER_X_FINGERPRINT) String fingerPrint,
-            @Header(FINERACT_HEADER_X_FINGERPRINT) String correlationId, @Body CommandProcessingResult commandResult) {
+            @Header(FINERACT_HEADER_CORRELATION_ID) String correlationId, @Body CommandProcessingResult commandResult) {
 
-        emitterService.sendEvent(fingerPrint, correlationId, commandProcessingResultJsonSerializer.serialize(commandResult));
+        log.debug("Emitting result for fingerprint {} and correlationId {}", fingerPrint, correlationId);
+
+        if (correlationId == null || correlationId.isEmpty()) {
+            log.error("Cannot emit error result: Missing correlation ID");
+            return;
+        }
+        emitterService.sendEvent(fingerPrint, correlationId, gson.toJson(commandResult));
 
     }
 
-    public void emitErrorResult(@Header(FINERACT_HEADER_X_FINGERPRINT) String fingerPrint,
-            @Header(FINERACT_HEADER_CORRELATION_ID) String correlationId, @Body String commandErrorResult) {
+    public void emitErrorResult(String fingerPrint, String correlationId, String commandErrorResult) {
 
-        emitterService.sendEvent(fingerPrint, correlationId, commandProcessingResultJsonSerializer.serialize(commandErrorResult));
+        log.debug("==== ERROR QUEUE DIAGNOSTIC LOG ====");
+        log.debug("Received error message with correlationId: {}", correlationId);
+        log.debug("Fingerprint: {}", fingerPrint);
+
+        // Log the first part of the error result (might be large)
+        String truncatedResult = commandErrorResult != null && commandErrorResult.length() > 500
+                ? commandErrorResult.substring(0, 500) + "..."
+                : commandErrorResult;
+        log.debug("Error result content (truncated): {}", truncatedResult);
+
+        // Log call stack to see what's triggering this method
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        log.debug("Call stack (top 5 elements):");
+        for (int i = 1; i < Math.min(6, stackTrace.length); i++) {
+            log.debug("  at {}", stackTrace[i]);
+        }
+
+        // Get and log current thread name and ID
+        log.debug("Current thread: {} (ID: {})", Thread.currentThread().getName(), Thread.currentThread().getId());
+
+        log.debug("==== END DIAGNOSTIC LOG ====");
+
+        log.info("Emitting result for fingerprint {} and correlationId {}", fingerPrint, correlationId);
+
+        // Ensure we have both required parameters
+        if (fingerPrint == null || correlationId == null) {
+            log.error("Cannot emit result: Missing fingerprint or correlation ID");
+            return;
+        }
+
+        emitterService.sendEvent(fingerPrint, correlationId, gson.toJson(commandErrorResult));
     }
 
     private String generateKey(CommandWrapper cmd) {
@@ -232,8 +264,8 @@ public class CamelQueueProcessingService {
 
     @PostConstruct
     public void init() {
-        log.info("ThreadPool Size: {}", this.threadPoolSize);
-        log.info("ThreadPool Queue Size: {}", this.threadPoolQueueSize);
+        log.info("ThreadPool Size: {}", properties.getEvents().getCamel().getAsync().getThreadPoolSize());
+        log.info("ThreadPool Queue Size: {}", properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize());
 
         var td = new ThreadFactory() {
 
@@ -248,13 +280,14 @@ public class CamelQueueProcessingService {
             }
         };
 
-        this.underlyingExecutor = Executors.newFixedThreadPool(this.threadPoolSize, td);
-        this.keyExecutor = new KeySequentialBoundedExecutor(threadPoolQueueSize, BoundedStrategy.BLOCK, underlyingExecutor);
+        this.underlyingExecutor = Executors.newFixedThreadPool(properties.getEvents().getCamel().getAsync().getThreadPoolSize(), td);
+        this.keyExecutor = new KeySequentialBoundedExecutor(properties.getEvents().getCamel().getAsync().getThreadPoolQueueSize(),
+                BoundedStrategy.BLOCK, underlyingExecutor);
     }
 
-    public String getQueueProducerConnectionString(String exchangeName, String routingKey) {
+    private String getTopicProducer(String exchangeName, String routingKey) {
         return properties.getEvents().getCamel().getQueueSystem() + ":" + exchangeName + "?routingKey=" + routingKey
-                + "&testConnectionOnStartup=true&exchangeType=direct&arg.queue.durable="
+                + "&testConnectionOnStartup=true&exchangeType=topic&arg.queue.durable="
                 + properties.getEvents().getExternal().getConsumer().getRabbitmq().getDurable();
     }
 
@@ -269,15 +302,29 @@ public class CamelQueueProcessingService {
 
             String tenantId = exchange.getIn().getHeader(FINERACT_HEADER_TENANT_ID, String.class);
             String authToken = exchange.getIn().getHeader(FINERACT_HEADER_AUTH_TOKEN, String.class);
+
             final FineractPlatformTenant tenant = this.tenantDetailsService.loadTenantById(tenantId);
 
             ThreadLocalContextUtil.setTenant(tenant);
             ThreadLocalContextUtil.setAuthToken(authToken);
             // Create or update transaction status as FAILED
-            TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId).status(TransactionStatus.FAILED)
-                    .lastModifiedDate(LocalDateTime.now()).build();
-            transactionStatusTrackingRepository.save(failedStatus);
-            log.info("Transaction {} marked as FAILED with error: {}", correlationId, errorMessage);
+            Optional<TransactionStatusTracking> trackingData = transactionStatusTrackingRepository.findById(correlationId);
+
+            if (trackingData.isPresent()) {
+                TransactionStatusTracking failedStatus = trackingData.get();
+                failedStatus.setStatus(TransactionStatus.FAILED);
+                failedStatus.setErrorMessage(errorMessage);
+                failedStatus.setLastModifiedDate(LocalDateTime.now());
+                transactionStatusTrackingRepository.save(failedStatus);
+
+            } else {
+                String operation = exchange.getIn().getHeader("operation", String.class);
+                TransactionStatusTracking failedStatus = TransactionStatusTracking.builder().id(correlationId)
+                        .status(TransactionStatus.FAILED).operation(CamelOperation.fromString(operation))
+                        .lastModifiedDate(LocalDateTime.now()).build();
+                transactionStatusTrackingRepository.save(failedStatus);
+            }
+
         }
 
     }
@@ -285,22 +332,52 @@ public class CamelQueueProcessingService {
     public void markAsProcessing(Exchange exchange) {
         // Get correlation ID from exchange
         String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
-        if (correlationId != null) {
+        String operation = exchange.getIn().getHeader("operation", String.class);
 
-            String tenantId = exchange.getIn().getHeader(FINERACT_HEADER_TENANT_ID, String.class);
-            String authToken = exchange.getIn().getHeader(FINERACT_HEADER_AUTH_TOKEN, String.class);
+        // Create or update transaction status as QUEUED
+        TransactionStatusTracking queuedStatus = TransactionStatusTracking.builder().operation(CamelOperation.fromString(operation))
+                .id(correlationId).status(TransactionStatus.PROCESSING).build();
+        queuedStatus.setLastModifiedDate(LocalDateTime.now());
+        transactionStatusTrackingRepository.save(queuedStatus);
+        log.info("Transaction {} marked as PROCESSING", correlationId);
 
-            final FineractPlatformTenant tenant = this.tenantDetailsService.loadTenantById(tenantId);
-
-            ThreadLocalContextUtil.setTenant(tenant);
-            ThreadLocalContextUtil.setAuthToken(authToken);
-            // Create or update transaction status as QUEUED
-            TransactionStatusTracking queuedStatus = TransactionStatusTracking.builder().id(correlationId)
-                    .status(TransactionStatus.PROCESSING).build();
-            queuedStatus.setLastModifiedDate(LocalDateTime.now());
-            transactionStatusTrackingRepository.save(queuedStatus);
-            log.info("Transaction {} marked as PROCESSING", correlationId);
-        }
     }
 
+    public boolean isAlreadyProcessed(Exchange exchange) {
+
+        String correlationId = exchange.getIn().getHeader(FINERACT_HEADER_CORRELATION_ID, String.class);
+
+        if (correlationId == null) {
+            log.info("No correlation ID found, treating as new message");
+            return false;
+        }
+
+        String tenantId = exchange.getIn().getHeader(FINERACT_HEADER_TENANT_ID, String.class);
+        String authToken = exchange.getIn().getHeader(FINERACT_HEADER_AUTH_TOKEN, String.class);
+
+        final FineractPlatformTenant tenant = this.tenantDetailsService.loadTenantById(tenantId);
+
+        ThreadLocalContextUtil.setTenant(tenant);
+        ThreadLocalContextUtil.setAuthToken(authToken);
+
+        // Check if the message has been processed before
+        boolean processed = transactionStatusTrackingRepository.findById(correlationId).stream()
+                .noneMatch(t -> t.getStatus().equals(TransactionStatus.QUEUED));
+
+        log.debug("Message with correlationId {} already processed: {}", correlationId, processed);
+        return processed;
+    }
+
+    public String getWrappedResponse(TransactionStatusTracking status, Object result) {
+        return gson.toJson(SseEmitterBodyWrapper.builder().status(status.getStatus().name()).operation(status.getOperation().name())
+                .body(result).build());
+    }
+
+    @Builder
+    private static final class SseEmitterBodyWrapper {
+
+        private String operation;
+        private String status;
+        private Object body;
+    }
 }

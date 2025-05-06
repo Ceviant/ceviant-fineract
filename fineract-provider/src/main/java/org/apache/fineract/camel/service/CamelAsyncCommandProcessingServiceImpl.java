@@ -21,9 +21,12 @@ package org.apache.fineract.camel.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.fineract.commands.domain.CommandSource;
+import org.apache.fineract.camel.domain.TransactionStatusTracking;
+import org.apache.fineract.camel.domain.TransactionStatusTrackingRepository;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.provider.CommandHandlerProvider;
 import org.apache.fineract.commands.service.CommandSourceService;
@@ -35,6 +38,7 @@ import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.domain.FineractRequestContextHolder;
+import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.core.serialization.ToApiJsonSerializer;
 import org.apache.fineract.infrastructure.core.service.MDCWrapper;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
@@ -57,6 +61,9 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
 
     @Autowired
     private CamelAsyncProcessingServiceHelper camelAsyncProcessingServiceHelper;
+
+    @Autowired
+    private TransactionStatusTrackingRepository transactionStatusTrackingRepository;
 
     public CamelAsyncCommandProcessingServiceImpl(PlatformSecurityContext context, ApplicationContext applicationContext,
             ToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
@@ -90,6 +97,12 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
     public void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker) {
         final String correlationId = mdcWrapper.get("correlationId");
 
+        Optional<TransactionStatusTracking> exists = transactionStatusTrackingRepository.findById(correlationId);
+
+        if (exists.isPresent()) {
+            throw new PlatformDataIntegrityException("async.camel.command.duplicate.error", "Command with correlation id [" + correlationId
+                    + "] already exists with status [{" + exists.get().getStatus().name() + "}]", "correlationId", correlationId);
+        }
         camelAsyncProcessingServiceHelper.executeAsyncCommand(wrapper, correlationId, isApprovedByChecker, captureThreadContext());
     }
 
