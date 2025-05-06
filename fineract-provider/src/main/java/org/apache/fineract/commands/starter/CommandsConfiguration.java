@@ -25,6 +25,7 @@ import org.apache.fineract.commands.service.AuditReadPlatformService;
 import org.apache.fineract.commands.service.AuditReadPlatformServiceImpl;
 import org.apache.fineract.commands.service.CommandProcessingService;
 import org.apache.fineract.commands.service.CommandSourceService;
+import org.apache.fineract.commands.service.IdempotencyKeyGenerator;
 import org.apache.fineract.commands.service.IdempotencyKeyResolver;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformServiceImpl;
@@ -88,10 +89,10 @@ public class CommandsConfiguration {
             ToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
             ToApiJsonSerializer<CommandProcessingResult> toApiResultJsonSerializer, ConfigurationDomainService configurationDomainService,
             CommandHandlerProvider commandHandlerProvider, IdempotencyKeyResolver idempotencyKeyResolver,
-            CommandSourceService commandSourceService, FineractRequestContextHolder fineractRequestContextHolder) {
+            CommandSourceService commandSourceService, FineractRequestContextHolder fineractRequestContextHolder, IdempotencyKeyGenerator idempotencyKeyGenerator) {
         return new SynchronousCommandProcessingService(context, applicationContext, toApiJsonSerializer, toApiResultJsonSerializer,
                 configurationDomainService, commandHandlerProvider, idempotencyKeyResolver, commandSourceService,
-                fineractRequestContextHolder);
+                fineractRequestContextHolder, idempotencyKeyGenerator);
     }
 
 }

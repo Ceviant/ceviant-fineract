@@ -35,11 +35,17 @@ import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.jobs.service.SchedulerJobRunnerReadService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
 
 @RequiredArgsConstructor
 @Slf4j
 public class PortfolioCommandSourceWritePlatformServiceImpl implements PortfolioCommandSourceWritePlatformService {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final PlatformSecurityContext context;
     private final CommandSourceRepository commandSourceRepository;
@@ -67,6 +73,12 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
         validateIsUpdateAllowed();
 
         final String json = wrapper.getJson();
+        CommandProcessingResult result = null;
+        int numberOfRetries = 0;
+        int maxNumberOfRetries = 3;
+        int maxIntervalBetweenRetries = 2000;
+
+
         final JsonElement parsedCommand = this.fromApiJsonHelper.parse(json);
         JsonCommand command = JsonCommand.from(json, parsedCommand, this.fromApiJsonHelper, wrapper.getEntityName(), wrapper.getEntityId(),
                 wrapper.getSubentityId(), wrapper.getGroupId(), wrapper.getClientId(), wrapper.getLoanId(), wrapper.getSavingsId(),
@@ -74,7 +86,34 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
                 wrapper.getOrganisationCreditBureauId(), wrapper.getJobName(), wrapper.getTransactionAmount(), wrapper.getUseRef(),
                 wrapper.getReference());
 
-        return this.processAndLogCommandService.executeCommand(wrapper, command, isApprovedByChecker);
+        while (numberOfRetries <= maxNumberOfRetries) {
+            try {
+                result = this.processAndLogCommandService.executeCommand(wrapper, command, isApprovedByChecker);
+                numberOfRetries = maxNumberOfRetries + 1;
+            } catch (CannotAcquireLockException | ObjectOptimisticLockingFailureException exception) {
+                log.debug("The following command {} has been retried  {} time(s)", command.json(), numberOfRetries);
+                /***
+                 * Fail if the transaction has been retired for maxNumberOfRetries
+                 **/
+                if (numberOfRetries >= maxNumberOfRetries) {
+                    log.warn("The following command {} has been retried for the max allowed attempts of {} and will be rolled back",
+                            command.json(), numberOfRetries);
+                    throw exception;
+                }
+                /***
+                 * Else sleep for a random time (between 1 to 10 seconds) and continue
+                 **/
+                try {
+                    int randomNum = RANDOM.nextInt(maxIntervalBetweenRetries + 1);
+                    Thread.sleep(1000 + (randomNum * 1000));
+                    numberOfRetries = numberOfRetries + 1;
+                } catch (InterruptedException e) {
+                    throw exception;
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override

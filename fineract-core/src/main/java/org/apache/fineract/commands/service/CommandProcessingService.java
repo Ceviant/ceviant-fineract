@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.commands.service;
 
+import org.apache.fineract.commands.domain.CommandSource;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
@@ -28,6 +29,8 @@ public interface CommandProcessingService {
 
     @Async
     void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker);
+
+    CommandProcessingResult logCommand(CommandSource commandSourceResult);
 
     CommandProcessingResult executeCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker);
 

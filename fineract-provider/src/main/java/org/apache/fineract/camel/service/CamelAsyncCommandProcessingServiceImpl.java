@@ -22,9 +22,12 @@ package org.apache.fineract.camel.service;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.fineract.commands.domain.CommandSource;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.provider.CommandHandlerProvider;
 import org.apache.fineract.commands.service.CommandSourceService;
+import org.apache.fineract.commands.service.IdempotencyKeyGenerator;
 import org.apache.fineract.commands.service.IdempotencyKeyResolver;
 import org.apache.fineract.commands.service.SynchronousCommandProcessingService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
@@ -59,9 +62,9 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
             ToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
             ToApiJsonSerializer<CommandProcessingResult> toApiResultJsonSerializer, ConfigurationDomainService configurationDomainService,
             CommandHandlerProvider commandHandlerProvider, IdempotencyKeyResolver idempotencyKeyResolver,
-            CommandSourceService commandSourceService, FineractRequestContextHolder fineractRequestContextHolder) {
+            CommandSourceService commandSourceService, FineractRequestContextHolder fineractRequestContextHolder, IdempotencyKeyGenerator idempotencyKeyGenerator) {
         super(context, applicationContext, toApiJsonSerializer, toApiResultJsonSerializer, configurationDomainService,
-                commandHandlerProvider, idempotencyKeyResolver, commandSourceService, fineractRequestContextHolder);
+                commandHandlerProvider, idempotencyKeyResolver, commandSourceService, fineractRequestContextHolder, idempotencyKeyGenerator);
     }
 
     @Override
@@ -76,6 +79,11 @@ public class CamelAsyncCommandProcessingServiceImpl extends SynchronousCommandPr
         }
 
         return super.executeCommand(wrapper, command, isApprovedByChecker);
+    }
+
+    @Override
+    public CommandProcessingResult logCommand(CommandSource commandSource) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override

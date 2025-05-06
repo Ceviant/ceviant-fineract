@@ -43,6 +43,7 @@ import org.apache.fineract.commands.provider.CommandHandlerProvider;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
+import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.domain.BatchRequestContextHolder;
 import org.apache.fineract.infrastructure.core.domain.FineractRequestContextHolder;
 import org.apache.fineract.infrastructure.core.exception.ErrorHandler;
@@ -58,6 +59,7 @@ import org.apache.fineract.infrastructure.hooks.event.HookEventSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.springframework.context.ApplicationContext;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -78,10 +80,24 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
 
     private final FineractRequestContextHolder fineractRequestContextHolder;
     private final Gson gson = GoogleGsonSerializerHelper.createSimpleGson();
+    private final IdempotencyKeyGenerator idempotencyKeyGenerator;
 
     @Override
     public void executeAsyncCommand(CommandWrapper wrapper, boolean isApprovedByChecker) {
         throw new NotImplementedException("Not implemented");
+    }
+
+    @Transactional
+    @Override
+    public CommandProcessingResult logCommand(CommandSource commandSource) {
+        commandSource.markAsAwaitingApproval();
+        if (commandSource.getIdempotencyKey() == null) {
+            commandSource.setIdempotencyKey(idempotencyKeyGenerator.create());
+        }
+        commandSource = commandSourceService.saveResultSameTransaction(commandSource);
+
+        return new CommandProcessingResultBuilder().withCommandId(commandSource.getId()).withEntityId(commandSource.getResourceId())
+                .build();
     }
 
     @Override
