@@ -50,7 +50,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-@ConditionalOnProperty(value = "fineract.redis.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "fineract.redis.enabled", havingValue = "false")
 @Service
 @Slf4j
 public class SseEmitterServiceImpl implements SseEmitterService {
