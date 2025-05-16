@@ -54,7 +54,6 @@ import org.apache.fineract.infrastructure.odoo.invoker.JSON;
 /**
  * TransactionRequest
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2025-05-09T15:40:23.283268+03:00[Africa/Kampala]", comments = "Generator version: 7.6.0")
 public class TransactionRequest {
   public static final String SERIALIZED_NAME_BRANCH_ID = "branchId";
   @SerializedName(SERIALIZED_NAME_BRANCH_ID)

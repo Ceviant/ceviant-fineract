@@ -50,7 +50,6 @@ import org.apache.fineract.infrastructure.odoo.invoker.JSON;
 /**
  * TransactionEntry
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2025-05-09T15:40:23.283268+03:00[Africa/Kampala]", comments = "Generator version: 7.6.0")
 public class TransactionEntry {
   public static final String SERIALIZED_NAME_GL_ACCOUNT_ID = "glAccountId";
   @SerializedName(SERIALIZED_NAME_GL_ACCOUNT_ID)
