@@ -27,6 +27,7 @@ apply plugin: 'io.swagger.core.v3.swagger-gradle-plugin'
 apply plugin: 'com.google.cloud.tools.jib'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'se.thinkcode.cucumber-runner'
+apply plugin: 'org.openapi.generator'
 
 check.dependsOn('cucumber')
 
@@ -342,6 +343,26 @@ cucumber {
 }
 
 tasks.jibDockerBuild.dependsOn(bootJar)
+
+openApiGenerate {
+    generatorName = "java"
+    inputSpec = "$rootDir/custom/odoo/swagger.yaml".toString()
+    outputDir = "$buildDir/generated"
+    apiPackage = "org.apache.fineract.infrastructure.odoo"
+    modelPackage = "org.apache.fineract.infrastructure.odoo.model"
+    invokerPackage = "org.apache.fineract.infrastructure.odoo.invoker"
+    configOptions = [
+            dateLibrary: "java8"
+    ]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/src/main/java"
+        }
+    }
+}
 
 // Configuration for git properties gradle plugin
 // https://github.com/n0mer/gradle-git-properties
