@@ -35,6 +35,7 @@ import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.jobs.service.SchedulerJobRunnerReadService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,12 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
     private final CommandProcessingService processAndLogCommandService;
     private final SchedulerJobRunnerReadService schedulerJobRunnerReadService;
     private final ConfigurationDomainService configurationService;
+
+    @Value("${fineract.retry.interval}")
+    private Integer maxIntervalBetweenRetries;
+
+    @Value("${fineract.retry.count}")
+    private Integer maxNumberOfRetries;
 
     @Override
     public CommandProcessingResult logCommandSource(final CommandWrapper wrapper) {
@@ -75,9 +82,6 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
         final String json = wrapper.getJson();
         CommandProcessingResult result = null;
         int numberOfRetries = 0;
-        int maxNumberOfRetries = 3;
-        int maxIntervalBetweenRetries = 2000;
-
 
         final JsonElement parsedCommand = this.fromApiJsonHelper.parse(json);
         JsonCommand command = JsonCommand.from(json, parsedCommand, this.fromApiJsonHelper, wrapper.getEntityName(), wrapper.getEntityId(),
