@@ -1,0 +1,169 @@
+openapi: 3.0.3
+info:
+  title: Ledger Transactions API
+  version: 1.0.0
+servers:
+  - url: https://localhost:8080/api/v1/all
+paths:
+  /ledger/transactions:
+    post:
+      tags: ["odoo-apis"]
+      operationId : "odoo_post_ledger_1"
+      summary: Create a new ledger transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '202':
+          description: Request has been successfully logged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to log transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: ["odoo-apis"]
+      operationId : "odoo_put_ledger_1"
+      summary: Update an existing ledger transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '202':
+          description: Request has been successfully logged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to log transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ledger/accounts:
+    get:
+      tags: ["odoo-apis"]
+      operationId : "odoo_get_accounts_1"
+      summary: Retrieve ledger account details
+      responses:
+        '200':
+          description: Successfully retrieved account details.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LedgerAccount'
+
+components:
+  schemas:
+    TransactionEntry:
+      type: object
+      properties:
+        glAccountId:
+          type: integer
+        amount:
+          type: number
+      required:
+        - glAccountId
+        - amount
+
+    TransactionRequest:
+      type: object
+      properties:
+        branchId:
+          type: string
+        transactionDate:
+          type: string
+          format: date
+        timestamp:
+          type: string
+          format: date-time
+        transactionReference:
+          type: string
+        comments:
+          type: string
+        currencyCode:
+          type: string
+        dateFormat:
+          type: string
+        credits:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionEntry'
+        debits:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionEntry'
+      required:
+        - branchId
+        - transactionDate
+        - timestamp
+        - transactionReference
+        - currencyCode
+        - credits
+        - debits
+
+    SuccessResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+            responseId:
+              type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            error:
+              type: string
+
+    LedgerAccount:
+      type: object
+      properties:
+        account_id:
+          type: string
+        account_code:
+          type: string
+        account_name:
+          type: string
