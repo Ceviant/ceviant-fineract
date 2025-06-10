@@ -35,6 +35,7 @@ import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.jobs.service.SchedulerJobRunnerReadService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.eclipse.persistence.exceptions.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -94,7 +95,7 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
             try {
                 result = this.processAndLogCommandService.executeCommand(wrapper, command, isApprovedByChecker);
                 numberOfRetries = maxNumberOfRetries + 1;
-            } catch (CannotAcquireLockException | ObjectOptimisticLockingFailureException exception) {
+            } catch (CannotAcquireLockException | ObjectOptimisticLockingFailureException | OptimisticLockException exception) { // ConcurrencyFailureException
                 log.debug("The following command {} has been retried  {} time(s)", command.json(), numberOfRetries);
                 /***
                  * Fail if the transaction has been retired for maxNumberOfRetries
