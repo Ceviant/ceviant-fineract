@@ -164,6 +164,8 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
             }
         } catch (final InvalidTenantIdentifierException e) {
             // deal with exception at low level
+            log.info("Got tenant identification errors");
+            e.printStackTrace();
             SecurityContextHolder.getContext().setAuthentication(null);
 
             response.addHeader("WWW-Authenticate", "Basic realm=\"" + "Fineract Platform API" + "\"");
