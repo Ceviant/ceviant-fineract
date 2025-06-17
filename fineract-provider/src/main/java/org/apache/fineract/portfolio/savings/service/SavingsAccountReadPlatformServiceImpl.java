@@ -1026,19 +1026,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                     "sa.account_no as accountNo, c.display_name as clientName, sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
-
-
-            sqlBuilder.append("sa.nominal_annual_interest_rate as nominalAnnualInterestRate, ");
-            sqlBuilder.append("sa.interest_compounding_period_enum as interestCompoundingPeriodType, ");
-            sqlBuilder.append("sa.interest_posting_period_enum as interestPostingPeriodType, ");
-            sqlBuilder.append("sa.interest_calculation_type_enum as interestCalculationType, ");
-            sqlBuilder.append("sa.interest_calculation_days_in_year_type_enum as interestCalculationDaysInYearType, ");
-            sqlBuilder.append("sa.min_required_opening_balance as minRequiredOpeningBalance, ");
-            sqlBuilder.append("sa.lockin_period_frequency as lockinPeriodFrequency,");
-            sqlBuilder.append("sa.lockin_period_frequency_enum as lockinPeriodFrequencyType, ");
-
-            sqlBuilder.append("sa.last_interest_calculation_date as lastInterestCalculationDate, ");
-            sqlBuilder.append("sa.interest_posted_till_date as interestPostedTillDate, ");
             sqlBuilder.append("sa.total_deposits_derived as totalDeposits, ");
             sqlBuilder.append("sa.total_withdrawals_derived as totalWithdrawals, ");
             sqlBuilder.append("sa.total_withdrawal_fees_derived as totalWithdrawalFees, ");
@@ -1050,10 +1037,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             sqlBuilder.append("sa.total_fees_charge_derived as totalFeeCharge, ");
             sqlBuilder.append("sa.total_penalty_charge_derived as totalPenaltyCharge, ");
             sqlBuilder.append("sa.min_balance_for_interest_calculation as minBalanceForInterestCalculation,");
-            sqlBuilder.append("sa.min_required_balance as minRequiredBalance, ");
-            sqlBuilder.append("sa.enforce_min_required_balance as enforceMinRequiredBalance, ");
-            sqlBuilder.append("sa.max_allowed_lien_limit as maxAllowedLienLimit, ");
-            sqlBuilder.append("sa.is_lien_allowed as lienAllowed, ");
             sqlBuilder.append("sa.on_hold_funds_derived as onHoldFunds, ");
             sqlBuilder.append("sa.withhold_tax as withHoldTax, ");
             sqlBuilder.append("sa.total_withhold_tax_derived as totalWithholdTax, ");
@@ -1061,7 +1044,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             sqlBuilder.append("from m_savings_account sa ");
             sqlBuilder.append("join m_client c ON sa.client_id = c.id ");
-            sqlBuilder.append("join m_savings_product sp ON sa.product_id = sp.id ");
             sqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
 
             this.schemaSql = sqlBuilder.toString();
@@ -1097,7 +1079,6 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
             final BigDecimal totalOverdraftInterestDerived = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs,
                     "totalOverdraftInterestDerived");
             final BigDecimal totalWithholdTax = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalWithholdTax");
-            final LocalDate interestPostedTillDate = JdbcSupport.getLocalDate(rs, "interestPostedTillDate");
 
             final BigDecimal onHoldFunds = rs.getBigDecimal("onHoldFunds");
 
@@ -1114,9 +1095,9 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
             BigDecimal interestNotPosted = BigDecimal.ZERO;
             LocalDate lastInterestCalculationDate = null;
+            LocalDate interestPostedTillDate = null;
             if (totalInterestEarned != null) {
                 interestNotPosted = totalInterestEarned.subtract(totalInterestPosted).add(totalOverdraftInterestDerived);
-                lastInterestCalculationDate = JdbcSupport.getLocalDate(rs, "lastInterestCalculationDate");
             }
 
             SavingsAccountSummaryData savingsAccountSummaryData = new SavingsAccountSummaryData(currency, totalDeposits, totalWithdrawals,
