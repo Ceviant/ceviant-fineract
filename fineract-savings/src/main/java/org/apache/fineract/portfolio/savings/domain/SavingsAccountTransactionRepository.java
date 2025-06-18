@@ -45,7 +45,6 @@ public interface SavingsAccountTransactionRepository
     List<SavingsAccountTransaction> findTransactionRunningBalanceBeforePivotDate(@Param("savingsAccount") SavingsAccount savingsAccount,
             @Param("date") LocalDate date);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<SavingsAccountTransaction> findBySavingsAccount(@Param("savingsAccount") SavingsAccount savingsAccount);
 
     List<SavingsAccountTransaction> findByRefNo(@Param("refNo") String refNo);
