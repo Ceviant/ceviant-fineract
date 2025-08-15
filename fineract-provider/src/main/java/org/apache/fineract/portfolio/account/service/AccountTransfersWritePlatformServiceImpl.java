@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -259,7 +259,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
     @Override
     @Transactional
     public void reverseTransfersWithFromAccountTransactions(final Collection<Long> fromTransactionIds,
-            final PortfolioAccountType accountTypeId) {
+                                                            final PortfolioAccountType accountTypeId) {
         List<AccountTransferTransaction> acccountTransfers = new ArrayList<>();
         if (accountTypeId.isLoanAccount()) {
             List<List<Long>> partitions = Lists.partition(fromTransactionIds.stream().toList(),
@@ -519,8 +519,8 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
             Loan toLoanAccount = null;
             if (accountTransferDetails == null) {
                 if (accountTransferDTO.getFromSavingsAccount() == null) {
-                    fromSavingsAccount = this.savingsAccountAssembler.assembleFrom(accountTransferDTO.getFromAccountId(),
-                            backdatedTxnsAllowedTill);
+                    fromSavingsAccount = this.savingsAccountAssembler.assembleWithLimitedTransacations(accountTransferDTO.getFromAccountId(),
+                            backdatedTxnsAllowedTill, accountTransferDTO.getTransactionDate());
                 } else {
                     fromSavingsAccount = accountTransferDTO.getFromSavingsAccount();
                     this.savingsAccountAssembler.setHelpers(fromSavingsAccount);
@@ -592,14 +592,14 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
             SavingsAccount toSavingsAccount;
             if (accountTransferDetails == null) {
                 if (accountTransferDTO.getFromSavingsAccount() == null) {
-                    fromSavingsAccount = this.savingsAccountAssembler.assembleFrom(accountTransferDTO.getFromAccountId(),
-                            backdatedTxnsAllowedTill);
+                    fromSavingsAccount = this.savingsAccountAssembler.assembleWithLimitedTransacations(accountTransferDTO.getFromAccountId(),
+                            backdatedTxnsAllowedTill, accountTransferDTO.getTransactionDate());
                 } else {
                     fromSavingsAccount = accountTransferDTO.getFromSavingsAccount();
                     this.savingsAccountAssembler.setHelpers(fromSavingsAccount);
                 }
                 if (accountTransferDTO.getToSavingsAccount() == null) {
-                    toSavingsAccount = this.savingsAccountAssembler.assembleFrom(accountTransferDTO.getToAccountId(), false);
+                    toSavingsAccount = this.savingsAccountAssembler.assembleWithLimitedTransacations(accountTransferDTO.getToAccountId(), false, accountTransferDTO.getTransactionDate());
                 } else {
                     toSavingsAccount = accountTransferDTO.getToSavingsAccount();
                     this.savingsAccountAssembler.setHelpers(toSavingsAccount);
@@ -647,7 +647,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
                     fromLoanAccount = accountTransferDTO.getLoan();
                     this.loanAccountAssembler.setHelpers(fromLoanAccount);
                 }
-                toSavingsAccount = this.savingsAccountAssembler.assembleFrom(accountTransferDTO.getToAccountId(), backdatedTxnsAllowedTill);
+                toSavingsAccount = this.savingsAccountAssembler.assembleWithLimitedTransacations(accountTransferDTO.getToAccountId(), backdatedTxnsAllowedTill, accountTransferDTO.getTransactionDate());
             } else {
                 fromLoanAccount = accountTransferDetails.fromLoanAccount();
                 this.loanAccountAssembler.setHelpers(fromLoanAccount);
@@ -780,7 +780,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void undoMultiTenantTransaction(MultiTenantTransferDetails multiTenantTransferDetails, Long savingsAccountId, String tenantId,
-            Boolean isSourceTenant) {
+                                            Boolean isSourceTenant) {
 
         final CommandWrapperBuilder undoWithdrawBuilder = new CommandWrapperBuilder().withSavingsId(savingsAccountId)
                 .withUseReference(multiTenantTransferDetails.getReference() + "");
@@ -826,7 +826,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
     }
 
     private boolean isSavingsToSavingsAccountTransfer(final PortfolioAccountType fromAccountType,
-            final PortfolioAccountType toAccountType) {
+                                                      final PortfolioAccountType toAccountType) {
         return fromAccountType.isSavingsAccount() && toAccountType.isSavingsAccount();
     }
 
