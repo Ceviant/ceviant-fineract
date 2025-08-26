@@ -130,7 +130,7 @@ public class SavingsAccountDomainServiceJpa implements SavingsAccountDomainServi
         }
 
         account.validateAccountBalanceDoesNotBecomeNegative(transactionAmount, transactionBooleanValues.isExceptionForBalanceCheck(),
-                depositAccountOnHoldTransactions, backdatedTxnsAllowedTill);
+                depositAccountOnHoldTransactions, true);
 
         saveTransactionToGenerateTransactionId(withdrawal);
         if (backdatedTxnsAllowedTill) {
