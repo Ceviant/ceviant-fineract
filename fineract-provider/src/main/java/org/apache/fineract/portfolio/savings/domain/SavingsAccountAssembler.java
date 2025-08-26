@@ -408,6 +408,7 @@ public class SavingsAccountAssembler {
     public SavingsAccount assembleWithLimitedTransacations(final Long savingsId, final boolean backdatedTxnsAllowedTill,
                                                            LocalDate transactionDate) {
         SavingsAccount account = this.savingsAccountRepository.findSavingsWithNotFoundDetection(savingsId, backdatedTxnsAllowedTill);
+        account.resetTransactions();
         return loadTransactionsToSavingsAccountWithLimitedTransactions(account, backdatedTxnsAllowedTill, transactionDate);
     }
 
