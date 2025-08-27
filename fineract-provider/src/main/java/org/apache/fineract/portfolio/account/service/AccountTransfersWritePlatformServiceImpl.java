@@ -511,7 +511,7 @@ public class AccountTransfersWritePlatformServiceImpl implements AccountTransfer
         Long transferTransactionId = null;
         final boolean isAccountTransfer = true;
         final boolean isRegularTransaction = accountTransferDTO.isRegularTransaction();
-        final boolean backdatedTxnsAllowedTill = false;
+        final boolean backdatedTxnsAllowedTill = true;
         AccountTransferDetails accountTransferDetails = accountTransferDTO.getAccountTransferDetails();
         if (isSavingsToLoanAccountTransfer(accountTransferDTO.getFromAccountType(), accountTransferDTO.getToAccountType())) {
             //
