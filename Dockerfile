@@ -48,3 +48,4 @@ RUN apt-get update && apt-get install telnet -y
 WORKDIR /app
 
 ENTRYPOINT ["java", "-XX:-OmitStackTraceInFastThrow", "-Dloader.path=/app/libs/", "-jar", "/app/fineract-provider.jar", "--spring.profiles.active=basicauth"]
+
