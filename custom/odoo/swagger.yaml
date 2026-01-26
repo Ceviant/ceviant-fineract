@@ -67,9 +67,38 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /ledger/accounts:
+    post:
+      tags: ["odoo-apis"]
+      operationId : "odoo_post_gl_accounts_1"
+      summary: post ledger account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LedgerAccount'
+      responses:
+        '200':
+          description: Successfully retrieved account details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to log transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
       tags: ["odoo-apis"]
-      operationId : "odoo_get_accounts_1"
+      operationId : "odoo_gl_accounts_1"
       summary: Retrieve ledger account details
       responses:
         '200':

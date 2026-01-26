@@ -19,18 +19,15 @@ import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
 import org.apache.fineract.infrastructure.odoo.invoker.ApiResponse;
 import org.apache.fineract.infrastructure.odoo.invoker.Configuration;
 import org.apache.fineract.infrastructure.odoo.invoker.Pair;
-import org.apache.fineract.infrastructure.odoo.invoker.ProgressRequestBody;
-import org.apache.fineract.infrastructure.odoo.invoker.ProgressResponseBody;
 
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 
-
-import org.apache.fineract.infrastructure.odoo.model.ErrorResponse;
 import org.apache.fineract.infrastructure.odoo.model.LedgerAccount;
 import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
 import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -38,16 +35,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OdooApisApi {
+@Service
+public class OdooApisAdapter implements OdooApisPort{
     private ApiClient localVarApiClient;
     private int localHostIndex;
+
+    @Value("${server.odoo.baseurl}")
     private String localCustomBaseUrl;
 
-    public OdooApisApi() {
+    public OdooApisAdapter() {
         this(Configuration.getDefaultApiClient());
     }
 
-    public OdooApisApi(ApiClient apiClient) {
+    public OdooApisAdapter(ApiClient apiClient) {
         this.localVarApiClient = apiClient;
     }
 
@@ -71,22 +71,87 @@ public class OdooApisApi {
         return localCustomBaseUrl;
     }
 
-    public void setCustomBaseUrl(String customBaseUrl) {
-        this.localCustomBaseUrl = customBaseUrl;
+    /**
+     * Create a new ledger transaction
+     *
+     * @param transactionRequest  (required)
+     * @return SuccessResponse
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+    <table summary="Response Details" border="1">
+    <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+    <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
+    <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
+    <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
+    </table>
+     */
+    @Override
+    public SuccessResponse odooPostLedger1(TransactionRequest transactionRequest) throws ApiException {
+        ApiResponse<SuccessResponse> localVarResp = odooPostLedger1WithHttpInfo(transactionRequest);
+        return localVarResp.getData();
     }
 
     /**
-     * Build call for odooGetAccounts1
-     * @param _callback Callback for upload/download progress
-     * @return Call to execute
-     * @throws ApiException If fail to serialize the request body object
+     * Update an existing ledger transaction
+     *
+     * @param transactionRequest  (required)
+     * @return SuccessResponse
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
-     </table>
+    <table summary="Response Details" border="1">
+    <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+    <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
+    <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
+    <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
+    </table>
      */
-    public okhttp3.Call odooGetAccounts1Call(final ApiCallback _callback) throws ApiException {
+    @Override
+    public SuccessResponse odooPutLedger1(TransactionRequest transactionRequest) throws ApiException {
+        ApiResponse<SuccessResponse> localVarResp = odooPutLedger1WithHttpInfo(transactionRequest);
+        return localVarResp.getData();
+    }
+
+    /**
+     * Retrieve ledger account details
+     *
+     * @return List&lt;LedgerAccount&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+    <table summary="Response Details" border="1">
+    <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+    <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
+    </table>
+     */
+    @Override
+    public List<LedgerAccount> odooGlAccounts1() throws ApiException {
+        ApiResponse<List<LedgerAccount>> localVarResp = odooGlAccounts1WithHttpInfo();
+        return localVarResp.getData();
+    }
+
+
+    /**
+     * post ledger account
+     *
+     * @param ledgerAccount  (required)
+     * @return SuccessResponse
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @http.response.details
+    <table summary="Response Details" border="1">
+    <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+    <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
+    <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
+    <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
+    </table>
+     */
+    @Override
+    public SuccessResponse odooPostGlAccounts1(LedgerAccount ledgerAccount) throws ApiException {
+        ApiResponse<SuccessResponse> localVarResp = odooPostGlAccounts1WithHttpInfo(ledgerAccount);
+        return localVarResp.getData();
+    }
+
+
+
+    public okhttp3.Call odooGlAccounts1Call(final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
         String[] localBasePaths = new String[] {  };
@@ -112,7 +177,7 @@ public class OdooApisApi {
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
         final String[] localVarAccepts = {
-            "application/json"
+                "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
@@ -131,77 +196,106 @@ public class OdooApisApi {
     }
 
     @SuppressWarnings("rawtypes")
-    private okhttp3.Call odooGetAccounts1ValidateBeforeCall(final ApiCallback _callback) throws ApiException {
-        return odooGetAccounts1Call(_callback);
+    private okhttp3.Call odooGlAccounts1ValidateBeforeCall(final ApiCallback _callback) throws ApiException {
+        return odooGlAccounts1Call(_callback);
 
     }
 
     /**
      * Retrieve ledger account details
-     * 
-     * @return List&lt;LedgerAccount&gt;
-     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
-     </table>
-     */
-    public List<LedgerAccount> odooGetAccounts1() throws ApiException {
-        ApiResponse<List<LedgerAccount>> localVarResp = odooGetAccounts1WithHttpInfo();
-        return localVarResp.getData();
-    }
-
-    /**
-     * Retrieve ledger account details
-     * 
+     *
      * @return ApiResponse&lt;List&lt;LedgerAccount&gt;&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
-     </table>
+    <table summary="Response Details" border="1">
+    <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
+    <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
+    </table>
      */
-    public ApiResponse<List<LedgerAccount>> odooGetAccounts1WithHttpInfo() throws ApiException {
-        okhttp3.Call localVarCall = odooGetAccounts1ValidateBeforeCall(null);
+    public ApiResponse<List<LedgerAccount>> odooGlAccounts1WithHttpInfo() throws ApiException {
+        okhttp3.Call localVarCall = odooGlAccounts1ValidateBeforeCall(null);
         Type localVarReturnType = new TypeToken<List<LedgerAccount>>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 
-    /**
-     * Retrieve ledger account details (asynchronously)
-     * 
-     * @param _callback The callback to be executed when the API call finishes
-     * @return The request call
-     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 200 </td><td> Successfully retrieved account details. </td><td>  -  </td></tr>
-     </table>
-     */
-    public okhttp3.Call odooGetAccounts1Async(final ApiCallback<List<LedgerAccount>> _callback) throws ApiException {
+    public okhttp3.Call odooGlAccounts1Async(final ApiCallback<List<LedgerAccount>> _callback) throws ApiException {
 
-        okhttp3.Call localVarCall = odooGetAccounts1ValidateBeforeCall(_callback);
+        okhttp3.Call localVarCall = odooGlAccounts1ValidateBeforeCall(_callback);
         Type localVarReturnType = new TypeToken<List<LedgerAccount>>(){}.getType();
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
     }
-    /**
-     * Build call for odooPostLedger1
-     * @param transactionRequest  (required)
-     * @param _callback Callback for upload/download progress
-     * @return Call to execute
-     * @throws ApiException If fail to serialize the request body object
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
+
+    public okhttp3.Call odooPostGlAccounts1Call(LedgerAccount ledgerAccount, final ApiCallback _callback) throws ApiException {
+        String basePath = null;
+        // Operation Servers
+        String[] localBasePaths = new String[] {  };
+
+        // Determine Base Path to Use
+        if (localCustomBaseUrl != null){
+            basePath = localCustomBaseUrl;
+        } else if ( localBasePaths.length > 0 ) {
+            basePath = localBasePaths[localHostIndex];
+        } else {
+            basePath = null;
+        }
+
+        Object localVarPostBody = ledgerAccount;
+
+        // create path and map variables
+        String localVarPath = "/ledger/accounts";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarCookieParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) {
+            localVarHeaderParams.put("Accept", localVarAccept);
+        }
+
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+        if (localVarContentType != null) {
+            localVarHeaderParams.put("Content-Type", localVarContentType);
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return localVarApiClient.buildCall(basePath, localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private okhttp3.Call odooPostGlAccounts1ValidateBeforeCall(LedgerAccount ledgerAccount, final ApiCallback _callback) throws ApiException {
+        // verify the required parameter 'ledgerAccount' is set
+        if (ledgerAccount == null) {
+            throw new ApiException("Missing the required parameter 'ledgerAccount' when calling odooPostGlAccounts1(Async)");
+        }
+
+        return odooPostGlAccounts1Call(ledgerAccount, _callback);
+
+    }
+
+    public ApiResponse<SuccessResponse> odooPostGlAccounts1WithHttpInfo(LedgerAccount ledgerAccount) throws ApiException {
+        okhttp3.Call localVarCall = odooPostGlAccounts1ValidateBeforeCall(ledgerAccount, null);
+        Type localVarReturnType = new TypeToken<SuccessResponse>(){}.getType();
+        return localVarApiClient.execute(localVarCall, localVarReturnType);
+    }
+
+    public okhttp3.Call odooPostGlAccounts1Async(LedgerAccount ledgerAccount, final ApiCallback<SuccessResponse> _callback) throws ApiException {
+
+        okhttp3.Call localVarCall = odooPostGlAccounts1ValidateBeforeCall(ledgerAccount, _callback);
+        Type localVarReturnType = new TypeToken<SuccessResponse>(){}.getType();
+        localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
+        return localVarCall;
+    }
+
     public okhttp3.Call odooPostLedger1Call(TransactionRequest transactionRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
@@ -227,17 +321,13 @@ public class OdooApisApi {
         Map<String, String> localVarCookieParams = new HashMap<String, String>();
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
-        final String[] localVarAccepts = {
-            "application/json"
-        };
+        final String[] localVarAccepts = { "application/json" };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
             localVarHeaderParams.put("Accept", localVarAccept);
         }
 
-        final String[] localVarContentTypes = {
-            "application/json"
-        };
+        final String[] localVarContentTypes = { "application/json" };
         final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
         if (localVarContentType != null) {
             localVarHeaderParams.put("Content-Type", localVarContentType);
@@ -258,60 +348,12 @@ public class OdooApisApi {
 
     }
 
-    /**
-     * Create a new ledger transaction
-     * 
-     * @param transactionRequest  (required)
-     * @return SuccessResponse
-     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
-    public SuccessResponse odooPostLedger1(TransactionRequest transactionRequest) throws ApiException {
-        ApiResponse<SuccessResponse> localVarResp = odooPostLedger1WithHttpInfo(transactionRequest);
-        return localVarResp.getData();
-    }
-
-    /**
-     * Create a new ledger transaction
-     * 
-     * @param transactionRequest  (required)
-     * @return ApiResponse&lt;SuccessResponse&gt;
-     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
     public ApiResponse<SuccessResponse> odooPostLedger1WithHttpInfo(TransactionRequest transactionRequest) throws ApiException {
         okhttp3.Call localVarCall = odooPostLedger1ValidateBeforeCall(transactionRequest, null);
         Type localVarReturnType = new TypeToken<SuccessResponse>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 
-    /**
-     * Create a new ledger transaction (asynchronously)
-     * 
-     * @param transactionRequest  (required)
-     * @param _callback The callback to be executed when the API call finishes
-     * @return The request call
-     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
     public okhttp3.Call odooPostLedger1Async(TransactionRequest transactionRequest, final ApiCallback<SuccessResponse> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = odooPostLedger1ValidateBeforeCall(transactionRequest, _callback);
@@ -319,20 +361,7 @@ public class OdooApisApi {
         localVarApiClient.executeAsync(localVarCall, localVarReturnType, _callback);
         return localVarCall;
     }
-    /**
-     * Build call for odooPutLedger1
-     * @param transactionRequest  (required)
-     * @param _callback Callback for upload/download progress
-     * @return Call to execute
-     * @throws ApiException If fail to serialize the request body object
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
+
     public okhttp3.Call odooPutLedger1Call(TransactionRequest transactionRequest, final ApiCallback _callback) throws ApiException {
         String basePath = null;
         // Operation Servers
@@ -359,7 +388,7 @@ public class OdooApisApi {
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
         final String[] localVarAccepts = {
-            "application/json"
+                "application/json"
         };
         final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
         if (localVarAccept != null) {
@@ -367,7 +396,7 @@ public class OdooApisApi {
         }
 
         final String[] localVarContentTypes = {
-            "application/json"
+                "application/json"
         };
         final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
         if (localVarContentType != null) {
@@ -389,60 +418,12 @@ public class OdooApisApi {
 
     }
 
-    /**
-     * Update an existing ledger transaction
-     * 
-     * @param transactionRequest  (required)
-     * @return SuccessResponse
-     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
-    public SuccessResponse odooPutLedger1(TransactionRequest transactionRequest) throws ApiException {
-        ApiResponse<SuccessResponse> localVarResp = odooPutLedger1WithHttpInfo(transactionRequest);
-        return localVarResp.getData();
-    }
-
-    /**
-     * Update an existing ledger transaction
-     * 
-     * @param transactionRequest  (required)
-     * @return ApiResponse&lt;SuccessResponse&gt;
-     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
     public ApiResponse<SuccessResponse> odooPutLedger1WithHttpInfo(TransactionRequest transactionRequest) throws ApiException {
         okhttp3.Call localVarCall = odooPutLedger1ValidateBeforeCall(transactionRequest, null);
         Type localVarReturnType = new TypeToken<SuccessResponse>(){}.getType();
         return localVarApiClient.execute(localVarCall, localVarReturnType);
     }
 
-    /**
-     * Update an existing ledger transaction (asynchronously)
-     * 
-     * @param transactionRequest  (required)
-     * @param _callback The callback to be executed when the API call finishes
-     * @return The request call
-     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
-     * @http.response.details
-     <table summary="Response Details" border="1">
-        <tr><td> Status Code </td><td> Description </td><td> Response Headers </td></tr>
-        <tr><td> 202 </td><td> Request has been successfully logged. </td><td>  -  </td></tr>
-        <tr><td> 400 </td><td> Invalid data. </td><td>  -  </td></tr>
-        <tr><td> 500 </td><td> Failed to log transaction. </td><td>  -  </td></tr>
-     </table>
-     */
     public okhttp3.Call odooPutLedger1Async(TransactionRequest transactionRequest, final ApiCallback<SuccessResponse> _callback) throws ApiException {
 
         okhttp3.Call localVarCall = odooPutLedger1ValidateBeforeCall(transactionRequest, _callback);

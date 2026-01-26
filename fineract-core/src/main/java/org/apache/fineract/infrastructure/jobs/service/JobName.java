@@ -58,6 +58,7 @@ public enum JobName {
     PURGE_EXTERNAL_EVENTS("Purge External Events"), //
     PURGE_PROCESSED_COMMANDS("Purge Processed Commands"), //
     ACCRUAL_ACTIVITY_POSTING("Accrual Activity Posting"), //
+    POST_ACCOUNTS_TO_ODOO("Post Accounts To Odoo"), //
     ;
 
     private final String name;
