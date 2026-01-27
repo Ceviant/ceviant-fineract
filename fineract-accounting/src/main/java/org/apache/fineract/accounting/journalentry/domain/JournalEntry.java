@@ -103,6 +103,9 @@ public class JournalEntry extends AbstractAuditableWithUTCDateTimeCustom<Long> {
     @Column(name = "submitted_on_date", nullable = false)
     private LocalDate submittedOnDate;
 
+    @Column(name = "odoo_ref_id", nullable = true, length = 200)
+    private String odooRefId;
+
     protected JournalEntry() {
         //
     }
@@ -147,11 +150,175 @@ public class JournalEntry extends AbstractAuditableWithUTCDateTimeCustom<Long> {
         return JournalEntryType.DEBIT.getValue().equals(this.type);
     }
 
+    public boolean isCreditEntry() {
+        return JournalEntryType.CREDIT.getValue().equals(this.type);
+    }
+
     public void setReversalJournalEntry(final JournalEntry reversalJournalEntry) {
         this.reversalJournalEntry = reversalJournalEntry;
     }
 
     public void setReversed(final boolean reversed) {
         this.reversed = reversed;
+    }
+
+    public void setOdooRefId(final String odooRefId) {
+        this.odooRefId = odooRefId;
+    }
+
+    public String getOdooRefId() {
+        return odooRefId;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public GLAccount getGlAccount() {
+        return glAccount;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public LocalDate getSubmittedOnDate() {
+        return submittedOnDate;
+    }
+
+    public void setSubmittedOnDate(LocalDate submittedOnDate) {
+        this.submittedOnDate = submittedOnDate;
+    }
+
+    public String getReferenceNumber() {
+        return referenceNumber;
+    }
+
+    public void setReferenceNumber(String referenceNumber) {
+        this.referenceNumber = referenceNumber;
+    }
+
+    public Long getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(Long entityId) {
+        this.entityId = entityId;
+    }
+
+    public Integer getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(Integer entityType) {
+        this.entityType = entityType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public LocalDate getTransactionDate() {
+        return transactionDate;
+    }
+
+    public void setTransactionDate(LocalDate transactionDate) {
+        this.transactionDate = transactionDate;
+    }
+
+    public boolean isManualEntry() {
+        return manualEntry;
+    }
+
+    public void setManualEntry(boolean manualEntry) {
+        this.manualEntry = manualEntry;
+    }
+
+    public boolean isReversed() {
+        return reversed;
+    }
+
+    public Long getShareTransactionId() {
+        return shareTransactionId;
+    }
+
+    public void setShareTransactionId(Long shareTransactionId) {
+        this.shareTransactionId = shareTransactionId;
+    }
+
+    public Long getClientTransactionId() {
+        return clientTransactionId;
+    }
+
+    public void setClientTransactionId(Long clientTransactionId) {
+        this.clientTransactionId = clientTransactionId;
+    }
+
+    public Long getSavingsTransactionId() {
+        return savingsTransactionId;
+    }
+
+    public void setSavingsTransactionId(Long savingsTransactionId) {
+        this.savingsTransactionId = savingsTransactionId;
+    }
+
+    public Long getLoanTransactionId() {
+        return loanTransactionId;
+    }
+
+    public void setLoanTransactionId(Long loanTransactionId) {
+        this.loanTransactionId = loanTransactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public JournalEntry getReversalJournalEntry() {
+        return reversalJournalEntry;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
+    public void setGlAccount(GLAccount glAccount) {
+        this.glAccount = glAccount;
+    }
+
+    public PaymentDetail getPaymentDetail() {
+        return paymentDetail;
+    }
+
+    public void setPaymentDetail(PaymentDetail paymentDetail) {
+        this.paymentDetail = paymentDetail;
+    }
+
+    public Office getOffice() {
+        return office;
+    }
+
+    public void setOffice(Office office) {
+        this.office = office;
     }
 }

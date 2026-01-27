@@ -203,6 +203,10 @@ public class GLAccount extends AbstractPersistableCustom<Long> {
         return GLAccountUsage.DETAIL.getValue().equals(this.usage);
     }
 
+    public Long getGlId() {
+        return this.getId();
+    }
+
     public String getName() {
         return name;
     }

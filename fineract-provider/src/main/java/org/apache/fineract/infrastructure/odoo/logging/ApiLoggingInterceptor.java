@@ -1,6 +1,7 @@
 package org.apache.fineract.infrastructure.odoo.logging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -10,9 +11,6 @@ import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-
 
 @Component
 public class ApiLoggingInterceptor implements Interceptor {
@@ -33,13 +31,7 @@ public class ApiLoggingInterceptor implements Interceptor {
             requestBody = buffer.readUtf8();
         }
 
-        log.info(
-                "REQUEST | {}  {}  {} | {}",
-                DateUtils.getAuditLocalDateTime(),
-                request.method(),
-                request.url(),
-                requestBody
-        );
+        log.info("REQUEST | {}  {}  {} | {}", DateUtils.getAuditLocalDateTime(), request.method(), request.url(), requestBody);
 
         long start = System.currentTimeMillis();
         Response response = chain.proceed(request);
@@ -48,22 +40,11 @@ public class ApiLoggingInterceptor implements Interceptor {
         ResponseBody body = response.body();
         String responseBody = body != null ? body.string() : null;
 
-        log.info(
-                "RESPONSE | {}  {} {} {} | {}",
-                DateUtils.getAuditLocalDateTime(),
-                System.currentTimeMillis() - start,
-                response.code(),
-                request.url(),
-                responseBody
-        );
+        log.info("RESPONSE | {}  {} {} {} | {}", DateUtils.getAuditLocalDateTime(), System.currentTimeMillis() - start, response.code(),
+                request.url(), responseBody);
 
         // IMPORTANT: recreate body
-        return response.newBuilder()
-                .body(ResponseBody.create(
-                        responseBody,
-                        body != null ? body.contentType() : null
-                ))
-                .build();
+        return response.newBuilder().body(ResponseBody.create(responseBody, body != null ? body.contentType() : null)).build();
     }
 
     private String pretty(String body) {
