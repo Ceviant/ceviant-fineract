@@ -16,18 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.accounting.glaccount.domain;
+package org.apache.fineract.infrastructure.odoo;
 
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
+import org.apache.fineract.infrastructure.odoo.model.LedgerAccount;
+import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
+import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
 
-public interface GLAccountRepository extends JpaRepository<GLAccount, Long>, JpaSpecificationExecutor<GLAccount> {
+public interface OdooApisPort {
 
-    // no added behaviour
-    // adding behaviour to fetch id by glcode for opening balance bulk import
-    Optional<GLAccount> findOneByGlCode(String glCode);
+    SuccessResponse odooPostLedger1(TransactionRequest transactionRequest) throws ApiException;
 
-    List<GLAccount> AndOdooRefIdIsNotNull();
+    SuccessResponse odooPutLedger1(TransactionRequest transactionRequest) throws ApiException;
+
+    List<LedgerAccount> odooGlAccounts1() throws ApiException;
+
+    SuccessResponse odooPostGlAccounts1(LedgerAccount ledgerAccount) throws ApiException;
+
 }

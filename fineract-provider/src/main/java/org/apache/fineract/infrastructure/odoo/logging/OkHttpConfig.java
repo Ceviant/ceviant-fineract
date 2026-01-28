@@ -16,18 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.accounting.glaccount.domain;
+package org.apache.fineract.infrastructure.odoo.logging;
 
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import okhttp3.OkHttpClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public interface GLAccountRepository extends JpaRepository<GLAccount, Long>, JpaSpecificationExecutor<GLAccount> {
+@Configuration
+public class OkHttpConfig {
 
-    // no added behaviour
-    // adding behaviour to fetch id by glcode for opening balance bulk import
-    Optional<GLAccount> findOneByGlCode(String glCode);
-
-    List<GLAccount> AndOdooRefIdIsNotNull();
+    @Bean
+    public OkHttpClient okHttpClient(ApiLoggingInterceptor loggingInterceptor) {
+        return new OkHttpClient.Builder().addInterceptor(loggingInterceptor).build();
+    }
 }
