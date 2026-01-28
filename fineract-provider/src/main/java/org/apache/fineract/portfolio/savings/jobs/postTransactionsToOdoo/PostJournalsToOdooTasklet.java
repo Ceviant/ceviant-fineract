@@ -89,13 +89,13 @@ public class PostJournalsToOdooTasklet implements Tasklet {
         journalEntry.ifPresent(transaction -> {
             log.info("Processing Transaction ID: {}", transaction.getTransactionId());
             List<TransactionEntry> debits = transactionBatch.stream().filter(JournalEntry::isDebitEntry)
-                    .map(it -> new TransactionEntry(it.getGlAccount().getGlId().intValue(), it.getAmount())).toList();
+                    .map(it -> new TransactionEntry(it.getGlAccount().getId().intValue(), it.getAmount())).toList();
 
             List<TransactionEntry> credits = transactionBatch.stream().filter(JournalEntry::isCreditEntry)
-                    .map(it -> new TransactionEntry(it.getGlAccount().getGlId().intValue(), it.getAmount())).toList();
+                    .map(it -> new TransactionEntry(it.getGlAccount().getId().intValue(), it.getAmount())).toList();
 
             try {
-                TransactionRequest ledgerAccount = new TransactionRequest(transaction.getOffice().getId().toString(),
+                TransactionRequest ledgerAccount = new TransactionRequest(transaction.getOffice().getName(),
                         formatter.format(transaction.getTransactionDate()), DateUtils.getAuditOffsetDateTime(),
                         transaction.getTransactionId(), transaction.getDescription(), transaction.getCurrencyCode(), DATE_FORMATTER,
                         credits, debits);
