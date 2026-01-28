@@ -469,6 +469,11 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         this.transactions.addAll(savingsAccountTransactions);
     }
 
+    public void resetTransactions() {
+        this.transactions = new ArrayList<>();
+        this.savingsAccountTransactions = new ArrayList<>();
+    }
+
     public List<SavingsAccountTransaction> getSavingsAccountTransactionsWithPivotConfig() {
         return this.savingsAccountTransactions;
     }

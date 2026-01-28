@@ -365,6 +365,7 @@ public class DepositAccountAssembler {
 
     public SavingsAccount assembleFrom(final Long savingsId, DepositAccountType depositAccountType) {
         final SavingsAccount account = this.savingsAccountRepository.findOneWithNotFoundDetection(savingsId, depositAccountType);
+        account.setTransactions(this.savingsAccountRepository.findAllTransactions(account));
         account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);
         return account;
     }

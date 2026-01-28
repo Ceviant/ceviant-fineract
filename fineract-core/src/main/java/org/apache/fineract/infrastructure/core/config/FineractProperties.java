@@ -312,7 +312,11 @@ public class FineractProperties {
         private String resultQueueName;
         private String errorQueueName;
         private String sseRoutingKey;
+        private boolean activeRequestNode;
+        private boolean activeSseNode;
         private int maxRequestConcurrentConsumers;
+        private int threadPoolQueueSize;
+        private int threadPoolSize;
     }
 
     @Getter
@@ -362,6 +366,7 @@ public class FineractProperties {
         private String dlq;
         private String dlqRoutingKey;
         private String topicExchangeName;
+        private String brokerVhost;
     }
 
     @Getter

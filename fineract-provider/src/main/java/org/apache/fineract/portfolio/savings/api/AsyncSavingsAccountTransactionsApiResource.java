@@ -36,7 +36,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fineract.camel.data.CamelOperation;
 import org.apache.fineract.camel.data.TransactionStatusTrackingData;
 import org.apache.fineract.camel.service.TransactionStatusReadPlatformService;
 import org.apache.fineract.commands.domain.CommandWrapper;
@@ -55,6 +57,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Tag(name = "Savings Account Transactions", description = "")
 @RequiredArgsConstructor
+@Slf4j
 public class AsyncSavingsAccountTransactionsApiResource {
 
     private final DefaultToApiJsonSerializer<SavingsAccountTransactionData> toApiJsonSerializer;
@@ -73,23 +76,32 @@ public class AsyncSavingsAccountTransactionsApiResource {
     @ApiResponses({ @ApiResponse(responseCode = "201", description = "CREATED") })
     public String transaction(@PathParam("savingsId") final Long savingsId, @QueryParam("command") final String commandParam,
             final String apiRequestBodyAsJson) {
+
+        log.info("Async request received here");
         final CommandWrapperBuilder builder = new CommandWrapperBuilder().withJson(apiRequestBodyAsJson);
 
         CommandProcessingResult result = null;
         if (is(commandParam, "deposit")) {
-            final CommandWrapper commandRequest = builder.savingsAccountDeposit(savingsId).buildWithAsync();
+            log.info("Deposit Async request received here");
+            final CommandWrapper commandRequest = builder.savingsAccountDeposit(savingsId).buildWithAsync(CamelOperation.DEPOSIT.name());
+            log.info("Return deposit Async request received here");
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "gsimDeposit")) {
-            final CommandWrapper commandRequest = builder.gsimSavingsAccountDeposit(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.gsimSavingsAccountDeposit(savingsId)
+                    .buildWithAsync(CamelOperation.DEPOSIT.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "withdrawal")) {
-            final CommandWrapper commandRequest = builder.savingsAccountWithdrawal(savingsId).buildWithAsync();
+            log.info("Withdraw Async request received here");
+            final CommandWrapper commandRequest = builder.savingsAccountWithdrawal(savingsId)
+                    .buildWithAsync(CamelOperation.WITHDRAW.name());
+            log.info("Return Withdraw Async request received here");
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "postInterestAsOn")) {
-            final CommandWrapper commandRequest = builder.savingsAccountInterestPosting(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.savingsAccountInterestPosting(savingsId)
+                    .buildWithAsync(CamelOperation.INTEREST_POSTING.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, SavingsApiConstants.COMMAND_HOLD_AMOUNT)) {
-            final CommandWrapper commandRequest = builder.holdAmount(savingsId).buildWithAsync();
+            final CommandWrapper commandRequest = builder.holdAmount(savingsId).buildWithAsync(CamelOperation.HOLD_AMOUNT.name());
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         }
 

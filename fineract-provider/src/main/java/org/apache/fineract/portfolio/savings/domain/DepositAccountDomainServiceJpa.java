@@ -327,7 +327,7 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
                     DepositAccountType.SAVINGS_DEPOSIT);
             final boolean isExceptionForBalanceCheck = false;
             final AccountTransferDTO accountTransferDTO = new AccountTransferDTO(closedDate, account.getAccountBalance(),
-                    PortfolioAccountType.SAVINGS, PortfolioAccountType.SAVINGS, null, null, transferDescription, null, fmt, null, null,
+                    PortfolioAccountType.SAVINGS, PortfolioAccountType.SAVINGS, null, toSavingsId, transferDescription, null, fmt, null, null,
                     null, null, null, AccountTransferType.ACCOUNT_TRANSFER.getValue(), null, null, ExternalId.empty(), null,
                     toSavingsAccount, account, isAccountTransfer, isExceptionForBalanceCheck);
             this.accountTransfersWritePlatformService.transferFunds(accountTransferDTO);

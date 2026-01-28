@@ -97,6 +97,14 @@ public class SseEmitterServiceImpl implements SseEmitterService {
         if (connection != null) {
             SseEventSink emitter = connection.getEventSink();
             try {
+
+                if (emitter.isClosed()) {
+                    log.info("Emitter already closed for fingerprint: {}", fingerPrint);
+                    removeClient(fingerPrint);
+                    cacheMessageInRedis(fingerPrint, correlationId, event);
+                    return;
+                }
+
                 emitter.send(sse.newEventBuilder().id(correlationId).data(String.class, event).build()).exceptionally(e -> {
                     log.error("Failed to send event to client. Fingerprint: {}, CorrelationId: {}", fingerPrint, correlationId, e);
                     cacheMessageInRedis(fingerPrint, correlationId, event);

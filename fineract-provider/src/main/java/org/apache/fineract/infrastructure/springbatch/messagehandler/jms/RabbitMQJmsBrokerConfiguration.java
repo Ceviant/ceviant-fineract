@@ -59,6 +59,7 @@ public class RabbitMQJmsBrokerConfiguration {
         connectionFactory.getRabbitConnectionFactory().setAutomaticRecoveryEnabled(true);
         connectionFactory.getRabbitConnectionFactory().setNetworkRecoveryInterval(5000);
         connectionFactory.getRabbitConnectionFactory().setRequestedHeartbeat(30);
+        connectionFactory.setVirtualHost(config.getBrokerVhost());
 
         return connectionFactory;
     }

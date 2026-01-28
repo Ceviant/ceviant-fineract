@@ -62,6 +62,9 @@ public class CommandWrapper implements Serializable {
     @Setter
     private boolean isRequestAsync = false;
 
+    @Setter
+    private String operation;
+
     @SuppressWarnings("unused")
     private Long templateId;
 

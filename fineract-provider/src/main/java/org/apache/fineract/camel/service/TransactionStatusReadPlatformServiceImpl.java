@@ -63,7 +63,7 @@ public class TransactionStatusReadPlatformServiceImpl implements TransactionStat
             LocalDateTime lastModifiedDate = rs.getTimestamp("last_modified_date").toLocalDateTime();
 
             return TransactionStatusTrackingData.builder().id(id).transactionId(transactionId).operation(operation)
-                    .status(TransactionStatus.valueOf(status)).errorMessage(errorMessage).createdDate(createdDate)
+                    .status(TransactionStatus.valueOf(status)).message(errorMessage).createdDate(createdDate)
                     .lastModifiedDate(lastModifiedDate).build();
         }
     }
