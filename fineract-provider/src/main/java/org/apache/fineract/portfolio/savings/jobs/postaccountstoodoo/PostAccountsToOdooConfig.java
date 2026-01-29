@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.savings.jobs.postTransactionsToOdoo.glaccounts;
+package org.apache.fineract.portfolio.savings.jobs.postaccountstoodoo;
 
 import org.apache.fineract.accounting.glaccount.domain.GLAccountRepository;
 import org.apache.fineract.infrastructure.jobs.service.JobName;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class OdooGLAccountsJobConfigurations {
+public class PostAccountsToOdooConfig {
 
     @Autowired
     private JobRepository jobRepository;
@@ -45,19 +45,19 @@ public class OdooGLAccountsJobConfigurations {
     private OdooApisPort odooApisPort;
 
     @Bean
-    protected Step generatePostAccountsToOdooScheduleStep() {
-        return new StepBuilder(JobName.POST_ACCOUNTS_TO_ODOO.name(), jobRepository).tasklet(postGLAccountsToOdoo(), transactionManager)
+    protected Step postAccountsToOdooStep() {
+        return new StepBuilder(JobName.POST_ACCOUNTS_TO_ODOO.name(), jobRepository).tasklet(postAccountsToOdooTasklet(), transactionManager)
                 .build();
     }
 
     @Bean
-    public Job postAccountsToOdooDetailsJob() {
-        return new JobBuilder(JobName.POST_ACCOUNTS_TO_ODOO.name(), jobRepository).start(generatePostAccountsToOdooScheduleStep())
+    public Job postAccountsToOdooJob() {
+        return new JobBuilder(JobName.POST_ACCOUNTS_TO_ODOO.name(), jobRepository).start(postAccountsToOdooStep())
                 .incrementer(new RunIdIncrementer()).build();
     }
 
     @Bean
-    public PostAccountsToOdooTasklet postGLAccountsToOdoo() {
+    public PostAccountsToOdooTasklet postAccountsToOdooTasklet() {
         return new PostAccountsToOdooTasklet(glAccountRepository, odooApisPort);
     }
 

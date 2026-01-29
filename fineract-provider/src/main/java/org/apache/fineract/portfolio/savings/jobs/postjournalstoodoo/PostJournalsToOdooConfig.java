@@ -1,4 +1,4 @@
-package org.apache.fineract.portfolio.savings.jobs.postTransactionsToOdoo;
+package org.apache.fineract.portfolio.savings.jobs.postjournalstoodoo;
 
 import org.apache.fineract.accounting.journalentry.domain.JournalEntryRepository;
 import org.apache.fineract.infrastructure.jobs.service.JobName;
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class OdooJobConfigurations {
+public class PostJournalsToOdooConfig {
 
     @Autowired
     private JobRepository jobRepository;
@@ -27,19 +27,19 @@ public class OdooJobConfigurations {
     private OdooApisPort odooApisPort;
 
     @Bean
-    protected Step generatePostJournalEntriesToOdooScheduleStep() {
-        return new StepBuilder(JobName.POST_TRANSACTIONS_TO_ODOO.name(), jobRepository).tasklet(postJournalEntriesToOdoo(), transactionManager)
+    protected Step postJournalsToOdooStep() {
+        return new StepBuilder(JobName.POST_TRANSACTIONS_TO_ODOO.name(), jobRepository).tasklet(postJournalsToOdooTasklet(), transactionManager)
                 .build();
     }
 
     @Bean
-    public Job postJournalEntriesToOdooDetailsJob() {
-        return new JobBuilder(JobName.POST_TRANSACTIONS_TO_ODOO.name(), jobRepository).start(generatePostJournalEntriesToOdooScheduleStep())
+    public Job postJournalsToOdooJob() {
+        return new JobBuilder(JobName.POST_TRANSACTIONS_TO_ODOO.name(), jobRepository).start(postJournalsToOdooStep())
                 .incrementer(new RunIdIncrementer()).build();
     }
 
     @Bean
-    public PostJournalsToOdooTasklet postJournalEntriesToOdoo() {
+    public PostJournalsToOdooTasklet postJournalsToOdooTasklet() {
         return new PostJournalsToOdooTasklet(journalEntryRepository, odooApisPort);
     }
 
