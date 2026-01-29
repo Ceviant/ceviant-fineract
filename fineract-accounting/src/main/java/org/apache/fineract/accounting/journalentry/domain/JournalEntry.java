@@ -161,4 +161,8 @@ public class JournalEntry extends AbstractAuditableWithUTCDateTimeCustom<Long> {
     public void setReversed(final boolean reversed) {
         this.reversed = reversed;
     }
+
+    public void addOdooRefId(String odooRefId) {
+        this.odooRefId = odooRefId;
+    }
 }

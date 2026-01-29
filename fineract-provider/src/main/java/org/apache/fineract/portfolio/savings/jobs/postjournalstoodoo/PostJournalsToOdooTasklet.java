@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.savings.jobs.postTransactionsToOdoo;
+package org.apache.fineract.portfolio.savings.jobs.postjournalstoodoo;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,8 +34,6 @@ import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
 import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
 import org.apache.fineract.infrastructure.odoo.model.TransactionEntry;
 import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -48,8 +46,6 @@ public class PostJournalsToOdooTasklet implements Tasklet {
     private final JournalEntryRepository glJournalEntryRepository;
 
     private final OdooApisPort odooApisPort;
-
-    private static final Logger log = LoggerFactory.getLogger(PostJournalsToOdooTasklet.class);
 
     String DATE_FORMATTER = "dd/MM/yyyy";
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMATTER);
@@ -111,7 +107,7 @@ public class PostJournalsToOdooTasklet implements Tasklet {
     }
 
     private void updateJournalWithOdooId(List<JournalEntry> accountJournals, SuccessResponse successResponse) {
-        accountJournals.stream().forEach(it -> it.setOdooRefId(successResponse.getData().getResponseId()));
+        accountJournals.stream().forEach(it -> it.addOdooRefId(successResponse.getData().getResponseId()));
         glJournalEntryRepository.saveAll(accountJournals);
     }
 

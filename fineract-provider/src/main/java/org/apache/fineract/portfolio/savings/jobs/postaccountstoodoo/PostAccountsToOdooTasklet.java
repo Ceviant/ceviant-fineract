@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.savings.jobs.postTransactionsToOdoo.glaccounts;
+package org.apache.fineract.portfolio.savings.jobs.postaccountstoodoo;
 
-import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
@@ -28,24 +27,19 @@ import org.apache.fineract.infrastructure.odoo.OdooApisPort;
 import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
 import org.apache.fineract.infrastructure.odoo.model.LedgerAccount;
 import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+
+import java.util.Collection;
 
 @Slf4j
 @RequiredArgsConstructor
 public class PostAccountsToOdooTasklet implements Tasklet {
 
     private final GLAccountRepository glAccountRepository;
-
     private final OdooApisPort odooApisPort;
-
-    private final GLAccountRepository glAccountRepository;
-
-    private static final Logger log = LoggerFactory.getLogger(PostAccountsToOdooTasklet.class);
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
