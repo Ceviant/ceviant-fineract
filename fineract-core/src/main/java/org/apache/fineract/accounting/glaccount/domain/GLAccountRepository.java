@@ -29,5 +29,5 @@ public interface GLAccountRepository extends JpaRepository<GLAccount, Long>, Jpa
     // adding behaviour to fetch id by glcode for opening balance bulk import
     Optional<GLAccount> findOneByGlCode(String glCode);
 
-    List<GLAccount> AndOdooRefIdIsNotNull();
+    List<GLAccount> findByOdooRefIdIsNull();
 }
