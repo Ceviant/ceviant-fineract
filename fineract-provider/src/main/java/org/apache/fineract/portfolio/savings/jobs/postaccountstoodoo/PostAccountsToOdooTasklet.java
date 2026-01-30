@@ -43,7 +43,7 @@ public class PostAccountsToOdooTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        final Collection<GLAccount> glAccounts = glAccountRepository.AndOdooRefIdIsNotNull();
+        final Collection<GLAccount> glAccounts = glAccountRepository.findByOdooRefIdIsNull();
 
         for (final GLAccount glAccount : glAccounts) {
             try {
