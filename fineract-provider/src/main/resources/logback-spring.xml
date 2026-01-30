@@ -32,6 +32,20 @@
         </encoder>
     </appender>
 
+    <!-- File appender with configurable defaults -->
+    <appender name="SAVE-TO-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE:-logs/spring.log}</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOGBACK_ROLLINGPOLICY_FILE_NAME_PATTERN:-${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz}</fileNamePattern>
+            <maxFileSize>${LOGBACK_ROLLINGPOLICY_MAX_FILE_SIZE:-10MB}</maxFileSize>
+            <maxHistory>${LOGBACK_ROLLINGPOLICY_MAX_HISTORY:-0}</maxHistory>
+            <totalSizeCap>${LOGBACK_ROLLINGPOLICY_TOTAL_SIZE_CAP:-0}</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
     <!-- But these three INFO are still handy ;-) just to see when it's up and running -->
     <logger name="org.springframework.boot.web.embedded.tomcat.TomcatWebServer" level="info"/>
     <logger name="org.apache.fineract.ServerApplication" level="info"/>
@@ -58,6 +72,7 @@
                  but it's still possible to override this using java -Dlogging.level.root=info -jar fineract-provider.jar, as per https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-custom-log-levels -->
             <root level="info">
                 <appender-ref ref="CONSOLE"/>
+                <appender-ref ref="SAVE-TO-FILE"/>
             </root>
         </else>
     </if>
