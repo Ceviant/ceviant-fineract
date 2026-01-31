@@ -34,13 +34,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 import okio.ByteString;
-import org.apache.fineract.infrastructure.odoo.model.ErrorResponse;
-import org.apache.fineract.infrastructure.odoo.model.ErrorResponseData;
-import org.apache.fineract.infrastructure.odoo.model.LedgerAccount;
-import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
-import org.apache.fineract.infrastructure.odoo.model.SuccessResponseData;
-import org.apache.fineract.infrastructure.odoo.model.TransactionEntry;
-import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
 
 /*
  * A JSON utility class
@@ -99,18 +92,18 @@ public class JSON {
         gsonBuilder.registerTypeAdapter(OffsetDateTime.class, offsetDateTimeTypeAdapter);
         gsonBuilder.registerTypeAdapter(LocalDate.class, localDateTypeAdapter);
         gsonBuilder.registerTypeAdapter(byte[].class, byteArrayAdapter);
-        gsonBuilder.registerTypeAdapterFactory(new ErrorResponse.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new org.apache.fineract.infrastructure.odoo.model.ErrorResponse.CustomTypeAdapterFactory());
         gsonBuilder
-                .registerTypeAdapterFactory(new ErrorResponseData.CustomTypeAdapterFactory());
-        gsonBuilder.registerTypeAdapterFactory(new LedgerAccount.CustomTypeAdapterFactory());
+                .registerTypeAdapterFactory(new org.apache.fineract.infrastructure.odoo.model.ErrorResponseData.CustomTypeAdapterFactory());
+        gsonBuilder.registerTypeAdapterFactory(new org.apache.fineract.infrastructure.odoo.model.LedgerAccount.CustomTypeAdapterFactory());
         gsonBuilder
-                .registerTypeAdapterFactory(new SuccessResponse.CustomTypeAdapterFactory());
+                .registerTypeAdapterFactory(new org.apache.fineract.infrastructure.odoo.model.SuccessResponse.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(
-                new SuccessResponseData.CustomTypeAdapterFactory());
+                new org.apache.fineract.infrastructure.odoo.model.SuccessResponseData.CustomTypeAdapterFactory());
         gsonBuilder
-                .registerTypeAdapterFactory(new TransactionEntry.CustomTypeAdapterFactory());
+                .registerTypeAdapterFactory(new org.apache.fineract.infrastructure.odoo.model.TransactionEntry.CustomTypeAdapterFactory());
         gsonBuilder.registerTypeAdapterFactory(
-                new TransactionRequest.CustomTypeAdapterFactory());
+                new org.apache.fineract.infrastructure.odoo.model.TransactionRequest.CustomTypeAdapterFactory());
         gson = gsonBuilder.create();
     }
 
