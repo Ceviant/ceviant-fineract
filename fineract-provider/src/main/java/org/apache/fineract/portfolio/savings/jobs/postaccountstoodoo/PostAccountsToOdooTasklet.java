@@ -19,15 +19,15 @@
 package org.apache.fineract.portfolio.savings.jobs.postaccountstoodoo;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.accounting.glaccount.domain.GLAccountRepository;
+import org.apache.fineract.accounting.glaccount.domain.GLAccountType;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
-import org.apache.fineract.infrastructure.odoo.OdooApisPort;
 import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
 import org.apache.fineract.infrastructure.odoo.logging.ApiLoggingInterceptor;
 import org.apache.fineract.infrastructure.odoo.model.LedgerAccount;
 import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
+import org.apache.fineract.infrastructure.odoo.port.OdooApisPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -51,8 +51,14 @@ public class PostAccountsToOdooTasklet implements Tasklet {
 
         for (final GLAccount glAccount : glAccounts) {
             try {
-                LedgerAccount ledgerAccount = new LedgerAccount(glAccount.getId().toString(), glAccount.getName(), glAccount.getGlCode());
-                SuccessResponse successResponse = odooApisPort.odooPostGlAccounts1(ledgerAccount);
+                LedgerAccount ledgerAccount = new LedgerAccount();
+                ledgerAccount.accountId(glAccount.getGlCode());
+                ledgerAccount.accountCode(glAccount.getId().toString());
+                ledgerAccount.accountName(glAccount.getName());
+                ledgerAccount.accountType(GLAccountType.fromInt(glAccount.getType()).name());
+                ledgerAccount.accountStatus(resolveStatus(glAccount.isDisabled()));
+
+                SuccessResponse successResponse = odooApisPort.odooPostGlAccount(ledgerAccount);
                 updateLedgerAccountWithOdooId(glAccount, successResponse);
             } catch (final PlatformApiDataValidationException | ApiException e) {
                 log.error(e.getMessage(), e);
@@ -65,5 +71,9 @@ public class PostAccountsToOdooTasklet implements Tasklet {
     private void updateLedgerAccountWithOdooId(GLAccount glAccount, SuccessResponse successResponse) {
         glAccount.setOdooRefId(successResponse.getData().getResponseId());
         glAccountRepository.save(glAccount);
+    }
+
+    public static String resolveStatus(boolean disabled) {
+        return disabled ? "inactive" : "active";
     }
 }

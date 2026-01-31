@@ -196,3 +196,7 @@ components:
           type: string
         account_name:
           type: string
+        account_type:
+          type: string
+        account_status:
+          type: string

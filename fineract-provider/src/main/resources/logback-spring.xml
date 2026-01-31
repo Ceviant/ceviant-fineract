@@ -68,7 +68,10 @@
     <!-- ODOO INTERCEPTOR LOG FILE APPENDER -->
     <!-- ============================= -->
 
-    <property name="LOG_PATH" value="./logs"/>
+    <!-- Pull value from application.properties -->
+    <springProperty name="LOG_PATH"
+                    source="odoo.logging.path"
+                    defaultValue="./logs"/>
 
     <appender name="ODOO_INTERCEPTOR_FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">

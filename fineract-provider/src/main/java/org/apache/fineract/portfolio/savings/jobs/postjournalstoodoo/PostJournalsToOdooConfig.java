@@ -2,7 +2,7 @@ package org.apache.fineract.portfolio.savings.jobs.postjournalstoodoo;
 
 import org.apache.fineract.accounting.journalentry.domain.JournalEntryRepository;
 import org.apache.fineract.infrastructure.jobs.service.JobName;
-import org.apache.fineract.infrastructure.odoo.OdooApisPort;
+import org.apache.fineract.infrastructure.odoo.port.OdooApisPort;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;

@@ -45,13 +45,15 @@ public class LedgerAccount {
     @SerializedName(SERIALIZED_NAME_ACCOUNT_NAME)
     private String accountName;
 
-    public LedgerAccount() {}
+    public static final String SERIALIZED_NAME_ACCOUNT_TYPE = "account_type";
+    @SerializedName(SERIALIZED_NAME_ACCOUNT_TYPE)
+    private String accountType;
 
-    public LedgerAccount(String accountId, String accountCode, String accountName) {
-        this.accountId = accountId;
-        this.accountCode = accountCode;
-        this.accountName = accountName;
-    }
+    public static final String SERIALIZED_NAME_ACCOUNT_STATUS = "account_status";
+    @SerializedName(SERIALIZED_NAME_ACCOUNT_STATUS)
+    private String accountStatus;
+
+    public LedgerAccount() {}
 
     public LedgerAccount accountId(String accountId) {
         this.accountId = accountId;
@@ -110,6 +112,44 @@ public class LedgerAccount {
         this.accountName = accountName;
     }
 
+    public LedgerAccount accountType(String accountType) {
+        this.accountType = accountType;
+        return this;
+    }
+
+    /**
+     * Get accountType
+     *
+     * @return accountType
+     **/
+    @javax.annotation.Nullable
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public LedgerAccount accountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
+        return this;
+    }
+
+    /**
+     * Get accountStatus
+     *
+     * @return accountStatus
+     **/
+    @javax.annotation.Nullable
+    public String getAccountStatus() {
+        return accountStatus;
+    }
+
+    public void setAccountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -120,12 +160,14 @@ public class LedgerAccount {
         }
         LedgerAccount ledgerAccount = (LedgerAccount) o;
         return Objects.equals(this.accountId, ledgerAccount.accountId) && Objects.equals(this.accountCode, ledgerAccount.accountCode)
-                && Objects.equals(this.accountName, ledgerAccount.accountName);
+                && Objects.equals(this.accountName, ledgerAccount.accountName)
+                && Objects.equals(this.accountType, ledgerAccount.accountType)
+                && Objects.equals(this.accountStatus, ledgerAccount.accountStatus);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(accountId, accountCode, accountName);
+        return Objects.hash(accountId, accountCode, accountName, accountType, accountStatus);
     }
 
     @Override
@@ -135,6 +177,8 @@ public class LedgerAccount {
         sb.append("    accountId: ").append(toIndentedString(accountId)).append("\n");
         sb.append("    accountCode: ").append(toIndentedString(accountCode)).append("\n");
         sb.append("    accountName: ").append(toIndentedString(accountName)).append("\n");
+        sb.append("    accountType: ").append(toIndentedString(accountType)).append("\n");
+        sb.append("    accountStatus: ").append(toIndentedString(accountStatus)).append("\n");
         sb.append("}");
         return sb.toString();
     }
@@ -158,6 +202,8 @@ public class LedgerAccount {
         openapiFields.add("account_id");
         openapiFields.add("account_code");
         openapiFields.add("account_name");
+        openapiFields.add("account_type");
+        openapiFields.add("account_status");
 
         // a set of required properties/fields (JSON key names)
         openapiRequiredFields = new HashSet<String>();
@@ -207,6 +253,18 @@ public class LedgerAccount {
             throw new IllegalArgumentException(
                     String.format("Expected the field `account_name` to be a primitive type in the JSON string but got `%s`",
                             jsonObj.get("account_name").toString()));
+        }
+        if ((jsonObj.get("account_type") != null && !jsonObj.get("account_type").isJsonNull())
+                && !jsonObj.get("account_type").isJsonPrimitive()) {
+            throw new IllegalArgumentException(
+                    String.format("Expected the field `account_type` to be a primitive type in the JSON string but got `%s`",
+                            jsonObj.get("account_type").toString()));
+        }
+        if ((jsonObj.get("account_status") != null && !jsonObj.get("account_status").isJsonNull())
+                && !jsonObj.get("account_status").isJsonPrimitive()) {
+            throw new IllegalArgumentException(
+                    String.format("Expected the field `account_status` to be a primitive type in the JSON string but got `%s`",
+                            jsonObj.get("account_status").toString()));
         }
     }
 
