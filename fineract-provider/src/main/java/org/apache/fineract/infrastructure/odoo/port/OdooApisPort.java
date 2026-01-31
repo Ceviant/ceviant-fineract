@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.odoo;
+package org.apache.fineract.infrastructure.odoo.port;
 
 import java.util.List;
 import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
@@ -26,12 +26,12 @@ import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
 
 public interface OdooApisPort {
 
-    SuccessResponse odooPostLedger1(TransactionRequest transactionRequest) throws ApiException;
+    SuccessResponse odooPostLedger(TransactionRequest transactionRequest) throws ApiException;
 
-    SuccessResponse odooPutLedger1(TransactionRequest transactionRequest) throws ApiException;
+    SuccessResponse odooPutLedger(TransactionRequest transactionRequest) throws ApiException;
 
-    List<LedgerAccount> odooGlAccounts1() throws ApiException;
+    List<LedgerAccount> odooGlAccounts() throws ApiException;
 
-    SuccessResponse odooPostGlAccounts1(LedgerAccount ledgerAccount) throws ApiException;
+    SuccessResponse odooPostGlAccount(LedgerAccount ledgerAccount) throws ApiException;
 
 }

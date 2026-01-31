@@ -24,17 +24,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.accounting.journalentry.domain.JournalEntry;
 import org.apache.fineract.accounting.journalentry.domain.JournalEntryRepository;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
-import org.apache.fineract.infrastructure.odoo.OdooApisPort;
 import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
 import org.apache.fineract.infrastructure.odoo.logging.ApiLoggingInterceptor;
 import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
 import org.apache.fineract.infrastructure.odoo.model.TransactionEntry;
 import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
+import org.apache.fineract.infrastructure.odoo.port.OdooApisPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -99,7 +98,7 @@ public class PostJournalsToOdooTasklet implements Tasklet {
                         transaction.getTransactionId(), transaction.getDescription(), transaction.getCurrencyCode(), DATE_FORMATTER,
                         credits, debits);
 
-                SuccessResponse successResponse = odooApisPort.odooPostLedger1(ledgerAccount);
+                SuccessResponse successResponse = odooApisPort.odooPostLedger(ledgerAccount);
                 updateJournalWithOdooId(transactionBatch, successResponse);
             } catch (final PlatformApiDataValidationException | ApiException e) {
                 log.error(e.getMessage(), e);
