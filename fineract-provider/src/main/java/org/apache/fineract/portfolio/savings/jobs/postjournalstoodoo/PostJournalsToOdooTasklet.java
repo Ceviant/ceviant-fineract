@@ -31,15 +31,17 @@ import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidati
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.odoo.OdooApisPort;
 import org.apache.fineract.infrastructure.odoo.invoker.ApiException;
+import org.apache.fineract.infrastructure.odoo.logging.ApiLoggingInterceptor;
 import org.apache.fineract.infrastructure.odoo.model.SuccessResponse;
 import org.apache.fineract.infrastructure.odoo.model.TransactionEntry;
 import org.apache.fineract.infrastructure.odoo.model.TransactionRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
-@Slf4j
 @RequiredArgsConstructor
 public class PostJournalsToOdooTasklet implements Tasklet {
 
@@ -49,6 +51,7 @@ public class PostJournalsToOdooTasklet implements Tasklet {
 
     String DATE_FORMATTER = "dd/MM/yyyy";
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMATTER);
+    private static final Logger log = LoggerFactory.getLogger(ApiLoggingInterceptor.class);
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
