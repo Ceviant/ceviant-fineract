@@ -103,6 +103,9 @@ public class JournalEntry extends AbstractAuditableWithUTCDateTimeCustom<Long> {
     @Column(name = "submitted_on_date", nullable = false)
     private LocalDate submittedOnDate;
 
+    @Column(name = "odoo_ref_id", nullable = true, length = 200)
+    private String odooRefId;
+
     protected JournalEntry() {
         //
     }
@@ -147,11 +150,19 @@ public class JournalEntry extends AbstractAuditableWithUTCDateTimeCustom<Long> {
         return JournalEntryType.DEBIT.getValue().equals(this.type);
     }
 
+    public boolean isCreditEntry() {
+        return JournalEntryType.CREDIT.getValue().equals(this.type);
+    }
+
     public void setReversalJournalEntry(final JournalEntry reversalJournalEntry) {
         this.reversalJournalEntry = reversalJournalEntry;
     }
 
     public void setReversed(final boolean reversed) {
         this.reversed = reversed;
+    }
+
+    public void addOdooRefId(String odooRefId) {
+        this.odooRefId = odooRefId;
     }
 }

@@ -137,7 +137,6 @@ dependencies {
     }
     implementation ('org.apache.activemq:activemq-client-jakarta') {
         exclude group: 'org.apache.geronimo.specs'
-        exclude group: 'javax.annotation', module: 'javax.annotation-api'
     }
     implementation ('org.springframework.boot:spring-boot-starter-data-jpa') {
         exclude group: 'org.hibernate'
@@ -224,6 +223,7 @@ dependencies {
             'org.apache.camel:camel-spring-rabbitmq:4.8.1',
             'org.apache.camel:camel-jms:4.8.1',
             )
+    implementation 'com.squareup.okhttp3:logging-interceptor'
 
     // testCompile dependencies are ONLY used in src/test, not src/main.
     // Do NOT repeat dependencies which are ALREADY in implementation or runtimeOnly!

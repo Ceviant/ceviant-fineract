@@ -83,6 +83,9 @@ public class GLAccount extends AbstractPersistableCustom<Long> {
     @JoinColumn(name = "tag_id")
     private CodeValue tagId;
 
+    @Column(name = "odoo_ref_id", nullable = true, length = 200)
+    private String odooRefId;
+
     public static GLAccount fromJson(final GLAccount parent, final JsonCommand command, final CodeValue glAccountTagType) {
         final String name = command.stringValueOfParameterNamed(GLAccountJsonInputParams.NAME.getValue());
         final String glCode = command.stringValueOfParameterNamed(GLAccountJsonInputParams.GL_CODE.getValue());
@@ -199,4 +202,5 @@ public class GLAccount extends AbstractPersistableCustom<Long> {
     public boolean isDetailAccount() {
         return GLAccountUsage.DETAIL.getValue().equals(this.usage);
     }
+
 }
