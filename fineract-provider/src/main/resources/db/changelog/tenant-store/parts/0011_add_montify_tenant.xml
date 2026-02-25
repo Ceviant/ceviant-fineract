@@ -31,6 +31,7 @@
             <column name="schema_username" value="postgres"/>
             <column name="schema_password" value="skdcnwauicn2ucnaecasdsajdnizucawencascdca"/>
             <column name="schema_connection_parameters" value=""/>
+            <column name="master_password_hash" value="$2a$10$LRBFbkif29NaKhw7x3GtPehEYUkjjW0htzyqrnG2QnqOvnYzI/SFu"/>
         </insert>
     </changeSet>
     <changeSet author="fineract" id="2">
