@@ -66,6 +66,16 @@ public class SavingsAccountRepositoryWrapper {
     }
 
     @Transactional
+    public SavingsAccount findOneLockedWithNotFoundDetection(final Long savingsId) {
+        final SavingsAccount account = this.repository.findOneLocked(savingsId);
+        if (account == null) {
+            throw new SavingsAccountNotFoundException(savingsId);
+        }
+        account.loadLazyCollections();
+        return account;
+    }
+
+    @Transactional
     public SavingsAccount findSavingsWithNotFoundDetection(final Long savingsId, final boolean backdatedTxnsAllowedTill) {
         SavingsAccount account = null;
         if (!backdatedTxnsAllowedTill) {
