@@ -857,7 +857,6 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
                 .build();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     @Retry(name = "undoTransactionWithReference", fallbackMethod = "fallbackUndoTransactionWithReference")
@@ -899,10 +898,6 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             throw new TransactionUndoNotAllowedException("Cannot partially reverse amount more than the original transaction amount",
                     transactionId);
         }
-        if (savingsAccountTransaction == null) {
-            throw new SavingsAccountTransactionNotFoundException(savingsId, transactionId);
-        }
-
         this.savingsAccountTransactionDataValidator.validateTransactionWithPivotDate(savingsAccountTransaction.getTransactionDate(),
                 account);
 
