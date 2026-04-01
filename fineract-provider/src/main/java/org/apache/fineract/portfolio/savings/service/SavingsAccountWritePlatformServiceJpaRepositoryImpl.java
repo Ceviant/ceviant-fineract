@@ -188,7 +188,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         this.savingsAccountTransactionDataValidator.validateActivation(command);
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
 
         checkClientOrGroupActive(account);
         final Set<Long> existingTransactionIds = new HashSet<>();
@@ -719,6 +719,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Retry(name = "reverseTransaction", fallbackMethod = "fallbackReverseTransaction")
     public CommandProcessingResult reverseTransaction(final Long savingsId, final Long transactionId,
             final boolean allowAccountTransferModification, final JsonCommand command) {
 
@@ -769,6 +771,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Retry(name = "undoTransaction", fallbackMethod = "fallbackUndoTransaction")
     public CommandProcessingResult undoTransaction(final Long savingsId, final Long transactionId,
             final boolean allowAccountTransferModification) {
 
@@ -855,6 +859,8 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+    @Retry(name = "undoTransactionWithReference", fallbackMethod = "fallbackUndoTransactionWithReference")
     public CommandProcessingResult undoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
             boolean allowAccountTransferModification, Boolean useRef) {
 
@@ -1008,7 +1014,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         final LocalDate today = DateUtils.getBusinessLocalDate();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
 
         if (account.isNotActive()) {
             throwValidationForActiveStatus(SavingsApiConstants.adjustTransactionAction);
@@ -1136,7 +1142,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult close(final Long savingsId, final JsonCommand command) {
         final AppUser user = this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         this.savingsAccountTransactionDataValidator.validateClosing(command, account);
 
         final boolean isLinkedWithAnyActiveLoan = this.accountAssociationsReadPlatformService.isLinkedWithAnyActiveAccount(savingsId);
@@ -1336,7 +1342,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         final Long savingsAccountId = command.getSavingsId();
         this.savingsAccountChargeDataValidator.validateAdd(command.json());
 
-        final SavingsAccount savingsAccount = this.savingAccountAssembler.assembleFromForUpdate(savingsAccountId);
+        final SavingsAccount savingsAccount = this.savingAccountAssembler.assembleFrom(savingsAccountId, false);
         checkClientOrGroupActive(savingsAccount);
 
         final Locale locale = command.extractLocale();
@@ -1405,7 +1411,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         // SavingsAccount Charge entity
         final Long savingsChargeId = command.entityId();
 
-        final SavingsAccount savingsAccount = this.savingAccountAssembler.assembleFromForUpdate(savingsAccountId);
+        final SavingsAccount savingsAccount = this.savingAccountAssembler.assembleFrom(savingsAccountId, false);
         checkClientOrGroupActive(savingsAccount);
 
         final SavingsAccountCharge savingsAccountCharge = this.savingsAccountChargeRepository.findOneWithNotFoundDetection(savingsChargeId,
@@ -1524,7 +1530,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
             @SuppressWarnings("unused") final JsonCommand command) {
         this.context.authenticatedUser();
 
-        final SavingsAccount savingsAccount = this.savingAccountAssembler.assembleFromForUpdate(savingsAccountId);
+        final SavingsAccount savingsAccount = this.savingAccountAssembler.assembleFrom(savingsAccountId, false);
         checkClientOrGroupActive(savingsAccount);
         final SavingsAccountCharge savingsAccountCharge = this.savingsAccountChargeRepository
                 .findOneWithNotFoundDetection(savingsAccountChargeId, savingsAccountId);
@@ -1619,6 +1625,24 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
         // NOTE: allow caller to catch the exceptions
         // NOTE: wrap throwable only if really necessary
         throw errorHandler.getMappable(t, null, null, "savings.postinterest");
+    }
+
+    @SuppressWarnings("unused")
+    public CommandProcessingResult fallbackReverseTransaction(final Long savingsId, final Long transactionId,
+            final boolean allowAccountTransferModification, final JsonCommand command, Throwable t) {
+        throw errorHandler.getMappable(t, null, null, "savings.reversetransaction");
+    }
+
+    @SuppressWarnings("unused")
+    public CommandProcessingResult fallbackUndoTransaction(final Long savingsId, final Long transactionId,
+            final boolean allowAccountTransferModification, Throwable t) {
+        throw errorHandler.getMappable(t, null, null, "savings.undotransaction");
+    }
+
+    @SuppressWarnings("unused")
+    public CommandProcessingResult fallbackUndoTransactionWithReference(Long savingsId, String transactionId, BigDecimal amount,
+            boolean allowAccountTransferModification, Boolean useRef, Throwable t) {
+        throw errorHandler.getMappable(t, null, null, "savings.undotransactionwithreference");
     }
 
     @Transactional
@@ -1870,7 +1894,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
     @Override
     public void setSubStatusInactive(Long savingsId) {
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         final Set<Long> existingTransactionIds = new HashSet<>();
         final Set<Long> existingReversedTransactionIds = new HashSet<>();
         updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
@@ -1881,14 +1905,14 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
     @Override
     public void setSubStatusDormant(Long savingsId) {
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         account.setSubStatusDormant();
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
     }
 
     @Override
     public void escheat(Long savingsId) {
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         final Set<Long> existingTransactionIds = new HashSet<>();
         final Set<Long> existingReversedTransactionIds = new HashSet<>();
         updateExistingTransactionsDetails(account, existingTransactionIds, existingReversedTransactionIds);
@@ -1933,7 +1957,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
 
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
 
         final Map<String, Object> changes = account.block();
@@ -1954,7 +1978,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult unblockAccount(final Long savingsId) {
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
 
         final Map<String, Object> changes = account.unblock();
@@ -2063,7 +2087,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult blockCredits(final Long savingsId, final JsonCommand command) {
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
 
         final String reasonForBlock = command.stringValueOfParameterNamed(SavingsApiConstants.reasonForBlockParamName);
@@ -2084,7 +2108,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult unblockCredits(final Long savingsId) {
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
         account.updateReason(null);
         final Map<String, Object> changes = account.unblockCredits();
@@ -2101,7 +2125,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult blockDebits(final Long savingsId, final JsonCommand command) {
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
 
         final String reasonForBlock = command.stringValueOfParameterNamed(SavingsApiConstants.reasonForBlockParamName);
@@ -2122,7 +2146,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult unblockDebits(final Long savingsId) {
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
 
         account.updateReason(null);
@@ -2141,7 +2165,7 @@ public class SavingsAccountWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult sanitizeRunningBalances(final Long savingsId) {
         this.context.authenticatedUser();
 
-        final SavingsAccount account = this.savingAccountAssembler.assembleFromForUpdate(savingsId);
+        final SavingsAccount account = this.savingAccountAssembler.assembleFrom(savingsId, false);
         checkClientOrGroupActive(account);
 
         account.updateReason("RUNNING_BALANCE_SANITISATION");
