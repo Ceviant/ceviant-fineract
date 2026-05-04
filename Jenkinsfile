@@ -1,4 +1,4 @@
-fineractK8sPipeline {
+fineractOciPipeline {
     serviceName = "fineract"
     deployToProd = false
     manualDeployToProd = true
