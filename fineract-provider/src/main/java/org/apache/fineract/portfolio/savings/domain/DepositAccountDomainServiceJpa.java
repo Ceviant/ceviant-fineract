@@ -27,7 +27,6 @@ import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -589,14 +588,16 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
     }
 
     private void updateAlreadyPostedTransactions(final Set<Long> existingTransactionIds, final SavingsAccount savingsAccount) {
-        List<SavingsAccountTransaction> transactions = savingsAccount.getTransactions();
-        int size = transactions.size();
-        for (int i = size - 1;; i--) {
-            SavingsAccountTransaction transaction = transactions.get(i);
-            if (transaction.isWithdrawal() || transaction.isWithdrawalFee()) {
+        // Any transaction that already has a persisted id at this point (e.g. the withdrawal/deposit pair
+        // created by the nested account transfer, or interest posted just before it) has already been flushed
+        // and journaled by that inner call. Marking only trailing withdrawal-type transactions as "existing"
+        // left earlier non-withdrawal transactions (such as pre-maturity interest postings) out of this set,
+        // causing them to be re-derived for journaling here before they were guaranteed to have an id -
+        // resulting in an NPE in AccountingProcessorHelper.populateSavingsDtoFromMap and, when it didn't NPE,
+        // duplicate journal entries.
+        for (final SavingsAccountTransaction transaction : savingsAccount.getTransactions()) {
+            if (transaction.getId() != null) {
                 existingTransactionIds.add(transaction.getId());
-            } else {
-                break;
             }
         }
     }
