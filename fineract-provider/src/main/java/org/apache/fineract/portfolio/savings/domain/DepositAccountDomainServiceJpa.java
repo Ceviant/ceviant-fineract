@@ -511,7 +511,11 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
         account.prematureClosure(user, command, changes);
 
-        this.savingsAccountRepository.save(account);
+        // Flush here (not just save) so any transaction added to the account but not yet persisted -
+        // e.g. the pre-maturity interest posting above - is guaranteed a DB-generated id before
+        // postJournalEntries() below derives the accounting bridge data from it. Without the flush,
+        // AccountingProcessorHelper.populateSavingsDtoFromMap() can NPE on a still-null transaction id.
+        this.savingsAccountRepository.saveAndFlush(account);
 
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
         return savingsTransactionId;
@@ -566,7 +570,8 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         }
 
         account.prematureClosure(user, command, changes);
-        this.savingsAccountRepository.save(account);
+        // See the comment on the equivalent call in handleFDAccountPreMatureClosure above.
+        this.savingsAccountRepository.saveAndFlush(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
         return savingsTransactionId;
     }
