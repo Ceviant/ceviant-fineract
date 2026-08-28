@@ -68,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DepositAccountDomainServiceJpa implements DepositAccountDomainService {
 
     private final SavingsAccountRepositoryWrapper savingsAccountRepository;
+    private final SavingsAccountTransactionRepository savingsAccountTransactionRepository;
     private final JournalEntryWritePlatformService journalEntryWritePlatformService;
     private final AccountNumberGenerator accountNumberGenerator;
     private final DepositAccountAssembler depositAccountAssembler;
@@ -79,6 +80,7 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
     @Autowired
     public DepositAccountDomainServiceJpa(final SavingsAccountRepositoryWrapper savingsAccountRepository,
+            final SavingsAccountTransactionRepository savingsAccountTransactionRepository,
             final JournalEntryWritePlatformService journalEntryWritePlatformService, final AccountNumberGenerator accountNumberGenerator,
             final DepositAccountAssembler depositAccountAssembler, final SavingsAccountDomainService savingsAccountDomainService,
             final AccountTransfersWritePlatformService accountTransfersWritePlatformService,
@@ -86,6 +88,7 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
             final AccountNumberFormatRepositoryWrapper accountNumberFormatRepository,
             final CalendarInstanceRepository calendarInstanceRepository) {
         this.savingsAccountRepository = savingsAccountRepository;
+        this.savingsAccountTransactionRepository = savingsAccountTransactionRepository;
         this.journalEntryWritePlatformService = journalEntryWritePlatformService;
         this.accountNumberGenerator = accountNumberGenerator;
         this.depositAccountAssembler = depositAccountAssembler;
@@ -511,11 +514,14 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
 
         account.prematureClosure(user, command, changes);
 
-        // Flush here (not just save) so any transaction added to the account but not yet persisted -
-        // e.g. the pre-maturity interest posting above - is guaranteed a DB-generated id before
-        // postJournalEntries() below derives the accounting bridge data from it. Without the flush,
-        // AccountingProcessorHelper.populateSavingsDtoFromMap() can NPE on a still-null transaction id.
-        this.savingsAccountRepository.saveAndFlush(account);
+        this.savingsAccountRepository.save(account);
+
+        // account.transactions is a @Transient field - persistence for SavingsAccountTransaction is entirely
+        // manual, never cascaded from the account. postPreMaturityInterest() above can add a new interest
+        // posting transaction straight to that in-memory list without ever saving it, so without this it can
+        // still have a null id when postJournalEntries() below derives the accounting bridge data from it,
+        // causing an NPE in AccountingProcessorHelper.populateSavingsDtoFromMap().
+        persistPendingTransactions(account);
 
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
         return savingsTransactionId;
@@ -570,8 +576,9 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         }
 
         account.prematureClosure(user, command, changes);
+        this.savingsAccountRepository.save(account);
         // See the comment on the equivalent call in handleFDAccountPreMatureClosure above.
-        this.savingsAccountRepository.saveAndFlush(account);
+        persistPendingTransactions(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds, isAccountTransfer);
         return savingsTransactionId;
     }
@@ -590,6 +597,19 @@ public class DepositAccountDomainServiceJpa implements DepositAccountDomainServi
         final Map<String, Object> accountingBridgeData = savingsAccount.deriveAccountingBridgeData(savingsAccount.getCurrency().getCode(),
                 existingTransactionIds, existingReversedTransactionIds, isAccountTransfer, backdatedTxnsAllowedTill);
         this.journalEntryWritePlatformService.createJournalEntriesForSavings(accountingBridgeData);
+    }
+
+    private void persistPendingTransactions(final SavingsAccount account) {
+        boolean flushNeeded = false;
+        for (final SavingsAccountTransaction transaction : account.getTransactions()) {
+            if (transaction.getId() == null) {
+                this.savingsAccountTransactionRepository.save(transaction);
+                flushNeeded = true;
+            }
+        }
+        if (flushNeeded) {
+            this.savingsAccountTransactionRepository.flush();
+        }
     }
 
     private void updateAlreadyPostedTransactions(final Set<Long> existingTransactionIds, final SavingsAccount savingsAccount) {
