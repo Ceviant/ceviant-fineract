@@ -169,4 +169,5 @@
     <include file="parts/0148_modify_report_fixed_validation.xml" relativeToChangelogFile="true" />
     <include file="parts/0150_add_status_tracking_table.xml" relativeToChangelogFile="true" />
     <include file="parts/0152_odoo_post_accounts_job.xml" relativeToChangelogFile="true" />
+    <include file="parts/0153_seed_gender_country_state_code_values.xml" relativeToChangelogFile="true" />
 </databaseChangeLog>
