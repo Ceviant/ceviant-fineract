@@ -1325,6 +1325,16 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
                         defaultUserMessage, account.clientId());
             }
 
+            // updateMaturityStatus() can add a withhold-tax (and interest posting) transaction to the account's
+            // @Transient transaction list without saving it. handleFDAccountMaturityClosure() below snapshots
+            // findExistingTransactionIds() - which includes a null for each unsaved transaction - so it silently
+            // skips journaling them, and the final postJournalEntries() here then NPEs on the null id in
+            // AccountingProcessorHelper.populateSavingsDtoFromMap(), rolling back the whole maturity. Persist and
+            // journal them now, before the maturity instructions run, and treat them as posted from here on.
+            persistPendingTransactions(account);
+            postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds);
+            markPersistedTransactionsAsPosted(account, existingTransactionIds, existingReversedTransactionIds);
+
             if (fdAccount.isMatured() && (fdAccount.isReinvestOnClosure() || fdAccount.isTransferToSavingsOnClosure())) {
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 Map<String, Object> changes = new HashMap<>();
@@ -1332,6 +1342,8 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
                 Long toSavingsId = fdAccount.getTransferToSavingsAccountId();
                 this.depositAccountDomainService.handleFDAccountMaturityClosure(fdAccount, null, user, fmt, fdAccount.maturityDate(),
                         fdAccount.getOnAccountClosureId(), toSavingsId, "Apply maturity instructions", changes);
+                // Everything handleFDAccountMaturityClosure() persisted has already been journaled by it.
+                markPersistedTransactionsAsPosted(account, existingTransactionIds, existingReversedTransactionIds);
 
                 if (changes.get("reinvestedDepositId") != null) {
 
@@ -1355,7 +1367,33 @@ public class DepositAccountWritePlatformServiceJpaRepositoryImpl implements Depo
                     financialYearBeginningMonth, postReversals);
         }
         this.savingAccountRepositoryWrapper.saveAndFlush(account);
+        persistPendingTransactions(account);
         postJournalEntries(account, existingTransactionIds, existingReversedTransactionIds);
+    }
+
+    private void persistPendingTransactions(final SavingsAccount account) {
+        boolean flushNeeded = false;
+        for (final SavingsAccountTransaction transaction : account.getTransactions()) {
+            if (transaction.getId() == null) {
+                this.savingsAccountTransactionRepository.save(transaction);
+                flushNeeded = true;
+            }
+        }
+        if (flushNeeded) {
+            this.savingsAccountTransactionRepository.flush();
+        }
+    }
+
+    private void markPersistedTransactionsAsPosted(final SavingsAccount account, final Set<Long> existingTransactionIds,
+            final Set<Long> existingReversedTransactionIds) {
+        for (final SavingsAccountTransaction transaction : account.getTransactions()) {
+            if (transaction.getId() != null) {
+                existingTransactionIds.add(transaction.getId());
+                if (transaction.isReversed()) {
+                    existingReversedTransactionIds.add(transaction.getId());
+                }
+            }
+        }
     }
 
     private Money calculateBalance(FixedDepositAccount account) {

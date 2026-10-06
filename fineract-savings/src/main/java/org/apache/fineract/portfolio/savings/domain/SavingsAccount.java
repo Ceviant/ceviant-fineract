@@ -68,6 +68,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
@@ -3514,11 +3515,16 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             final boolean backdatedTxnsAllowedTill) {
         final List<SavingsAccountTransaction> withholdTransactions = findWithHoldTransactions();
         SavingsAccountTransaction withholdTransaction = findTransactionFor(interestPostingUpToDate, withholdTransactions);
-        final BigDecimal totalInterestPosted = this.savingsAccountTransactionSummaryWrapper.calculateTotalInterestPosted(this.currency,
-                this.transactions);
-        if (withholdTransaction == null && this.withHoldTax()) {
-            boolean isWithholdTaxAdded = createWithHoldTransaction(totalInterestPosted, interestPostingUpToDate, backdatedTxnsAllowedTill);
-            recalucateDailyBalance = recalucateDailyBalance || isWithholdTaxAdded;
+        // calculateTotalInterestPosted() returns null rather than zero when no interest has been posted
+        final BigDecimal totalInterestPosted = Objects.requireNonNullElse(
+                this.savingsAccountTransactionSummaryWrapper.calculateTotalInterestPosted(this.currency, this.transactions),
+                BigDecimal.ZERO);
+        if (withholdTransaction == null) {
+            if (this.withHoldTax()) {
+                boolean isWithholdTaxAdded = createWithHoldTransaction(totalInterestPosted, interestPostingUpToDate,
+                        backdatedTxnsAllowedTill);
+                recalucateDailyBalance = recalucateDailyBalance || isWithholdTaxAdded;
+            }
         } else {
             boolean isWithholdTaxAdded = updateWithHoldTransaction(totalInterestPosted, withholdTransaction);
             recalucateDailyBalance = recalucateDailyBalance || isWithholdTaxAdded;
