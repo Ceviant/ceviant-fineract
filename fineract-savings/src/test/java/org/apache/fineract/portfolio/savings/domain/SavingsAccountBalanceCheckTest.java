@@ -69,8 +69,10 @@ class SavingsAccountBalanceCheckTest {
         moneyHelper.close();
     }
 
+    /** As SavingsAccountAssembler's limited fetch leaves it: the balance before them, then the transactions since. */
     private void loadedWithPivotBalance(final String balance, final SavingsAccountTransaction... transactions) {
         account.summary.setRunningBalanceOnPivotDate(new BigDecimal(balance));
+        account.markLoadedWithLimitedTransactions();
         account.setTransactions(new ArrayList<>(List.of(transactions)));
     }
 
@@ -118,6 +120,17 @@ class SavingsAccountBalanceCheckTest {
 
         loadedWithPivotBalance("0", debit("1"));
         assertThatThrownBy(() -> account.validateAccountBalanceDoesNotBecomeNegative(new BigDecimal("1"), false, null, false))
+                .isInstanceOf(InsufficientAccountBalanceException.class);
+    }
+
+    /** Loaded in full, its transactions already include what the pivot balance sums up, so it is not added again. */
+    @Test
+    void anAccountLoadedInFullIgnoresAPivotBalanceSetByAnotherLoader() {
+        account.summary.setRunningBalanceOnPivotDate(new BigDecimal("500000"));
+        account.setTransactions(new ArrayList<>(List.of(debit("600000"))));
+
+        assertThat(account.openingBalanceForBalanceCheck(false).getAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThatThrownBy(() -> account.validateAccountBalanceDoesNotBecomeNegative(new BigDecimal("600000"), false, null, false))
                 .isInstanceOf(InsufficientAccountBalanceException.class);
     }
 

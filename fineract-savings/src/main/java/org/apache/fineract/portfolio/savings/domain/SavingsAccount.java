@@ -1538,16 +1538,14 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     }
 
     /**
-     * The running balance a balance check starts from: the balance before the earliest transaction loaded, as the
-     * loader recorded it. It is transient and zero unless the account was loaded with only part of its transactions.
+     * The running balance a balance check starts from: with backdated transactions, the balance on the pivot date; for
+     * an account loaded with only its latest transactions, the balance before them; otherwise zero, every transaction
+     * having been loaded. Only an account marked by {@link #markLoadedWithLimitedTransactions} takes the pivot balance
+     * without backdating, so one loaded in full is never given it on top of the transactions it already counts.
      */
     Money openingBalanceForBalanceCheck(final boolean backdatedTxnsAllowedTill) {
-        final BigDecimal pivotBalance = this.summary.getRunningBalanceOnPivotDate();
-        if (pivotBalance == null) {
-            return Money.zero(this.currency);
-        }
-        if (backdatedTxnsAllowedTill || pivotBalance.compareTo(BigDecimal.ZERO) != 0) {
-            return Money.of(this.currency, pivotBalance);
+        if (backdatedTxnsAllowedTill || this.loadedTransactionIds != null) {
+            return Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
         }
         return Money.zero(this.currency);
     }
