@@ -90,6 +90,64 @@ public final class SavingsAccountSummary {
         //
     }
 
+    /** A copy of the totals as stored, before any transaction of this unit of work. */
+    SavingsAccountSummary copyOfTotals() {
+        final SavingsAccountSummary copy = new SavingsAccountSummary();
+        copy.totalDeposits = this.totalDeposits;
+        copy.totalWithdrawals = this.totalWithdrawals;
+        copy.totalInterestPosted = this.totalInterestPosted;
+        copy.totalWithdrawalFees = this.totalWithdrawalFees;
+        copy.totalAnnualFees = this.totalAnnualFees;
+        copy.totalFeeCharge = this.totalFeeCharge;
+        copy.totalPenaltyCharge = this.totalPenaltyCharge;
+        copy.totalFeeChargesWaived = this.totalFeeChargesWaived;
+        copy.totalPenaltyChargesWaived = this.totalPenaltyChargesWaived;
+        copy.totalOverdraftInterestDerived = this.totalOverdraftInterestDerived;
+        copy.totalWithholdTax = this.totalWithholdTax;
+        copy.accountBalance = this.accountBalance;
+        return copy;
+    }
+
+    /**
+     * Updates the summary of an account loaded with only its latest transactions: the totals as stored before this
+     * unit of work plus those of the transactions added in it. Recomputing the totals from the loaded transactions
+     * alone, as {@link #updateSummary} does, would drop everything before them.
+     */
+    public void updateSummaryFromTotals(final MonetaryCurrency currency, final SavingsAccountTransactionSummaryWrapper wrapper,
+            final SavingsAccountSummary totalsBefore, final List<SavingsAccountTransaction> loadedTransactions,
+            final List<SavingsAccountTransaction> addedTransactions) {
+
+        this.totalDeposits = plus(currency, totalsBefore.totalDeposits, wrapper.calculateTotalDeposits(currency, addedTransactions));
+        this.totalWithdrawals = plus(currency, totalsBefore.totalWithdrawals,
+                wrapper.calculateTotalWithdrawals(currency, addedTransactions));
+        this.totalInterestPosted = plus(currency, totalsBefore.totalInterestPosted,
+                wrapper.calculateTotalInterestPosted(currency, addedTransactions));
+        this.totalWithdrawalFees = plus(currency, totalsBefore.totalWithdrawalFees,
+                wrapper.calculateTotalWithdrawalFees(currency, addedTransactions));
+        this.totalAnnualFees = plus(currency, totalsBefore.totalAnnualFees, wrapper.calculateTotalAnnualFees(currency, addedTransactions));
+        this.totalFeeCharge = plus(currency, totalsBefore.totalFeeCharge, wrapper.calculateTotalFeesCharge(currency, addedTransactions));
+        this.totalPenaltyCharge = plus(currency, totalsBefore.totalPenaltyCharge,
+                wrapper.calculateTotalPenaltyCharge(currency, addedTransactions));
+        this.totalFeeChargesWaived = plus(currency, totalsBefore.totalFeeChargesWaived,
+                wrapper.calculateTotalFeesChargeWaived(currency, addedTransactions));
+        this.totalPenaltyChargesWaived = plus(currency, totalsBefore.totalPenaltyChargesWaived,
+                wrapper.calculateTotalPenaltyChargeWaived(currency, addedTransactions));
+        this.totalOverdraftInterestDerived = plus(currency, totalsBefore.totalOverdraftInterestDerived,
+                wrapper.calculateTotalOverdraftInterest(currency, addedTransactions));
+        this.totalWithholdTax = plus(currency, totalsBefore.totalWithholdTax,
+                wrapper.calculateTotalWithholdTaxWithdrawal(currency, addedTransactions));
+
+        updateRunningBalanceAndPivotDate(false, loadedTransactions, null, null, null, currency);
+
+        this.accountBalance = Money.of(currency, this.totalDeposits).plus(this.totalInterestPosted).minus(this.totalWithdrawals)
+                .minus(this.totalWithdrawalFees).minus(this.totalAnnualFees).minus(this.totalFeeCharge).minus(this.totalPenaltyCharge)
+                .minus(totalOverdraftInterestDerived).minus(totalWithholdTax).getAmount();
+    }
+
+    private static BigDecimal plus(final MonetaryCurrency currency, final BigDecimal before, final BigDecimal added) {
+        return Money.of(currency, before).plus(Money.of(currency, added)).getAmount();
+    }
+
     public void updateSummary(final MonetaryCurrency currency, final SavingsAccountTransactionSummaryWrapper wrapper,
             final List<SavingsAccountTransaction> transactions) {
 
