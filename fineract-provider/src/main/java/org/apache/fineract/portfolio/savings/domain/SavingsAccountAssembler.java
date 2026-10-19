@@ -466,6 +466,8 @@ public class SavingsAccountAssembler {
             if (!savingsAccountTransactions.isEmpty()) {
                 account.setTransactions(savingsAccountTransactions);
             }
+            // Only the latest transactions are loaded, so the summary must build on the stored totals.
+            account.markLoadedWithLimitedTransactions();
         }
 
         account.setHelpers(this.savingsAccountTransactionSummaryWrapper, this.savingsHelper);

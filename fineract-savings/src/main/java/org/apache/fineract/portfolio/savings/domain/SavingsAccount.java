@@ -304,6 +304,13 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
     @Embedded
     protected SavingsAccountSummary summary;
 
+    /** Set when only the latest transactions were loaded: the stored totals, and which transactions were loaded. */
+    @Transient
+    private SavingsAccountSummary totalsBeforeLoadedTransactions;
+
+    @Transient
+    private Set<Long> loadedTransactionIds;
+
     @Transient
     protected List<SavingsAccountTransaction> transactions = new ArrayList<>();
 
@@ -467,6 +474,35 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
 
     public void setTransactions(final List<SavingsAccountTransaction> savingsAccountTransactions) {
         this.transactions.addAll(savingsAccountTransactions);
+    }
+
+    /**
+     * Records that only the latest transactions were loaded (SavingsAccountAssembler's limited fetch), so the summary
+     * is updated from the stored totals and the transactions added since, not recomputed from those loaded.
+     */
+    public void markLoadedWithLimitedTransactions() {
+        this.totalsBeforeLoadedTransactions = this.summary.copyOfTotals();
+        this.loadedTransactionIds = new HashSet<>();
+        for (final SavingsAccountTransaction transaction : this.transactions) {
+            if (transaction.getId() != null) {
+                this.loadedTransactionIds.add(transaction.getId());
+            }
+        }
+    }
+
+    void updateSummaryFromTransactions() {
+        if (this.loadedTransactionIds == null) {
+            this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+            return;
+        }
+        final List<SavingsAccountTransaction> added = new ArrayList<>();
+        for (final SavingsAccountTransaction transaction : this.transactions) {
+            if (transaction.getId() == null || !this.loadedTransactionIds.contains(transaction.getId())) {
+                added.add(transaction);
+            }
+        }
+        this.summary.updateSummaryFromTotals(this.currency, this.savingsAccountTransactionSummaryWrapper,
+                this.totalsBeforeLoadedTransactions, this.transactions, added);
     }
 
     public void resetTransactions() {
@@ -652,7 +688,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         }
 
         if (!backdatedTxnsAllowedTill) {
-            this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+            updateSummaryFromTransactions();
         } else {
             this.summary.updateSummaryWithPivotConfig(this.currency, this.savingsAccountTransactionSummaryWrapper, null,
                     this.savingsAccountTransactions);
@@ -687,7 +723,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         }
 
         if (!backdatedTxnsAllowedTill) {
-            this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+            updateSummaryFromTransactions();
         } else {
             this.summary.updateSummaryWithPivotConfig(this.currency, this.savingsAccountTransactionSummaryWrapper, null,
                     this.savingsAccountTransactions);
@@ -979,7 +1015,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             this.summary.updateSummaryWithPivotConfig(this.currency, this.savingsAccountTransactionSummaryWrapper, null,
                     this.savingsAccountTransactions);
         } else {
-            this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+            updateSummaryFromTransactions();
         }
 
         return allPostingPeriods;
@@ -3553,7 +3589,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         }
         boolean postReversals = false;
         recalculateDailyBalances(Money.zero(this.currency), transactionDate, backdatedTxnsAllowedTill, postReversals);
-        this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+        updateSummaryFromTransactions();
     }
 
     public void setSubStatusDormant() {
@@ -3573,7 +3609,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             this.transactions.add(transaction);
         }
         recalculateDailyBalances(Money.zero(this.currency), transactionDate, false, postReversals);
-        this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
+        updateSummaryFromTransactions();
     }
 
     public void loadLazyCollections() {
