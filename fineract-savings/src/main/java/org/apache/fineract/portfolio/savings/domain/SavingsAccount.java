@@ -1502,6 +1502,21 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         return transactionBeforeLastInterestPosting;
     }
 
+    /**
+     * The running balance a balance check starts from: the balance before the earliest transaction loaded, as the
+     * loader recorded it. It is transient and zero unless the account was loaded with only part of its transactions.
+     */
+    Money openingBalanceForBalanceCheck(final boolean backdatedTxnsAllowedTill) {
+        final BigDecimal pivotBalance = this.summary.getRunningBalanceOnPivotDate();
+        if (pivotBalance == null) {
+            return Money.zero(this.currency);
+        }
+        if (backdatedTxnsAllowedTill || pivotBalance.compareTo(BigDecimal.ZERO) != 0) {
+            return Money.of(this.currency, pivotBalance);
+        }
+        return Money.zero(this.currency);
+    }
+
     public void validateAccountBalanceDoesNotBecomeNegative(final BigDecimal transactionAmount, final boolean isException,
             final List<DepositAccountOnHoldTransaction> depositAccountOnHoldTransactions, final boolean backdatedTxnsAllowedTill) {
 
@@ -1513,10 +1528,12 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             transactionsSortedByDate = retrieveListOfTransactions();
         }
 
-        Money runningBalance = Money.zero(this.currency);
-        if (backdatedTxnsAllowedTill) {
-            runningBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
-        }
+        // The balance before the first transaction loaded. With backdated transactions it is the balance on the
+        // pivot date; otherwise it is the balance before the transactions SavingsAccountAssembler's limited fetch
+        // loaded (zero when the account was loaded with all its transactions). Starting from zero there instead
+        // left out everything before the last transaction or two, so a funded account was refused a withdrawal or
+        // transfer, e.g. activating a fixed deposit from its linked savings account.
+        Money runningBalance = openingBalanceForBalanceCheck(backdatedTxnsAllowedTill);
 
         Money minRequiredBalance = minRequiredBalanceDerived(getCurrency());
         LocalDate lastSavingsDate = null;
@@ -1597,11 +1614,7 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
         } else {
             transactionsSortedByDate = retrieveListOfTransactions();
         }
-        Money runningBalance = Money.zero(this.currency);
-
-        if (backdatedTxnsAllowedTill) {
-            runningBalance = Money.of(this.currency, this.summary.getRunningBalanceOnPivotDate());
-        }
+        Money runningBalance = openingBalanceForBalanceCheck(backdatedTxnsAllowedTill);
 
         Money minRequiredBalance = minRequiredBalanceDerived(getCurrency());
         LocalDate lastSavingsDate = null;
