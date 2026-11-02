@@ -2672,6 +2672,11 @@
         </insert>
     </changeSet>
     <changeSet author="fineract" id="3-postgresql" context="postgresql">
+        <!-- Edited after first running against cfh/montify to drop the topic/topic_subscriber resets:
+             those tables are dropped unconditionally a few changesets later (0013_remove_topics.xml), so
+             resetting their sequences here fails with "relation does not exist" for any tenant (e.g.
+             payments) whose history already reached that drop before this changeset runs. -->
+        <validCheckSum>ANY</validCheckSum>
         <sql>
             SELECT SETVAL('c_cache_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_cache;
             SELECT SETVAL('c_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM c_configuration;
@@ -2705,8 +2710,6 @@
             SELECT SETVAL('ref_loan_transaction_processing_strategy_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM ref_loan_transaction_processing_strategy;
             SELECT SETVAL('scheduled_email_configuration_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduled_email_configuration;
             SELECT SETVAL('scheduler_detail_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM scheduler_detail;
-            SELECT SETVAL('topic_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic;
-            SELECT SETVAL('topic_subscriber_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM topic_subscriber;
             SELECT SETVAL('stretchy_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_parameter;
             SELECT SETVAL('stretchy_report_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report;
             SELECT SETVAL('stretchy_report_parameter_id_seq', COALESCE(MAX(id), 0)+1, false ) FROM stretchy_report_parameter;
