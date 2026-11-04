@@ -60,11 +60,16 @@ public interface SavingsAccountTransactionRepository
     List<SavingsAccountTransaction> findByUniqueTransactionReference(
             @Param("uniqueTransactionReference") String uniqueTransactionReference);
 
-    @Query("SELECT sat FROM SavingsAccountTransaction sat WHERE sat.savingsAccount.id = :savingsId and sat.reversalTransaction <> 1 and sat.reversed <> 1 order by sat.id DESC")
+    // Latest transactions in running-balance order (date, created, id), not by id alone: a backdated
+    // transaction can have the highest id while not being the last row in the balance chain.
+    @Query("SELECT sat FROM SavingsAccountTransaction sat WHERE sat.savingsAccount.id = :savingsId and sat.reversalTransaction <> 1 and sat.reversed <> 1 order by sat.dateOf DESC, sat.createdDate DESC, sat.id DESC")
     List<SavingsAccountTransaction> getLimitedTransactionsBySavingsAccount(@Param("savingsId") Long savingsId, Pageable pageable);
 
+    // Pivot for a backdated transaction: the last row strictly BEFORE the date. Rows on the date itself are
+    // re-applied by findTransactionsAfterPivotDate (dateOf >= date), so including them here counts them twice
+    // and inflates the stored running balance.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select st from SavingsAccountTransaction st where st.savingsAccount = :savingsAccount and st.dateOf <= :date and st.reversalTransaction <> 1 and st.reversed <> 1 order by st.id DESC")
+    @Query("select st from SavingsAccountTransaction st where st.savingsAccount = :savingsAccount and st.dateOf < :date and st.reversalTransaction <> 1 and st.reversed <> 1 order by st.dateOf DESC, st.createdDate DESC, st.id DESC")
     List<SavingsAccountTransaction> findLimitedTransactionRunningBalanceBeforeDate(@Param("savingsAccount") SavingsAccount savingsAccount,
                                                                                  @Param("date") LocalDate date, Pageable pageable);
 

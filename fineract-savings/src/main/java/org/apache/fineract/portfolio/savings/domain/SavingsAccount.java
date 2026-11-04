@@ -1571,6 +1571,15 @@ public class SavingsAccount extends AbstractAuditableWithUTCDateTimeCustom<Long>
             }
         }
 
+        // With the pivot config only the latest rows are loaded and the check above starts from a stored
+        // running balance. If that stored value is wrong the check passes, so also check the account balance,
+        // which already includes this debit.
+        if (backdatedTxnsAllowedTill && !isException && !isOverdraft()) {
+            if (this.summary.getAccountBalance(this.currency).minus(minRequiredBalanceDerived(getCurrency())).isLessThanZero()) {
+                throw new InsufficientAccountBalanceException("transactionAmount", getAccountBalance(), withdrawalFee, transactionAmount);
+            }
+        }
+
         if (this.getSavingsHoldAmount().compareTo(BigDecimal.ZERO) > 0) {
             if (this.enforceMinRequiredBalance) {
                 if (runningBalance.minus(minRequiredBalance.plus(this.getSavingsHoldAmount())).isLessThanZero()) {
